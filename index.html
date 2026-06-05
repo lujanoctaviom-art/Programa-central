@@ -892,6 +892,40 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-mantenimiento">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--azul)">🛠 Cargar Arreglo / Service</span>
+      <button class="modal-cerrar" onclick="cerrarModalMantenimiento()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mant-id-movil">
+      <div class="form-grid">
+        <div class="form-grupo">
+          <label>Fecha del arreglo</label>
+          <input type="date" id="mant-fecha">
+        </div>
+        <div class="form-grupo">
+          <label>KM al momento del arreglo</label>
+          <input type="number" id="mant-km">
+        </div>
+        <div class="form-grupo full">
+          <label>Detalle del trabajo</label>
+          <input type="text" id="mant-detalle" placeholder="Ej: Cambio de aceite, filtros y revisión de frenos">
+        </div>
+        <div class="form-grupo full">
+          <label>Costo / Taller proveedor (Opcional)</label>
+          <input type="text" id="mant-costo" placeholder="Ej: $150.000 - Taller Juan">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalMantenimiento()">Cancelar</button>
+      <button class="btn-guardar btn-azul" onclick="guardarMantenimiento()">Guardar Registro</button>
+    </div>
+  </div>
+</div>
+
 <div id="pdf-container"></div>
 <div class="toast" id="toast"></div>
 
@@ -947,18 +981,19 @@ if (!personal || personal.length === 0) {
 let moviles = JSON.parse(localStorage.getItem('bom_moviles'));
 if (!moviles || moviles.length === 0) {
   moviles = [
-    { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [] },
-    { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [] },
-    { id: 3, nombre: 'UT-1 — Utilitario', km: 24000, caracteristicas: '', alarmasKm: [], alarmasFecha: [] }
+    { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
+    { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
+    { id: 3, nombre: 'UT-1 — Utilitario', km: 24000, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }
   ];
 } else {
   if (typeof moviles[0] === 'string') {
-    moviles = moviles.map((m, i) => ({ id: i+1, nombre: m, km: 0, caracteristicas: '', alarmasKm: [], alarmasFecha: [] }));
+    moviles = moviles.map((m, i) => ({ id: i+1, nombre: m, km: 0, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }));
   } else {
     moviles = moviles.map(m => {
       if(typeof m.caracteristicas === 'undefined') m.caracteristicas = '';
       if(typeof m.alarmasKm === 'undefined') m.alarmasKm = [];
       if(typeof m.alarmasFecha === 'undefined') m.alarmasFecha = [];
+      if(typeof m.historialMantenimiento === 'undefined') m.historialMantenimiento = [];
       return m;
     });
   }
@@ -1497,7 +1532,6 @@ function renderHudGuardia() {
   `;
 }
 
-// Bucle de actualización automática del HUD (cada 5 segundos)
 setInterval(() => {
   if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
     renderHudGuardia();
@@ -1732,10 +1766,8 @@ function borrarSeleccionadosHistorial() {
 
   const password = prompt(`Estás por borrar ${seleccionados.length} registros. Ingresá la clave de confirmación:`);
   if (password === "BORRAR") {
-    // 1. Eliminar del array
     intervenciones = intervenciones.filter(i => !seleccionados.includes(i.id));
     
-    // 2. Reacomodar números (IDs) para no tener saltos
     intervenciones.sort((a,b) => new Date(a.horaAlarma) - new Date(b.horaAlarma)); 
     intervenciones.forEach((inter, index) => {
       inter.id = index + 1;
@@ -1793,7 +1825,6 @@ function renderEstadisticasBombero() {
   const p = personal.find(x => x.id === idBombero);
   if (!p) return;
 
-  // 1. Calcular horas por MES CALENDARIO
   let horasPorMes = {};
   let totalMsGeneral = 0;
   const ahora = new Date().getTime();
@@ -1806,7 +1837,7 @@ function renderEstadisticasBombero() {
       
       let fechaObj = new Date(a.ingreso);
       let mesAnio = fechaObj.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
-      mesAnio = mesAnio.charAt(0).toUpperCase() + mesAnio.slice(1); // Mayúscula
+      mesAnio = mesAnio.charAt(0).toUpperCase() + mesAnio.slice(1);
       
       if (!horasPorMes[mesAnio]) horasPorMes[mesAnio] = 0;
       horasPorMes[mesAnio] += duracion;
@@ -1822,7 +1853,6 @@ function renderEstadisticasBombero() {
   
   if(htmlMeses === '') htmlMeses = `<div style="font-size:13px; color:var(--texto-secundario); grid-column: 1/-1;">Sin registros de guardia aún.</div>`;
 
-  // 2. Extraer salidas y participación para gráficos
   let totalSalidasCuartel = intervenciones.length;
   let cantSalio = 0;
   let cantEnCuartel = 0;
@@ -1835,7 +1865,6 @@ function renderEstadisticasBombero() {
     let rolBase = null;
     let rolDesc = null;
     
-    // Ver si salió en un móvil
     inter.moviles.forEach(m => {
       const pObj = m.personal.find(bp => bp.id === idBombero);
       if (pObj) {
@@ -1844,7 +1873,6 @@ function renderEstadisticasBombero() {
       }
     });
     
-    // O si fue Clave 11
     if (!rolBase && inter.clave11.includes(idBombero)) {
       rolBase = 'Clave 11';
       rolDesc = 'Clave 11';
@@ -1868,7 +1896,6 @@ function renderEstadisticasBombero() {
     }
   });
 
-  // 3. Renderizar vista HTML base
   let filasHtml = salidasParticipo.map(s => `
     <tr>
       <td>${s.id}</td>
@@ -1913,13 +1940,10 @@ function renderEstadisticasBombero() {
     </table>
   `;
 
-  // 4. Dibujar Gráficos (Chart.js)
   setTimeout(() => {
-    // Destruir gráficos anteriores si existen
     if (chartPartInstance) chartPartInstance.destroy();
     if (chartRolesInstance) chartRolesInstance.destroy();
 
-    // Gráfico 1: Participación
     const ctxPart = document.getElementById('chartPart').getContext('2d');
     chartPartInstance = new Chart(ctxPart, {
       type: 'pie',
@@ -1934,7 +1958,6 @@ function renderEstadisticasBombero() {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 
-    // Gráfico 2: Roles
     const ctxRoles = document.getElementById('chartRoles').getContext('2d');
     const labelsRoles = Object.keys(rolesCount);
     const dataRoles = Object.values(rolesCount);
@@ -1966,7 +1989,7 @@ function toggleBajaPersonal(id, darBaja) {
   const p = personal.find(x => x.id === id);
   if(p) {
     p.activo = !darBaja;
-    if(darBaja) togglePresenciaPersonal(id, false); // Forzar ausencia y cerrar reloj si se da de baja
+    if(darBaja) togglePresenciaPersonal(id, false); 
     guardarDatos();
     renderPersonalPanel();
     if(document.getElementById('configuracion').classList.contains('visible')) renderConfiguracion();
@@ -1980,7 +2003,6 @@ function togglePresenciaPersonal(id, isPresente) {
   if (p) {
     p.presente = isPresente;
     
-    // GUARDAR REGISTRO DE HORAS
     const ahora = new Date().getTime();
     if (!p.asistencia) p.asistencia = [];
 
@@ -2010,7 +2032,6 @@ function renderPersonalPanel() {
     });
   });
 
-  // ORDENAR PERSONAL POR RANGO JERÁRQUICO
   const personalOrdenado = [...personal].sort((a, b) => {
     let oA = getOrdenRango(a.rangoId);
     let oB = getOrdenRango(b.rangoId);
@@ -2108,6 +2129,16 @@ function renderVehiculos() {
       `;
     }).join('');
 
+    const historialMantHtml = (m.historialMantenimiento || []).map((h, hIndex) => {
+      const fFormat = h.fecha.split('-').reverse().join('/');
+      return `
+        <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1;">
+          <span>🛠 <strong>${fFormat}</strong> (A los ${h.km} km)<br><small style="color:var(--texto-secundario)">${h.detalle} ${h.costo ? `| 💰 ${h.costo}` : ''}</small></span>
+          <button class="btn-order" onclick="eliminarMantenimiento(${m.id}, ${hIndex})">✕</button>
+        </div>
+      `;
+    }).join('');
+
     return `
       <div class="vehiculo-card">
         <div class="vehiculo-header">
@@ -2141,6 +2172,13 @@ function renderVehiculos() {
           </div>
         </div>
 
+        <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
+          <div class="alarma-titulo">Historial de Reparaciones <button class="btn-sm btn-azul" style="padding:4px 8px; font-size:10px;" onclick="abrirModalMantenimiento(${m.id}, ${m.km})">＋ Cargar Arreglo</button></div>
+          <div class="alarma-lista" style="max-height: 200px; overflow-y: auto;">
+            ${historialMantHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay arreglos registrados en esta unidad.</div>'}
+          </div>
+        </div>
+
       </div>
     `;
   }).join('');
@@ -2153,7 +2191,7 @@ function agregarMovil() {
   const km = kmInput ? parseInt(kmInput) : 0;
   const nuevoId = moviles.length > 0 ? Math.max(...moviles.map(m => m.id)) + 1 : 1;
   
-  moviles.push({ id: nuevoId, nombre, km, caracteristicas: '', alarmasKm: [], alarmasFecha: [] });
+  moviles.push({ id: nuevoId, nombre, km, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] });
   guardarDatos();
   document.getElementById('veh-nombre').value = '';
   document.getElementById('veh-km').value = '';
@@ -2259,11 +2297,57 @@ function eliminarAlarmaMovil(idMovil, tipo, indexAlarma) {
   renderVehiculos();
 }
 
+// LOGICA HISTORIAL MANTENIMIENTO
+function abrirModalMantenimiento(idMovil, kmActual) {
+  document.getElementById('mant-id-movil').value = idMovil;
+  document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mant-km').value = kmActual;
+  document.getElementById('mant-detalle').value = '';
+  document.getElementById('mant-costo').value = '';
+  document.getElementById('modal-mantenimiento').classList.add('visible');
+}
+
+function cerrarModalMantenimiento() {
+  document.getElementById('modal-mantenimiento').classList.remove('visible');
+}
+
+function guardarMantenimiento() {
+  const idMovil = parseInt(document.getElementById('mant-id-movil').value);
+  const m = moviles.find(x => x.id === idMovil);
+  if(!m) return;
+
+  const fecha = document.getElementById('mant-fecha').value;
+  const km = parseInt(document.getElementById('mant-km').value) || 0;
+  const detalle = document.getElementById('mant-detalle').value.trim();
+  const costo = document.getElementById('mant-costo').value.trim();
+
+  if(!fecha || !detalle) return mostrarToast('⚠ Completá la fecha y el detalle del arreglo', 'warning');
+
+  if (!m.historialMantenimiento) m.historialMantenimiento = [];
+  m.historialMantenimiento.push({ fecha, km, detalle, costo });
+
+  m.historialMantenimiento.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  guardarDatos();
+  cerrarModalMantenimiento();
+  renderVehiculos();
+  mostrarToast('✓ Arreglo guardado en el historial', 'success');
+}
+
+function eliminarMantenimiento(idMovil, index) {
+  if(!confirm('¿Seguro que querés borrar este registro de mantenimiento?')) return;
+  const m = moviles.find(x => x.id === idMovil);
+  if(!m || !m.historialMantenimiento) return;
+
+  m.historialMantenimiento.splice(index, 1);
+  guardarDatos();
+  renderVehiculos();
+}
+
 // =====================
 // RENDER CONFIGURACIÓN GRAL
 // =====================
 function renderConfiguracion() {
-  // Rangos
   rangos.sort((a,b) => a.orden - b.orden);
   document.getElementById('lista-rangos-config').innerHTML = rangos.map((r, i) => `
     <div class="config-item">
@@ -2283,7 +2367,6 @@ function renderConfiguracion() {
 
   document.getElementById('conf-per-rango').innerHTML = rangos.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
 
-  // Personal
   document.getElementById('lista-personal-config').innerHTML = personal.map((p, i) => `
     <div class="config-item ${p.activo === false ? 'baja' : ''}">
       <div class="config-item-info">
@@ -2302,7 +2385,6 @@ function renderConfiguracion() {
     </div>
   `).join('');
 
-  // Tipos Emergencia
   document.getElementById('lista-tipos-config').innerHTML = tiposEmergencia.map((t, index) => `
     <div class="config-item">
       <div class="config-item-info"><span class="config-item-title">${t}</span></div>
@@ -2310,7 +2392,6 @@ function renderConfiguracion() {
     </div>
   `).join('');
 
-  // Motivos No Emergencia
   document.getElementById('lista-motivos-config').innerHTML = motivosNoEmerg.map((mot, index) => `
     <div class="config-item">
       <div class="config-item-info"><span class="config-item-title">${mot.nombre}</span></div>
@@ -2508,11 +2589,11 @@ function identificarDNI() {
   if(bombero) {
     div.innerHTML = '✅ Autorizado: <strong>' + bombero.nombre + '</strong> (' + getNombreRango(bombero.rangoId) + ')';
     div.style.color = '#155724';
-    btn.disabled = false; // Habilita el botón
+    btn.disabled = false; 
   } else {
     div.textContent = '❌ DNI no coincide con personal activo';
     div.style.color = '#991A00';
-    btn.disabled = true;  // Bloquea el botón
+    btn.disabled = true;  
   }
 }
 
@@ -2527,7 +2608,6 @@ function getPersonalOcupado() {
   return ocupados;
 }
 
-// NUEVAS VARIABLES TEMPORALES PARA EL MODAL DE DESPACHO
 let tiposSeleccionadosTemp = [];
 let personalSeleccionadoTemp = [];
 
@@ -2761,7 +2841,6 @@ function guardarUnidad() {
   
   if (!movilName) return mostrarToast('⚠ Seleccioná un móvil', 'warning');
 
-  // Ahora leemos desde nuestro arreglo temporal
   const personalSel = [...personalSeleccionadoTemp];
 
   const unidadObj = {
@@ -3018,24 +3097,24 @@ function guardarEdicionInforme() {
 // GENERADOR PDF INDIVIDUAL (AJUSTADO PARA A4)
 // =====================
 function generarPDF(id, descargarAutomatico = false) {
-  const i = intervenciones.find(x => x.id === id); //
-  if (!i) return; //
+  const i = intervenciones.find(x => x.id === id); 
+  if (!i) return; 
 
-  const personalEnIntervencion = new Set(); //
-  i.moviles.forEach(m => m.personal.forEach(pObj => personalEnIntervencion.add(pObj.id))); //
-  i.clave11.forEach(p => personalEnIntervencion.add(p)); //
+  const personalEnIntervencion = new Set(); 
+  i.moviles.forEach(m => m.personal.forEach(pObj => personalEnIntervencion.add(pObj.id))); 
+  i.clave11.forEach(p => personalEnIntervencion.add(p)); 
 
-  const personalEnCuartel = (i.personalPresenteSnapshot || []) //
-    .map(pid => personal.find(p => p.id === pid)) //
-    .filter(p => p && p.activo !== false && !personalEnIntervencion.has(p.id)); //
+  const personalEnCuartel = (i.personalPresenteSnapshot || []) 
+    .map(pid => personal.find(p => p.id === pid)) 
+    .filter(p => p && p.activo !== false && !personalEnIntervencion.has(p.id)); 
 
-  let rowsMovilesHtml = ''; //
+  let rowsMovilesHtml = ''; 
   i.moviles.forEach(m => {
     const persNombres = m.personal.map(pObj => {
-      const p = personal.find(x => x.id === pObj.id); //
-      if(!p) return null; //
-      return `• ${p.nombre} (${getNombreRango(p.rangoId)}) - <b>${pObj.rol.toUpperCase()}</b>`; //
-    }).filter(Boolean).join('<br>'); //
+      const p = personal.find(x => x.id === pObj.id); 
+      if(!p) return null; 
+      return `• ${p.nombre} (${getNombreRango(p.rangoId)}) - <b>${pObj.rol.toUpperCase()}</b>`; 
+    }).filter(Boolean).join('<br>'); 
 
     rowsMovilesHtml += `
       <tr>
@@ -3048,19 +3127,19 @@ function generarPDF(id, descargarAutomatico = false) {
         </td>
         <td style="padding: 5px; border: 1px solid #CBD5E1; font-size:10px; vertical-align: top;">${persNombres || 'Sin personal'}</td>
       </tr>
-    `; //
+    `; 
   });
 
   const rowsClave11 = i.clave11.map(pid => personal.find(p => p.id === pid)).filter(Boolean).map(p =>
     `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;"><strong style="color:#d39e00">CLAVE 11</strong></td></tr>`
-  ).join(''); //
+  ).join(''); 
 
   const rowsQueda = personalEnCuartel.map(p =>
     `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;">En Cuartel</td></tr>`
-  ).join(''); //
+  ).join(''); 
 
-  const isEmergencia = i.esEmergencia !== false; //
-  const tituloDocumento = isEmergencia ? 'PLANILLA DE INTERVENCIÓN' : 'PLANILLA DE SERVICIO (RUTINA)'; //
+  const isEmergencia = i.esEmergencia !== false; 
+  const tituloDocumento = isEmergencia ? 'PLANILLA DE INTERVENCIÓN' : 'PLANILLA DE SERVICIO (RUTINA)'; 
 
   const htmlContent = `
     <div style="width: 700px; margin: 0 auto; background: white; color: #000; padding: 20px; font-family: 'Barlow', sans-serif; box-sizing: border-box;" id="pdf-content">
@@ -3138,21 +3217,21 @@ function generarPDF(id, descargarAutomatico = false) {
       </div>
 
     </div>
-  `; //
+  `; 
 
-  document.getElementById('pdf-container').innerHTML = htmlContent; //
-  const element = document.getElementById('pdf-content'); //
+  document.getElementById('pdf-container').innerHTML = htmlContent; 
+  const element = document.getElementById('pdf-content'); 
 
   const opt = {
-    margin:       [10, 10, 10, 10], // Márgenes reducidos [top, left, bottom, right]
-    filename:     `Planilla_Salida_${i.id}.pdf`, //
-    image:        { type: 'jpeg', quality: 0.98 }, //
-    html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, //
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } //
+    margin:       [10, 10, 10, 10], 
+    filename:     `Planilla_Salida_${i.id}.pdf`, 
+    image:        { type: 'jpeg', quality: 0.98 }, 
+    html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, 
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } 
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    document.getElementById('pdf-container').innerHTML = ''; //
+    document.getElementById('pdf-container').innerHTML = ''; 
   });
 }
 
@@ -3326,6 +3405,10 @@ function descargarInformeVehiculo(id) {
     ? m.alarmasFecha.map(a => `<li style="margin-bottom: 6px;"><b>Vence el ${a.fecha.split('-').reverse().join('/')}:</b> ${a.desc}</li>`).join('') 
     : '<li style="color:#64748B;">No hay alertas preventivas por fecha.</li>';
 
+  const historialHtml = m.historialMantenimiento && m.historialMantenimiento.length > 0
+    ? m.historialMantenimiento.map(h => `<li style="margin-bottom: 6px;"><b>${h.fecha.split('-').reverse().join('/')} (A los ${h.km} km):</b> ${h.detalle} ${h.costo ? `| ${h.costo}` : ''}</li>`).join('')
+    : '<li style="color:#64748B;">No hay historial de reparaciones registrado.</li>';
+
   const htmlContent = `
     <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
       
@@ -3367,6 +3450,13 @@ function descargarInformeVehiculo(id) {
           
           <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Documentación y Seguros (Por Fecha)</h4>
           <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${alarmasFechaHtml}</ul>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Historial de Mantenimiento / Arreglos</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${historialHtml}</ul>
         </div>
       </div>
     </div>
