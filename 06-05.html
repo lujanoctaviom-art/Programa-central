@@ -1,0 +1,3316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bomberos Voluntarios Río Cuarto — Sistema de Intervenciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root {
+    --rojo: #CC2200;
+    --rojo-oscuro: #991A00;
+    --rojo-vivo: #E62E00;
+    --verde: #28a745;
+    --amarillo: #d39e00;
+    --amarillo-bg: #fff3cd;
+    --azul: #007BFF;
+    --gris-salida: #64748B;
+    
+    /* Paleta Clara */
+    --fondo: #F4F6F9;
+    --tarjeta-bg: #FFFFFF;
+    --borde: #E2E8F0;
+    --texto: #1E293B;
+    --texto-secundario: #64748B;
+    --header-bg: #CC2200;
+    --nav-bg: #FFFFFF;
+    --input-bg: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--header-bg);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon { font-size: 28px; line-height: 1; }
+  .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; }
+  .logo-sub { font-size: 11px; font-weight: 500; color: #FFD6CC; letter-spacing: 2px; text-transform: uppercase; display: block; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .reloj { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; color: #FFFFFF; letter-spacing: 2px; }
+
+  /* NAVEGACIÓN */
+  nav { background: var(--nav-bg); border-bottom: 1px solid var(--borde); display: flex; gap: 0; padding: 0 24px; overflow-x: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+  .nav-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 20px; background: none; border: none; color: var(--texto-secundario); cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s; white-space: nowrap; }
+  .nav-btn:hover { color: var(--rojo); }
+  .nav-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+
+  /* MAIN */
+  main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .seccion { display: none; }
+  .seccion.visible { display: block; }
+
+  /* ALERTAS DE ESTADO */
+  .estado-cuartel { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .stat-card .num { font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 800; line-height: 1; color: var(--rojo-vivo); }
+  .stat-card .num.verde { color: var(--verde); }
+  .stat-card .num.amarillo { color: var(--amarillo); }
+  .stat-card .num.azul { color: var(--azul); }
+  .stat-card .label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--texto-secundario); margin-top: 6px; }
+
+  /* ALERTA DE MANTENIMIENTO */
+  .alerta-mantenimiento { background: var(--rojo-vivo); color: white; padding: 16px 20px; border-radius: 6px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(230,46,0,0.2); display: none; }
+  .alerta-mantenimiento.visible { display: block; }
+  .alerta-mantenimiento h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .alerta-mantenimiento ul { margin-left: 24px; font-size: 14px; font-weight: 500; line-height: 1.5; }
+  .alerta-mantenimiento li { margin-bottom: 4px; }
+
+  /* HUD DE GUARDIA (TV MODE) */
+  .hud-pantalla { background: #0f172a; color: white; padding: 30px; border-radius: 12px; min-height: 75vh; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+  .hud-reloj { font-size: 80px; font-weight: 800; text-align: center; color: #e2e8f0; margin-bottom: 30px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 4px; line-height: 1;}
+  .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .hud-card { background: #1e293b; border-left: 6px solid var(--azul); padding: 24px; border-radius: 10px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+  .hud-card.red { border-left-color: var(--rojo-vivo); }
+  .hud-card.green { border-left-color: var(--verde); }
+  .hud-card-title { font-size: 26px; font-weight: 800; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; color: #94a3b8; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 20px; letter-spacing: 1px;}
+  .hud-movil-item { background: #0f172a; padding: 18px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #334155; border-left: 5px solid var(--rojo-vivo); }
+  .hud-movil-nombre { font-size: 32px; font-weight: 800; color: #f8fafc; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px;}
+  .hud-movil-dest { font-size: 22px; color: #cbd5e1; margin-top: 8px; font-weight: 500;}
+  .hud-movil-tiempo { font-size: 24px; color: #fbbf24; font-weight: 700; margin-top: 12px; }
+  .hud-personal-grid { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start;}
+  .hud-bombero { background: #334155; color: #f8fafc; padding: 12px 18px; border-radius: 6px; font-size: 20px; font-weight: 700; border: 1px solid #475569; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+  .hud-tarea-tag { background: #1e293b; border-left: 5px solid #d39e00; padding: 14px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 18px; font-weight: 600; color: #f8fafc; display: flex; flex-direction: column; gap: 6px; border: 1px solid #334155;}
+  @media (max-width: 800px) { .hud-grid { grid-template-columns: 1fr; } }
+
+  /* NOTIFICACIONES Y TAREAS */
+  .notif-card { background: #F8FAFC; border: 1px solid var(--borde); border-left: 4px solid var(--azul); padding: 16px; border-radius: 6px; transition: opacity 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.03); margin-bottom: 10px;}
+  .notif-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--texto-secundario); font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid var(--borde); padding-bottom: 8px;}
+  .notif-texto { font-size: 15px; color: var(--texto); margin-bottom: 12px; white-space: pre-wrap; line-height: 1.4; }
+
+  /* BOTONES SUPERIORES */
+  .botones-accion { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .btn-nueva { display: flex; align-items: center; gap: 10px; background: var(--rojo); color: white; border: none; padding: 14px 28px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
+  .btn-nueva:hover { background: var(--rojo-vivo); }
+  
+  .btn-no-emergencia { background: #E2E8F0; color: var(--texto); border: 1px solid #CBD5E1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .btn-no-emergencia:hover { background: #CBD5E1; }
+
+  .btn-sm { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; transition: opacity .2s; white-space: nowrap; text-align: center; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+  .btn-sm:hover { opacity: 0.85; }
+  .btn-verde { background: var(--verde); color: white; }
+  .btn-gris { background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1; }
+  .btn-rojo { background: var(--rojo); color: white; }
+  .btn-amarillo { background: #F59E0B; color: white; }
+  .btn-azul { background: var(--azul); color: white; }
+
+  /* INTERVENCIONES */
+  .titulo-seccion { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--borde); }
+  .intervenciones-lista { display: flex; flex-direction: column; gap: 16px; }
+  .intervencion-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-left: 5px solid var(--rojo-vivo); border-radius: 6px; padding: 20px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+  .intervencion-card.cerrada { border-left-color: #94A3B8; opacity: 0.8; }
+  .intervencion-card.no-emergencia { border-left-color: var(--gris-salida); }
+  
+  .inter-tipo { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .badge-jurisdiccion { font-size: 12px; padding: 3px 8px; border-radius: 4px; color: white; letter-spacing: 1px; }
+  .badge-local { background: var(--azul); }
+  .badge-zonal { background: var(--rojo-vivo); }
+
+  .inter-domicilio { font-size: 14px; font-weight: 500; color: var(--texto-secundario); margin: 6px 0 10px; }
+  .inter-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--texto-secundario); margin-bottom: 8px;}
+  .inter-meta span { display: flex; align-items: center; gap: 4px; background: #F1F5F9; padding: 4px 10px; border-radius: 4px; border: 1px solid #E2E8F0;}
+
+  /* UNIDADES DENTRO DE LA CARD */
+  .unidades-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--borde); }
+  .unidad-item { display: flex; flex-direction: column; gap: 10px; background: #F8FAFC; padding: 12px 16px; border-radius: 6px; border: 1px solid var(--borde); }
+  .unidad-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: 10px; }
+  .unidad-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .unidad-movil { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; color: var(--texto); }
+  .unidad-personal { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .unidad-tiempos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  
+  .badge-personal { display: inline-flex; align-items: center; gap: 4px; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: var(--texto); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+  .badge-personal-rol { color: var(--rojo); font-weight: 700; font-size: 11px; letter-spacing: 0.5px; }
+  .badge-clave11 { background: var(--amarillo-bg); border-color: #FDE68A; color: #92400E; }
+
+  .inter-acciones-bottom { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
+
+  /* GESTIÓN DE VEHÍCULOS */
+  .vehiculos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+  .vehiculo-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .vehiculo-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--borde); padding-bottom: 12px; margin-bottom: 12px; }
+  .vehiculo-nombre { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--texto); }
+  .vehiculo-km { font-size: 14px; font-weight: 600; color: var(--azul); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .vehiculo-desc { font-size: 13px; color: var(--texto-secundario); margin-bottom: 16px; line-height: 1.4; background: #F8FAFC; padding: 10px; border-radius: 4px; border: 1px solid #E2E8F0; }
+  
+  .alarma-seccion { margin-top: 16px; }
+  .alarma-titulo { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .alarma-lista { display: flex; flex-direction: column; gap: 6px; }
+  .alarma-item { display: flex; justify-content: space-between; align-items: center; background: #F1F5F9; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; border: 1px solid #E2E8F0; }
+  .alarma-vencida { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
+
+  /* TABLA ESTADÍSTICAS Y GRÁFICOS */
+  .tabla-est { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--tarjeta-bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--borde); box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
+  .tabla-est th { background: var(--rojo); color: white; padding: 10px 14px; text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; }
+  .tabla-est td { padding: 10px 14px; border-bottom: 1px solid var(--borde); font-size: 14px; color: var(--texto); }
+  .tabla-est tr:last-child td { border-bottom: none; }
+  
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; margin-bottom: 30px; }
+  .chart-box { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+  .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 16px; color: var(--texto); }
+  .canvas-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
+
+  .mes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .mes-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px 16px; border-radius: 6px; text-align: center; }
+  .mes-card .mes-nombre { font-size: 12px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 1px; }
+  .mes-card .mes-horas { font-size: 20px; font-weight: 700; color: var(--verde); margin-top: 4px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; backdrop-filter: blur(2px); }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-top: 5px solid var(--rojo); border-radius: 8px; width: 100%; max-width: 680px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: border-color 0.3s;}
+  .modal.modo-ne { border-top-color: var(--gris-salida); }
+  .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; }
+  .modal-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); }
+  .modal-cerrar { background: none; border: none; color: var(--texto-secundario); font-size: 24px; cursor: pointer; line-height: 1; transition: color .2s; }
+  .modal-cerrar:hover { color: var(--rojo); }
+  .modal-body { padding: 24px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-grupo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .form-grupo.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--texto-secundario); }
+  input, select, textarea { background: var(--input-bg); border: 1px solid #CBD5E1; border-radius: 4px; padding: 12px 14px; color: var(--texto); font-family: 'Barlow', sans-serif; font-size: 15px; outline: none; transition: border-color .2s, box-shadow .2s; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* SELECCIÓN DE PERSONAL */
+  .personal-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px; }
+  .personal-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: #F8FAFC; border: 1px solid var(--borde); border-radius: 4px; transition: all .2s; flex-wrap: wrap; }
+  .personal-item.seleccionado { background: #FEF2F2; border-color: #FCA5A5; }
+  .personal-item.seleccionado-clave11 { background: var(--amarillo-bg); border-color: #FDE68A; cursor:pointer;}
+  .personal-item.seleccionado-clave11 input[type=checkbox] { accent-color: #D97706; width: 18px; height: 18px; flex-shrink: 0; pointer-events: none;}
+  
+  .personal-info-caja { flex: 1; min-width: 150px; }
+  .personal-nombre { font-size: 15px; font-weight: 600; color: var(--texto); line-height: 1.2; }
+  .personal-rango { font-size: 12px; color: var(--texto-secundario); margin-top: 2px; }
+
+  .rol-select { display: none; width: auto; min-width: 160px; padding: 6px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #CBD5E1; background: #FFFFFF; font-weight: 500; cursor: pointer; }
+  .rol-select:focus { border-color: var(--rojo); box-shadow: none; }
+
+  /* TIPO DE INTERVENCION MULTIPLE */
+  .tipos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tipo-item-chk { display: flex; align-items: center; gap: 8px; background: #F1F5F9; padding: 10px; border-radius: 4px; border: 1px solid #E2E8F0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--texto); transition: background 0.2s;}
+  .tipo-item-chk:hover { background: #E2E8F0; }
+  .tipo-item-chk input { width: 16px; height: 16px; accent-color: var(--azul); flex-shrink:0; cursor:pointer;}
+
+  .sep { height: 1px; background: var(--borde); margin: 24px 0; }
+  .modal-footer { padding: 16px 24px; background: #F8FAFC; border-top: 1px solid var(--borde); border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+  .btn-cancelar { padding: 10px 20px; background: #FFFFFF; color: var(--texto); border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
+  .btn-cancelar:hover { background: #F1F5F9; }
+  .btn-guardar { padding: 10px 24px; background: var(--rojo); color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
+  .btn-guardar:hover { background: var(--rojo-vivo); }
+  .btn-guardar-amarillo { background: #F59E0B; color: white; box-shadow: 0 2px 4px rgba(245,158,11,0.2); }
+  .btn-guardar-amarillo:hover { background: #D97706; }
+  .btn-guardar:disabled { background: #94A3B8; cursor: not-allowed; box-shadow: none; }
+  .btn-azul { background: var(--azul); color: white; }
+  .btn-azul:hover { background: #0056b3; }
+
+  /* BOTÓN PROXIMAMENTE DESTACAMENTO */
+  .btn-destacamento { padding: 10px 24px; background: #64748B; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
+  .btn-destacamento:hover { background: #475569; }
+
+  /* PANEL PERSONAL Y CONFIGURACIÓN */
+  .personal-panel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .personal-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: all 0.2s;}
+  .personal-card.baja { opacity: 0.55; background: #f1f5f9; border-color: #cbd5e1; }
+  .personal-card-info .nombre { font-weight: 700; font-size: 15px; color: var(--texto); transition: all 0.2s;}
+  .personal-card.baja .nombre { text-decoration: line-through; color: var(--texto-secundario); }
+  .personal-card-info .rango { font-size: 12px; color: var(--texto-secundario); margin-top: 4px; }
+  
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--verde); flex-shrink: 0; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5); }
+  .dot.en-intervencion { background: var(--rojo); }
+  .dot.no-presente { background: #F59E0B; } 
+  .dot.inactivo { background: #94A3B8; }
+  
+  .chk-baja-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--texto-secundario); cursor: pointer; letter-spacing: 0.5px; }
+  .chk-baja { width: 14px; height: 14px; accent-color: var(--rojo); cursor: pointer; }
+
+  .config-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .config-item { background: var(--tarjeta-bg); border: 1px solid var(--borde); padding: 14px 20px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+  .config-item.baja { opacity: 0.6; background: #f8fafc; }
+  .config-item-info { display: flex; flex-direction: column; gap: 2px; }
+  .config-item-title { font-size: 16px; font-weight: 700; color: var(--texto); }
+  .config-item.baja .config-item-title { text-decoration: line-through; }
+  .config-item-sub { font-size: 12px; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 1px; }
+  .config-form { display: flex; gap: 16px; align-items: flex-end; background: #F8FAFC; padding: 20px; border: 1px solid var(--borde); border-radius: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .order-controls { display: flex; gap: 6px; margin-right: 16px; }
+  .btn-order { background: #E2E8F0; color: #475569; border: 1px solid #CBD5E1; border-radius: 4px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all .2s; }
+  .btn-order:hover:not([disabled]) { background: #CBD5E1; color: #1E293B; }
+
+  /* CHECKBOX HISTORIAL */
+  .chk-historial { width: 20px; height: 20px; cursor: pointer; accent-color: var(--rojo); flex-shrink: 0; margin-right: 8px;}
+
+  /* VACÍO */
+  .vacio { text-align: center; padding: 60px 24px; color: var(--texto-secundario); font-size: 15px; font-weight: 500; background: var(--tarjeta-bg); border: 1px dashed #CBD5E1; border-radius: 8px; }
+  .vacio-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--texto); color: #FFFFFF; padding: 14px 24px; border-radius: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toast.visible { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--verde); }
+  .toast.warning { border-left: 4px solid var(--amarillo); }
+
+  /* ESTILOS PARA EL PDF PROFESIONAL */
+  #pdf-container { position: fixed; top: -9999px; left: -9999px; } 
+  .planilla-preview { width: 800px; background: white; color: #000; padding: 40px; font-family: 'Barlow', sans-serif; box-sizing: border-box; }
+  
+  .pdf-header { border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: nowrap; gap: 20px; }
+  .pdf-titulo-institucion { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; color: #CC2200; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+  .pdf-domicilio { font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px; }
+  .pdf-tipo-planilla { font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px; letter-spacing: 0.5px; }
+  .pdf-num-planilla { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: #CC2200; line-height: 1; white-space: nowrap; text-align: right; }
+  .pdf-fecha { font-size: 12px; color: #64748B; font-weight: 600; margin-top: 4px; text-align: right; }
+  
+  .pdf-seccion { margin-bottom: 20px; }
+  .pdf-seccion-titulo { background-color: #F1F5F9; border-left: 4px solid #CC2200; padding: 6px 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1E293B; margin-bottom: 10px; }
+  
+  .pdf-tabla-datos { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1; }
+  .pdf-tabla-datos td { padding: 8px 10px; border: 1px solid #CBD5E1; vertical-align: middle; }
+  .pdf-tabla-datos td.lbl { background-color: #F8FAFC; font-weight: 700; color: #475569; width: 20%; font-size: 12px; text-transform: uppercase; }
+  
+  .pdf-tabla-unidades { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1; text-align: left;}
+  .pdf-tabla-unidades th { background-color: #E2E8F0; color: #1E293B; padding: 8px 10px; font-weight: 700; border: 1px solid #CBD5E1; text-transform: uppercase; font-size: 12px;}
+  .pdf-tabla-unidades td { padding: 8px 10px; border: 1px solid #CBD5E1; vertical-align: top; }
+  
+  .pdf-informe-box { border: 1px solid #CBD5E1; padding: 15px; font-size: 13px; line-height: 1.5; color: #1E293B; background-color: #FAFAFA; white-space: pre-wrap; min-height: 80px;}
+  
+  .pdf-firmas { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; text-align: center; }
+  .pdf-firma-linea { border-top: 1px solid #000; padding-top: 8px; font-size: 13px; font-weight: 600; color: #1E293B; }
+
+  /* PANTALLA DE LOGIN */
+  .login-overlay { position: fixed; inset: 0; background: var(--fondo); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
+  .login-overlay.oculto { opacity: 0; pointer-events: none; }
+  .login-box { background: var(--tarjeta-bg); padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 5px solid var(--rojo); }
+  .login-box h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: var(--texto); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .login-box input { width: 100%; padding: 14px; font-size: 16px; margin-bottom: 16px; border: 1px solid var(--borde); border-radius: 4px; text-align: center; font-weight: 600; letter-spacing: 2px;}
+  .login-box button { width: 100%; background: var(--rojo); color: white; padding: 14px; font-size: 18px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(204,34,0,0.2); }
+  .login-error { color: var(--rojo-vivo); font-size: 14px; margin-top: 12px; font-weight: 700; min-height: 20px;}
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .intervencion-card { grid-template-columns: 1fr; }
+    .inter-acciones-bottom { flex-direction: column; }
+    .inter-acciones-bottom button { width: 100%; }
+    header { padding: 0 16px; }
+    .logo-text { font-size: 18px; }
+    main { padding: 16px; }
+    .config-form { flex-direction: column; align-items: stretch; }
+    .unidad-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .unidad-item button { width: 100%; }
+    .tipos-grid { grid-template-columns: 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+
+  /* =========================================
+     MODO PANTALLA COMPLETA (TV 16:9)
+     ========================================= */
+  #hud-guardia:fullscreen {
+    background-color: #0f172a; /* Fondo oscuro puro para la tele */
+    padding: 3vh 3vw;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Evita que aparezca la barra de scroll */
+  }
+
+  /* Ocultamos el título explicativo de arriba cuando está en la tele */
+  #hud-guardia:fullscreen > div:not(.hud-pantalla):not(.btn-salir-fs) {
+    display: none !important;
+  }
+
+  #hud-guardia:fullscreen .hud-pantalla {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #hud-guardia:fullscreen .hud-reloj {
+    font-size: 10vh; /* Reloj gigante proporcional a la altura */
+    margin-bottom: 3vh;
+  }
+
+  #hud-guardia:fullscreen .hud-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3vw;
+    min-height: 0;
+  }
+
+  #hud-guardia:fullscreen .hud-card {
+    padding: 3vh 2.5vw;
+    overflow-y: auto; /* Solo scrollea la tarjeta si hay muchísimos móviles */
+  }
+
+  /* Fuentes dinámicas adaptadas al 16:9 usando viewport height (vh) */
+  #hud-guardia:fullscreen .hud-card-title { font-size: 3.5vh; margin-bottom: 2.5vh; padding-bottom: 1vh; }
+  #hud-guardia:fullscreen .hud-movil-nombre { font-size: 4.5vh; }
+  #hud-guardia:fullscreen .hud-movil-dest { font-size: 3vh; margin-top: 1vh; }
+  #hud-guardia:fullscreen .hud-movil-tiempo { font-size: 3vh; margin-top: 1.5vh; color: #fbbf24; }
+  #hud-guardia:fullscreen .hud-bombero { font-size: 2.8vh; padding: 1.2vh 2vh; }
+  #hud-guardia:fullscreen .hud-tarea-tag { font-size: 2.5vh; padding: 1.5vh 2vh; margin-bottom: 1.5vh; }
+  
+  /* Botón para salir (solo visible en pantalla completa) */
+  .btn-salir-fs { display: none; }
+  #hud-guardia:fullscreen .btn-salir-fs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    top: 3vh;
+    right: 3vw;
+    background: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1vh 1.5vw;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.5vh;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s;
+  }
+  #hud-guardia:fullscreen .btn-salir-fs:hover {
+    background: var(--rojo-vivo);
+    color: white;
+    border-color: var(--rojo-vivo);
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-overlay">
+  <div class="login-box">
+     <h2>Ingreso al Sistema</h2>
+     <p style="color:var(--texto-secundario); font-size:14px; margin-bottom:24px;">Acceso restringido mediante DNI</p>
+     <input type="text" id="login-dni" placeholder="Ingrese su DNI (sin puntos)" onkeypress="if(event.key === 'Enter') iniciarSesion()">
+     <button onclick="iniciarSesion()">Ingresar</button>
+     <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">🚒</span>
+    <div>
+      <div class="logo-text">Bomberos Voluntarios Río Cuarto</div>
+      <span class="logo-sub">Sistema de Intervenciones</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="reloj" id="reloj">00:00:00</div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn activo" onclick="mostrarSeccion('dashboard', this)">▣ Dashboard</button>
+  <button class="nav-btn" onclick="mostrarSeccion('hud-guardia', this); activarPantallaTV();">📺 Monitor Guardia</button>
+  <button class="nav-btn" onclick="mostrarSeccion('mensajes-sec', this)">✉ Mensajes</button>
+  <button class="nav-btn" onclick="mostrarSeccion('historial', this)">≡ Historial</button>
+  <button class="nav-btn" onclick="mostrarSeccion('personal-sec', this)">● Personal</button>
+  <button class="nav-btn" onclick="mostrarSeccion('estadisticas', this)">📈 Estadísticas</button>
+  <button class="nav-btn" onclick="mostrarSeccion('vehiculos', this)">🚐 Vehículos</button>
+  <button class="nav-btn" onclick="mostrarSeccion('configuracion', this)">⚙ Configuración</button>
+</nav>
+
+<main>
+
+  <div id="dashboard" class="seccion visible">
+    <div id="alertas-dashboard"></div>
+
+    <div id="panel-notificaciones" style="margin-bottom: 24px; display: none;">
+      <div class="titulo-seccion" style="color: var(--azul); border-bottom-color: var(--azul);">Bandeja de Tareas de su Grupo</div>
+      <div id="lista-notificaciones"></div>
+    </div>
+
+    <div class="estado-cuartel" id="stats"></div>
+
+    <div class="botones-accion">
+      <button class="btn-nueva" onclick="abrirModalNueva()">
+        <span style="font-size:22px; line-height: 0;">＋</span> Nueva Intervención
+      </button>
+      <button class="btn-nueva btn-no-emergencia" onclick="abrirModalNoEmergencia()">
+        Salida de Móvil (NO Emergencia)
+      </button>
+      <button class="btn-nueva" style="background: var(--azul); box-shadow: 0 2px 4px rgba(0,123,255,0.2);" onclick="abrirModalNotificacion()">
+        <span style="font-size:22px; line-height: 0;">✉</span> Enviar Tarea / Mensaje
+      </button>
+    </div>
+
+    <div class="titulo-seccion">Salidas Activas</div>
+    <div class="intervenciones-lista" id="activas-lista"></div>
+  </div>
+
+  <div id="hud-guardia" class="seccion">
+    <button class="btn-salir-fs" onclick="document.exitFullscreen()">✕ Salir del Modo TV</button>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--borde); padding-bottom: 8px; margin-bottom: 16px;">
+      <div class="titulo-seccion" style="border:none; margin:0; padding:0;">Monitor de Guardia Activa</div>
+      <div style="font-size:13px; color:var(--texto-secundario);">* Se actualiza automáticamente cada 5 segundos. Ideal para proyectar en TV.</div>
+    </div>
+    
+    <div class="hud-pantalla" id="hud-pantalla-render">
+      </div>
+  </div>
+
+  <div id="mensajes-sec" class="seccion">
+    <div class="titulo-seccion">Mensajes y Tareas Enviadas</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px;">Acá podés hacer el seguimiento del estado de las tareas que asignaste a los distintos grupos o personas.</p>
+    <div id="lista-mensajes-enviados" style="display: flex; flex-direction: column; gap: 12px;"></div>
+  </div>
+
+  <div id="historial" class="seccion">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--borde); padding-bottom: 8px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+      <div class="titulo-seccion" style="border:none; margin:0; padding:0;">Historial de Salidas</div>
+      <div style="display:flex; gap:10px; flex-wrap: wrap;">
+        <button class="btn-sm btn-rojo" onclick="borrarSeleccionadosHistorial()">🗑 Borrar Seleccionados</button>
+        <button class="btn-sm btn-gris" onclick="generarBackupPDF()">💾 Guardar Backup (PDF)</button>
+        <button class="btn-sm btn-verde" onclick="exportarExcelGeneral()">📊 Exportar a Excel</button>
+      </div>
+    </div>
+    <div id="historial-lista"></div>
+  </div>
+
+  <div id="personal-sec" class="seccion">
+    <div class="titulo-seccion">Tablero de Asistencia de Personal</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Marcá la casilla de "PRESENTE" cuando un bombero llegue al cuartel. Al hacerlo, comienza a acumularse su tiempo de guardia. Solo los presentes podrán ser asignados a los móviles. Recordá marcar "BAJA" si se desvinculó de la institución.</p>
+    <div class="personal-panel-grid" id="personal-panel"></div>
+  </div>
+
+  <div id="estadisticas" class="seccion">
+    <div class="titulo-seccion">Estadísticas y Fojas de Servicio</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px;">Seleccioná un bombero para ver su resumen de horas en el cuartel y los gráficos de intervenciones.</p>
+
+    <div class="form-grupo" style="max-width: 400px; margin-bottom: 24px;">
+      <select id="est-bombero" onchange="renderEstadisticasBombero()"></select>
+    </div>
+
+    <div id="est-resultados"></div>
+  </div>
+
+  <div id="vehiculos" class="seccion">
+    <div class="titulo-seccion">Gestión de Parque Automotor</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Administrá los móviles, sus características técnicas y configurá alertas de mantenimiento mecánico o vencimientos.</p>
+    
+    <div class="config-form">
+      <div class="form-grupo" style="flex:2; margin-bottom:0">
+        <label>Identificación del Móvil</label>
+        <input type="text" id="veh-nombre" placeholder="Ej: AU-10 — Autobomba Nueva">
+      </div>
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>KM Inicial</label>
+        <input type="number" id="veh-km" placeholder="Ej: 15000" min="0">
+      </div>
+      <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarMovil()">Agregar Móvil</button>
+    </div>
+
+    <div class="vehiculos-grid" id="vehiculos-lista"></div>
+  </div>
+
+  <div id="configuracion" class="seccion">
+    
+    <div class="titulo-seccion">Jerarquía de Rangos (Para Nuevos)</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">El orden acá afecta cuando se crea alguien por primera vez.</p>
+    <div class="config-form">
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Nombre del Rango</label>
+        <input type="text" id="conf-rango-nombre" placeholder="Ej: Comisario">
+      </div>
+      <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarRango()">Agregar Rango</button>
+    </div>
+    <div class="config-list" id="lista-rangos-config" style="margin-bottom: 40px;"></div>
+
+
+    <div class="titulo-seccion">Administrar Personal</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Ordená a los bomberos usando las flechas o asignales el DNI correspondiente. También podés borrarlos definitivamente si fueron cargados por error.</p>
+    <div class="config-form">
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Apellido y Nombre</label>
+        <input type="text" id="conf-per-nombre" placeholder="Ej: Pérez, Juan">
+      </div>
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Rango</label>
+        <select id="conf-per-rango"></select>
+      </div>
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>DNI</label>
+        <input type="text" id="conf-per-dni" placeholder="Sin puntos">
+      </div>
+      <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarPersonal()">Agregar</button>
+    </div>
+    <div class="config-list" id="lista-personal-config" style="margin-bottom: 40px;"></div>
+
+    <div class="titulo-seccion">Tipos de Intervención (Emergencias)</div>
+    <div class="config-form">
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Nuevo Tipo</label>
+        <input type="text" id="conf-tipo-nombre" placeholder="Ej: Rescate en Altura">
+      </div>
+      <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarTipoEmergencia()">Agregar</button>
+    </div>
+    <div class="config-list" id="lista-tipos-config" style="margin-bottom: 40px;"></div>
+
+    <div class="titulo-seccion">Motivos de Salida NO Emergencia</div>
+    <div class="config-form">
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Nuevo Motivo</label>
+        <input type="text" id="conf-motivo-nombre" placeholder="Ej: Desfile cívico">
+      </div>
+      <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarMotivo()">Agregar</button>
+    </div>
+    <div class="config-list" id="lista-motivos-config" style="margin-bottom: 40px;"></div>
+
+    <div id="seccion-maestra" style="display:none; border-top: 2px solid var(--borde); margin-top: 40px; padding-top: 24px;">
+      <div class="titulo-seccion" style="color: var(--rojo-vivo);">Gestión Maestra de Accesos y Credenciales</div>
+      <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Cree los roles (credenciales) indicando a qué pestañas tienen acceso. Luego podrá asignar estos roles al personal.</p>
+      
+      <div class="config-form">
+        <div class="form-grupo" style="flex:1; margin-bottom:0">
+          <label>Nombre de la Credencial</label>
+          <input type="text" id="conf-cred-nombre" placeholder="Ej: Oficial de Guardia / Administrativo">
+        </div>
+        <div class="form-grupo full" style="margin-top:10px;">
+          <label>Permisos (Pestañas Habilitadas)</label>
+          <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:6px;" id="conf-cred-permisos">
+             <label><input type="checkbox" value="dashboard" checked> Dashboard</label>
+             <label><input type="checkbox" value="hud-guardia" checked disabled title="Esta pestaña está siempre habilitada para todos"> Pantalla Guardia</label>
+             <label><input type="checkbox" value="mensajes-sec" checked> Mensajes</label>
+             <label><input type="checkbox" value="historial"> Historial</label>
+             <label><input type="checkbox" value="personal-sec"> Personal</label>
+             <label><input type="checkbox" value="estadisticas"> Estadísticas</label>
+             <label><input type="checkbox" value="vehiculos"> Vehículos</label>
+             <label><input type="checkbox" value="configuracion"> Configuración</label>
+          </div>
+        </div>
+        <button class="btn-sm btn-verde" style="padding:12px 20px; margin-top:10px;" onclick="agregarCredencial()">Crear Credencial</button>
+      </div>
+      <div class="config-list" id="lista-credenciales-config" style="margin-bottom: 40px;"></div>
+    </div>
+
+    <div class="titulo-seccion" style="border-top: 2px solid var(--borde); padding-top: 24px;">Copias de Seguridad del Sistema (Backup)</div>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Descargue toda la información del sistema para trasladarla a otra computadora o como medida de seguridad.</p>
+    <div style="display:flex; gap:10px; margin-bottom: 40px; flex-wrap: wrap;">
+      <button class="btn-sm btn-verde" style="padding: 10px 16px;" onclick="exportarBackup()">⬇ Exportar Base de Datos</button>
+      <button class="btn-sm btn-amarillo" style="padding: 10px 16px; color: #000;" onclick="document.getElementById('file-import').click()">⬆ Importar Base de Datos</button>
+      <input type="file" id="file-import" style="display:none" accept=".json" onchange="importarBackup(event)">
+    </div>
+
+  </div>
+
+</main>
+
+<div class="modal-overlay" id="modal-notificacion">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--azul)">✉ Enviar Tarea / Mensaje</span>
+      <button class="modal-cerrar" onclick="cerrarModalNotificacion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grupo full">
+        <label>¿A quién va dirigido?</label>
+        <select id="notif-tipo-dest" onchange="toggleNotifDest()">
+          <option value="grupo">A un Grupo entero (Credencial)</option>
+          <option value="personal">A personal específico (Individual)</option>
+        </select>
+      </div>
+      
+      <div class="form-grupo full" id="div-notif-grupo">
+        <label>Seleccionar Grupo</label>
+        <select id="notif-credencial"></select>
+      </div>
+
+      <div class="form-grupo full" id="div-notif-personal" style="display:none;">
+        <label>Seleccionar Personal (Podés tildar varios)</label>
+        <div id="notif-lista-personal" style="max-height: 180px; overflow-y: auto; background:#F8FAFC; border:1px solid #CBD5E1; padding:10px; border-radius:4px; display:flex; flex-direction:column; gap:8px;">
+          </div>
+      </div>
+
+      <div class="form-grupo full">
+        <label>Mensaje o Tarea a realizar</label>
+        <textarea id="notif-texto" placeholder="Escribí tu indicación acá..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalNotificacion()">Cancelar</button>
+      <button class="btn-guardar btn-azul" onclick="enviarNotificacion()">Enviar Tarea</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-alarma">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo">Configurar Alerta Preventiva</span>
+      <button class="modal-cerrar" onclick="cerrarModalAlarma()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="al-id-movil">
+      <div class="form-grupo full">
+        <label>Tipo de Alerta</label>
+        <select id="al-tipo" onchange="cambiarTipoAlarma()">
+          <option value="km">Por Kilometraje (Mecánica / Service)</option>
+          <option value="fecha">Por Fecha (Vencimientos / VTV / Seguro)</option>
+        </select>
+      </div>
+      <div class="form-grupo full">
+        <label>Descripción / Tarea</label>
+        <input type="text" id="al-desc" placeholder="Ej: Cambio de aceite y filtros">
+      </div>
+      <div class="form-grupo full" id="al-grupo-km">
+        <label>Avisar al llegar a los (KM)</label>
+        <input type="number" id="al-km" placeholder="Ej: 15000">
+      </div>
+      <div class="form-grupo full" id="al-grupo-fecha" style="display:none;">
+        <label>Fecha de vencimiento</label>
+        <input type="date" id="al-fecha">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalAlarma()">Cancelar</button>
+      <button class="btn-guardar" onclick="guardarAlarma()">Guardar Alerta</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-movil">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-movil-titulo">🚒 Despachar Unidad</span>
+      <button class="modal-cerrar" onclick="cerrarModalMovil()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-modo"> 
+      <input type="hidden" id="f-id-inter"> 
+
+      <div class="form-grupo full" id="campo-dni" style="display:none; background:#FFF3CD; padding:12px; border:1px solid #FDE68A; border-radius:4px;">
+        <label style="color:#92400E">Tu DNI (Firma de Planilla requerida)</label>
+        <input type="text" id="f-dni-confeccionador" placeholder="Ingresá tu DNI sin puntos" oninput="identificarDNI()">
+        <div id="dni-identidad" style="font-size:13px; font-weight:bold; margin-top:6px;"></div>
+      </div>
+      
+      <div id="campos-emergencia" class="form-grid" style="display:none; margin-bottom:16px;">
+        
+        <div class="form-grupo full" id="campo-tipos-grid">
+          <label>Tipos de Intervención (Podés elegir varios de la lista)</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="f-tipo-busqueda" placeholder="Escribí o hacé doble clic para buscar..." list="dl-tipos" autocomplete="off" style="flex:1;">
+            <datalist id="dl-tipos"></datalist>
+            <button type="button" class="btn-sm btn-verde" onclick="agregarTipoIntervencion()">Agregar</button>
+          </div>
+          <div id="f-tipo-tags" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"></div>
+        </div>
+
+        <div class="form-grupo">
+          <label>Jurisdicción</label>
+          <select id="f-jurisdiccion">
+            <option value="Local">Local</option>
+            <option value="Zonal">Zonal</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label>Fecha y hora de alarma</label>
+          <input type="datetime-local" id="f-hora-alarma">
+        </div>
+        <div class="form-grupo full">
+          <label>Domicilio del Siniestro</label>
+          <input type="text" id="f-domicilio" placeholder="Ej: Av. San Martín 1200, esquina Belgrano">
+        </div>
+        <div class="form-grupo">
+          <label>Nombre de quien llama</label>
+          <input type="text" id="f-llamante" placeholder="Nombre completo">
+        </div>
+        <div class="form-grupo">
+          <label>Teléfono de contacto</label>
+          <input type="text" id="f-telefono" placeholder="Ej: 358-4123456">
+        </div>
+        <div class="form-grupo full">
+          <label>Quién recibe la llamada (Telefonista en base)</label>
+          <input type="text" id="f-receptor" placeholder="Nombre de quien atiende el teléfono">
+        </div>
+      </div>
+
+      <div id="campos-no-emergencia" class="form-grid" style="display:none; margin-bottom:16px;">
+        <div class="form-grupo full">
+          <label>Motivo de la Salida</label>
+          <select id="f-ne-motivo"></select>
+        </div>
+      </div>
+
+      <div id="campo-observaciones" class="form-grupo full" style="display:none;">
+        <label>Observaciones Iniciales</label>
+        <textarea id="f-obs" placeholder="Detalles o descripción..."></textarea>
+      </div>
+
+      <div id="separador-modal" class="form-grupo full" style="display:none;"><div class="sep" style="margin:0"></div></div>
+
+      <div class="form-grid">
+        <div class="form-grupo">
+          <label>Móvil a despachar</label>
+          <select id="f-movil"></select>
+        </div>
+        <div class="form-grupo">
+          <label>Hora de salida del móvil</label>
+          <input type="time" id="f-hora-salida">
+        </div>
+        <div class="form-grupo full" id="campo-autoriza">
+          <label>Autoriza Salida del Móvil</label>
+          <select id="f-autoriza"></select>
+        </div>
+      </div>
+
+      <div class="form-grupo full" style="margin-top:20px;">
+        <label>Dotación de este móvil (con Roles)</label>
+        <p style="font-size:12px; color:var(--texto-secundario); margin-bottom:10px;">Seleccioná de la lista al personal presente en el cuartel y asignale un rol.</p>
+        
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap: wrap;">
+            <select id="f-personal-select" style="flex:2;"></select>
+            <select id="f-personal-rol" style="flex:1;">
+              <option value="Dotación">Dotación</option>
+              <option value="Encargado">Encargado</option>
+              <option value="Chofer">Chofer</option>
+              <option value="Chofer y encargado">Chofer y encargado</option>
+              <option value="Telefonista">Telefonista</option>
+              <option value="Pasante">Pasante</option>
+            </select>
+            <button type="button" class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarPersonalDotacion()">Agregar a dotación</button>
+        </div>
+        
+        <div class="personal-grid" id="personal-seleccionado-lista"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalMovil()">Cancelar</button>
+      <button class="btn-destacamento" onclick="alert('Esta función se habilitará próximamente cuando se conecte el sistema con el servidor del Destacamento.')">Despachar a Destacamento (Próximamente)</button>
+      <button class="btn-guardar" onclick="guardarUnidad()" id="btn-guardar-movil">Registrar Salida</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-clave11">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--amarillo)">🔔 Cargar Clave 11</span>
+      <button class="modal-cerrar" onclick="cerrarModalClave11()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px; color:var(--texto-secundario); margin-bottom:20px;">
+        Seleccioná al personal que se presentó en el cuartel.
+      </p>
+      <input type="hidden" id="c11-id-inter">
+      <div class="form-grupo">
+        <div class="personal-grid" id="personal-selector-c11"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalClave11()">Cancelar</button>
+      <button class="btn-guardar btn-guardar-amarillo" onclick="guardarClave11()">Guardar Clave 11</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-finalizar">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--azul)">📝 Finalizar e Informe</span>
+      <button class="modal-cerrar" onclick="cerrarModalFinalizar()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px; color:var(--texto-secundario); margin-bottom:20px;">
+        Redactá el informe de la salida. Al guardar, se cerrará, pasará al historial y se generará el PDF para imprimir.
+      </p>
+      <input type="hidden" id="fin-id-inter">
+      <div class="form-grupo full">
+        <label>Informe del Servicio</label>
+        <textarea id="fin-informe" style="min-height: 180px;" placeholder="Detalles de las tareas realizadas..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalFinalizar()">Cancelar</button>
+      <button class="btn-cancelar" onclick="guardarFinalizacion(false)" style="background: #E2E8F0; color: #1E293B; font-weight: bold; border: 1px solid #CBD5E1;">Solo Finalizar</button>
+      <button class="btn-guardar btn-azul" onclick="guardarFinalizacion(true)">Finalizar y Descargar PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar-informe">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--azul)">📝 Editar Informe</span>
+      <button class="modal-cerrar" onclick="cerrarModalEditarInforme()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id-inter">
+      <div class="form-grupo full">
+        <label>Informe del Servicio</label>
+        <textarea id="edit-informe" style="min-height: 180px;" placeholder="Detalles de las tareas realizadas..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalEditarInforme()">Cancelar</button>
+      <button class="btn-guardar btn-azul" onclick="guardarEdicionInforme()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div id="pdf-container"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// PANTALLA COMPLETA TV
+// =====================
+function activarPantallaTV() {
+  const monitor = document.getElementById('hud-guardia');
+  if (!document.fullscreenElement) {
+    if (monitor.requestFullscreen) {
+      monitor.requestFullscreen();
+    } else if (monitor.webkitRequestFullscreen) { /* Safari */
+      monitor.webkitRequestFullscreen();
+    } else if (monitor.msRequestFullscreen) { /* IE11 */
+      monitor.msRequestFullscreen();
+    }
+  }
+}
+
+// =====================
+// DATOS INICIALES Y LOCALSTORAGE
+// =====================
+let credenciales = JSON.parse(localStorage.getItem('bom_credenciales')) || [];
+let mensajes = JSON.parse(localStorage.getItem('bom_mensajes')) || [];
+let usuarioActual = null;
+const DNI_MAESTRO = '41483152';
+
+let rangos = JSON.parse(localStorage.getItem('bom_rangos'));
+if (!rangos || rangos.length === 0) {
+  rangos = [
+    { id:1, nombre: 'Jefe de Guardia', orden: 1 },
+    { id:2, nombre: 'Suboficial', orden: 2 },
+    { id:3, nombre: 'Bombero 1°', orden: 3 },
+    { id:4, nombre: 'Bombero 2°', orden: 4 },
+    { id:5, nombre: 'Aspirante', orden: 5 },
+  ];
+}
+
+let personal = JSON.parse(localStorage.getItem('bom_personal'));
+if (!personal || personal.length === 0) {
+  personal = [
+    { id:1, nombre:'García, Roberto', rangoId:1, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:2, nombre:'López, Sergio', rangoId:2, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:3, nombre:'Martínez, Pablo', rangoId:3, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:4, nombre:'Rodríguez, Carlos', rangoId:3, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:5, nombre:'Fernández, Diego', rangoId:4, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:6, nombre:'González, Marcelo', rangoId:4, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:7, nombre:'Sánchez, Lucas', rangoId:5, dni:'', activo: true, presente: false, asistencia: [] },
+  ];
+}
+
+let moviles = JSON.parse(localStorage.getItem('bom_moviles'));
+if (!moviles || moviles.length === 0) {
+  moviles = [
+    { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [] },
+    { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [] },
+    { id: 3, nombre: 'UT-1 — Utilitario', km: 24000, caracteristicas: '', alarmasKm: [], alarmasFecha: [] }
+  ];
+} else {
+  if (typeof moviles[0] === 'string') {
+    moviles = moviles.map((m, i) => ({ id: i+1, nombre: m, km: 0, caracteristicas: '', alarmasKm: [], alarmasFecha: [] }));
+  } else {
+    moviles = moviles.map(m => {
+      if(typeof m.caracteristicas === 'undefined') m.caracteristicas = '';
+      if(typeof m.alarmasKm === 'undefined') m.alarmasKm = [];
+      if(typeof m.alarmasFecha === 'undefined') m.alarmasFecha = [];
+      return m;
+    });
+  }
+}
+
+let tiposEmergencia = JSON.parse(localStorage.getItem('bom_tipos_emergencia'));
+if (!tiposEmergencia || tiposEmergencia.length === 0) {
+  tiposEmergencia = [
+    'Incendio Estructural', 'Incendio Vehicular', 'Incendio Forestal / Campo',
+    'Accidente de Tránsito', 'Rescate', 'Materiales Peligrosos',
+    'Inundación', 'Apoyo a Otra Repartición', 'Falsa Alarma', 'Otro'
+  ];
+}
+
+let motivosNoEmerg = JSON.parse(localStorage.getItem('bom_motivos'));
+if (!motivosNoEmerg || motivosNoEmerg.length === 0) {
+  motivosNoEmerg = [
+    { id: 1, nombre: 'Carga de combustible' },
+    { id: 2, nombre: 'Taller mecánico' },
+    { id: 3, nombre: 'Capacitación' },
+    { id: 4, nombre: 'Desfile / Evento' },
+    { id: 5, nombre: 'Trámite' }
+  ];
+}
+
+let intervenciones = JSON.parse(localStorage.getItem('bom_inter') || '[]');
+intervenciones.forEach(i => {
+  if (i.esEmergencia === undefined) i.esEmergencia = true;
+  if (!i.jurisdiccion) i.jurisdiccion = 'Local'; 
+  if (!i.clave11) i.clave11 = [];
+  if (!i.confeccionador) i.confeccionador = '';
+  if (!i.confeccionadorDni) i.confeccionadorDni = '';
+  if (!i.receptor) i.receptor = '';
+  
+  if (!i.personalPresenteSnapshot) {
+    i.personalPresenteSnapshot = personal.filter(p => p.activo !== false).map(p => p.id); 
+  }
+
+  if (i.moviles) {
+    i.moviles.forEach(m => {
+      if (m.horaLlegada === undefined) m.horaLlegada = null;
+      if (m.autorizador === undefined) m.autorizador = i.autorizador || ''; 
+      m.personal = m.personal.map(p => {
+        if (typeof p === 'number') return { id: p, rol: 'Dotación' };
+        return p;
+      });
+    });
+  } else {
+    i.moviles = [{
+      idMovil: Date.now() + Math.random(),
+      nombre: i.movil,
+      horaSalida: i.hora ? i.hora.split(' ')[1] : '',
+      horaLlegada: null,
+      horaRegreso: i.regreso || null,
+      autorizador: i.autorizador || '',
+      personal: (i.personal || []).map(pid => ({ id: pid, rol: 'Dotación' }))
+    }];
+    i.horaAlarma = i.hora;
+    i.estado = i.regreso ? 'finalizada' : 'activa';
+  }
+});
+
+let idCounter = parseInt(localStorage.getItem('bom_counter') || '1');
+
+// === INICIALIZAR ORDEN MANUAL, BAJAS, DNI, ASISTENCIA Y CREDENCIALES ===
+let personalModificado = false;
+personal.forEach((p, index) => { 
+  if (typeof p.ordenManual === 'undefined') { p.ordenManual = index + 1; personalModificado = true; }
+  if (typeof p.activo === 'undefined') { p.activo = true; personalModificado = true; }
+  if (typeof p.presente === 'undefined') { p.presente = false; personalModificado = true; }
+  if (typeof p.dni === 'undefined') { p.dni = ''; personalModificado = true; }
+  if (typeof p.asistencia === 'undefined') { p.asistencia = []; personalModificado = true; }
+  
+  // MIGRACIÓN MÚLTIPLES CREDENCIALES
+  if (p.credencialId !== undefined) {
+    p.credencialesIds = p.credencialId ? [p.credencialId] : [];
+    delete p.credencialId;
+    personalModificado = true;
+  }
+  if (!p.credencialesIds) {
+    p.credencialesIds = [];
+    personalModificado = true;
+  }
+});
+personal.sort((a, b) => a.ordenManual - b.ordenManual);
+
+if (personalModificado) localStorage.setItem('bom_personal', JSON.stringify(personal));
+
+function guardarDatos() {
+  localStorage.setItem('bom_mensajes', JSON.stringify(mensajes));
+  localStorage.setItem('bom_credenciales', JSON.stringify(credenciales));
+  localStorage.setItem('bom_rangos', JSON.stringify(rangos));
+  localStorage.setItem('bom_personal', JSON.stringify(personal));
+  localStorage.setItem('bom_moviles', JSON.stringify(moviles));
+  localStorage.setItem('bom_tipos_emergencia', JSON.stringify(tiposEmergencia));
+  localStorage.setItem('bom_motivos', JSON.stringify(motivosNoEmerg));
+  localStorage.setItem('bom_inter', JSON.stringify(intervenciones));
+  localStorage.setItem('bom_counter', idCounter);
+}
+
+function getNombreRango(rangoId) {
+  const r = rangos.find(x => x.id == parseInt(rangoId));
+  return r ? r.nombre : 'Sin rango';
+}
+function getOrdenRango(rangoId) {
+  const r = rangos.find(x => x.id == parseInt(rangoId));
+  return r ? r.orden : 999;
+}
+
+// =====================
+// SISTEMA DE SESIONES
+// =====================
+function iniciarSesion() {
+  const dni = document.getElementById('login-dni').value.trim().replace(/\./g, '');
+  const errorDiv = document.getElementById('login-error');
+  
+  if (!dni) return errorDiv.textContent = 'Por favor, ingrese un DNI.';
+
+  if (dni === DNI_MAESTRO) {
+    usuarioActual = { nombre: 'USUARIO MAESTRO', isMaster: true, permisos: ['dashboard', 'hud-guardia', 'historial', 'personal-sec', 'estadisticas', 'vehiculos', 'mensajes-sec', 'configuracion'], dni: DNI_MAESTRO };
+    procesarIngreso();
+    return;
+  }
+
+  const p = personal.find(x => x.dni === dni && x.activo !== false);
+  if (!p) return errorDiv.textContent = 'DNI no encontrado o inactivo en el sistema.';
+  if (!p.credencialesIds || p.credencialesIds.length === 0) return errorDiv.textContent = 'Su usuario no tiene permisos de acceso asignados.';
+
+  let permisosSet = new Set();
+  p.credencialesIds.forEach(cId => {
+    let cred = credenciales.find(c => c.id === cId);
+    if(cred) cred.permisos.forEach(perm => permisosSet.add(perm));
+  });
+
+  let permisosUsuario = Array.from(permisosSet);
+  if(!permisosUsuario.includes('mensajes-sec')) permisosUsuario.push('mensajes-sec');
+  if(!permisosUsuario.includes('hud-guardia')) permisosUsuario.push('hud-guardia');
+
+  usuarioActual = { nombre: p.nombre, isMaster: false, permisos: permisosUsuario, personalId: p.id, dni: p.dni, credencialesIds: p.credencialesIds };
+  procesarIngreso();
+}
+
+function procesarIngreso() {
+  document.getElementById('login-screen').classList.add('oculto');
+  
+  const navBtns = document.querySelectorAll('nav .nav-btn');
+  navBtns.forEach(btn => {
+    const targetId = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+    if (usuarioActual.permisos.includes(targetId)) {
+      btn.style.display = 'inline-block';
+    } else {
+      btn.style.display = 'none';
+    }
+  });
+
+  document.getElementById('seccion-maestra').style.display = usuarioActual.isMaster ? 'block' : 'none';
+
+  let headerRight = document.querySelector('.header-right');
+  if(!document.getElementById('user-logged-info')) {
+    let info = document.createElement('div');
+    info.id = 'user-logged-info';
+    info.style.cssText = 'color:#FFF; font-weight:700; margin-right:20px; font-size:14px; background:rgba(0,0,0,0.2); padding:6px 12px; border-radius:4px; display:flex; align-items:center; gap:10px;';
+    headerRight.prepend(info);
+  }
+  
+  document.getElementById('user-logged-info').innerHTML = `
+    <span>👤 ${usuarioActual.nombre}</span>
+    <button class="btn-sm btn-gris" onclick="programarCierreSesion()" style="padding:4px 8px; font-size:10px; background:rgba(255,255,255,0.8); color:#000;">⏱ Auto-Cierre</button>
+    <button class="btn-sm btn-rojo" onclick="cerrarSesion()" style="padding:4px 8px; font-size:10px;">✕ Salir</button>
+  `;
+
+  const primerBotonVisible = Array.from(navBtns).find(b => b.style.display !== 'none');
+  if (primerBotonVisible) {
+      primerBotonVisible.click();
+  }
+}
+
+// =====================
+// FUNCIONES MAESTRAS (CREDENCIALES)
+// =====================
+function agregarCredencial() {
+  const nombre = document.getElementById('conf-cred-nombre').value.trim();
+  const checkboxes = document.querySelectorAll('#conf-cred-permisos input:checked');
+  const permisos = Array.from(checkboxes).map(c => c.value);
+
+  if (!nombre) return mostrarToast('⚠ Indique un nombre para la credencial', 'warning');
+  if (permisos.length === 0) return mostrarToast('⚠ Seleccione al menos un permiso', 'warning');
+
+  const nuevoId = credenciales.length > 0 ? Math.max(...credenciales.map(c => c.id)) + 1 : 1;
+  credenciales.push({ id: nuevoId, nombre, permisos });
+  guardarDatos();
+  
+  document.getElementById('conf-cred-nombre').value = '';
+  checkboxes.forEach(c => c.checked = false);
+  renderConfiguracion();
+  mostrarToast('✓ Credencial creada', 'success');
+}
+
+function eliminarCredencial(id) {
+  if (personal.some(p => p.credencialesIds && p.credencialesIds.includes(id))) {
+     return alert('❌ No puede borrar esta credencial porque hay personal que la tiene asignada. Revóqueles el acceso primero.');
+  }
+  credenciales = credenciales.filter(c => c.id !== id);
+  guardarDatos();
+  renderConfiguracion();
+  mostrarToast('✓ Credencial eliminada', 'success');
+}
+
+function asignarCredencialPersonal(idPersonal) {
+  if(!usuarioActual || !usuarioActual.isMaster) return alert('Solo el usuario maestro puede gestionar accesos.');
+  if(credenciales.length === 0) return alert('Primero debe crear al menos una credencial.');
+  
+  const p = personal.find(x => x.id === idPersonal);
+  if(!p) return;
+
+  let mensaje = `Asignar credenciales a ${p.nombre}.\n\n0: QUITAR TODOS LOS ACCESOS\n`;
+  credenciales.forEach(c => mensaje += `${c.id}: ${c.nombre}\n`);
+  mensaje += '\nIngrese los NÚMEROS separados por coma (Ejemplo: 1,3):';
+  
+  const actuales = p.credencialesIds.join(', ');
+  const respuesta = prompt(mensaje, actuales);
+  
+  if (respuesta !== null) {
+    const valores = respuesta.split(',').map(x => parseInt(x.trim()));
+    if (valores.includes(0)) {
+       p.credencialesIds = [];
+    } else {
+       p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
+    }
+    guardarDatos();
+    renderConfiguracion();
+    mostrarToast('✓ Accesos actualizados', 'success');
+  }
+}
+
+// =====================
+// TASKLIST Y MENSAJERÍA
+// =====================
+function toggleNotifDest() {
+  const tipo = document.getElementById('notif-tipo-dest').value;
+  document.getElementById('div-notif-grupo').style.display = tipo === 'grupo' ? 'flex' : 'none';
+  document.getElementById('div-notif-personal').style.display = tipo === 'personal' ? 'flex' : 'none';
+}
+
+function abrirModalNotificacion() {
+  const selectCred = document.getElementById('notif-credencial');
+  selectCred.innerHTML = '<option value="">Seleccione el grupo destinatario...</option>';
+  credenciales.forEach(c => selectCred.appendChild(new Option(c.nombre, c.id)));
+
+  const listaPer = document.getElementById('notif-lista-personal');
+  const personalActivo = personal.filter(p => p.activo !== false);
+  listaPer.innerHTML = personalActivo.map(p => `
+    <label style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:500; cursor:pointer; text-transform:none;">
+      <input type="checkbox" class="chk-notif-per" value="${p.id}" style="width:16px; height:16px;">
+      ${p.nombre}
+    </label>
+  `).join('');
+
+  document.getElementById('notif-texto').value = '';
+  document.getElementById('notif-tipo-dest').value = 'grupo';
+  toggleNotifDest();
+  
+  document.getElementById('modal-notificacion').classList.add('visible');
+}
+
+function cerrarModalNotificacion() {
+  document.getElementById('modal-notificacion').classList.remove('visible');
+}
+
+function enviarNotificacion() {
+  const tipo = document.getElementById('notif-tipo-dest').value;
+  const texto = document.getElementById('notif-texto').value.trim();
+  if(!texto) return mostrarToast('⚠ Escribí el texto de la tarea', 'warning');
+
+  let credId = null;
+  let destinatariosIds = [];
+
+  if (tipo === 'grupo') {
+    credId = document.getElementById('notif-credencial').value;
+    if(!credId) return mostrarToast('⚠ Seleccioná el grupo', 'warning');
+  } else {
+    const checks = document.querySelectorAll('.chk-notif-per:checked');
+    if(checks.length === 0) return mostrarToast('⚠ Tildá al menos un bombero', 'warning');
+    destinatariosIds = Array.from(checks).map(c => parseInt(c.value));
+  }
+  
+  const nuevoMensaje = {
+    id: Date.now(),
+    remitente: usuarioActual.nombre,
+    remitenteDni: usuarioActual.dni,
+    credencialDestinoId: credId ? parseInt(credId) : null,
+    destinatariosIds: destinatariosIds,
+    texto: texto,
+    fechaEnvio: new Date().toLocaleString('es-AR'),
+    estado: 'pendiente', 
+    fechaProgramada: '', 
+    realizadoPor: null
+  };
+
+  mensajes.push(nuevoMensaje);
+  guardarDatos();
+  cerrarModalNotificacion();
+  mostrarToast('✓ Tarea enviada exitosamente', 'success');
+  if(document.getElementById('mensajes-sec').classList.contains('visible')) renderMensajesEnviados();
+}
+
+function renderNotificaciones() {
+  if(!usuarioActual) {
+    document.getElementById('panel-notificaciones').style.display = 'none';
+    return;
+  }
+  
+  const panel = document.getElementById('panel-notificaciones');
+  const lista = document.getElementById('lista-notificaciones');
+  
+  const misTareas = mensajes.filter(m => {
+    const vaParaMiGrupo = m.credencialDestinoId && usuarioActual.credencialesIds && usuarioActual.credencialesIds.includes(m.credencialDestinoId);
+    const vaParaMi = m.destinatariosIds && m.destinatariosIds.includes(usuarioActual.personalId);
+    return vaParaMiGrupo || vaParaMi;
+  }).reverse();
+  
+  if(misTareas.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  lista.innerHTML = misTareas.map(m => {
+    let isRealizada = m.estado === 'realizada';
+    let bg = isRealizada ? '#F1F5F9' : '#FFFFFF';
+    let border = isRealizada ? 'var(--borde)' : 'var(--amarillo)';
+    
+    let tagDestino = m.destinatariosIds && m.destinatariosIds.length > 0 ? 
+      `<span style="background:var(--rojo-vivo); color:white; padding:2px 6px; border-radius:4px; font-size:10px;">MENSAJE DIRECTO</span>` : '';
+
+    return `
+    <div class="notif-card" style="background: ${bg}; border-left-color: ${border}; opacity: ${isRealizada ? '0.7' : '1'}">
+      <div class="notif-header" style="align-items:center;">
+        <span>Remitente: <strong style="color:var(--texto);">${m.remitente}</strong> ${tagDestino}</span>
+        <span>Enviado el ${m.fechaEnvio}</span>
+      </div>
+      <div class="notif-texto">${m.texto}</div>
+      
+      <div class="notif-actions" style="background:#F8FAFC; padding:10px; border-radius:4px; border:1px solid #E2E8F0; margin-top:10px;">
+        ${!isRealizada ? `
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%;">
+            <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
+              <label style="font-size:13px; font-weight:700; color:var(--texto-secundario);">Programar para:</label>
+              <input type="datetime-local" value="${m.fechaProgramada || ''}" style="padding:6px 10px; font-size:13px; width:auto;" onchange="programarTarea(${m.id}, this.value)">
+            </div>
+            <button class="btn-sm btn-verde" onclick="marcarTareaRealizada(${m.id})">✓ Marcar como Realizada</button>
+          </div>
+        ` : `
+          <div style="color:var(--verde); font-weight:800; font-size:13px; display:flex; gap:8px; align-items:center;">
+            ✓ Tarea realizada por ${m.realizadoPor}
+          </div>
+        `}
+      </div>
+    </div>
+    `;
+  }).join('');
+}
+
+function programarTarea(id, fecha) {
+  const m = mensajes.find(x => x.id === id);
+  if(m) {
+    m.fechaProgramada = fecha;
+    if(m.estado === 'pendiente') m.estado = 'programada';
+    guardarDatos();
+    renderNotificaciones();
+    if(document.getElementById('hud-guardia').classList.contains('visible')) renderHudGuardia();
+    mostrarToast('✓ Fecha y hora guardada', 'success');
+  }
+}
+
+function marcarTareaRealizada(id) {
+  if(!confirm('¿Confirmás que la tarea ya fue realizada? Se registrará tu nombre para que el remitente lo vea.')) return;
+  const m = mensajes.find(x => x.id === id);
+  if(m) {
+    m.estado = 'realizada';
+    m.realizadoPor = usuarioActual.nombre;
+    guardarDatos();
+    renderNotificaciones();
+    if(document.getElementById('hud-guardia').classList.contains('visible')) renderHudGuardia();
+    mostrarToast('✓ Tarea marcada como completada', 'success');
+  }
+}
+
+function renderMensajesEnviados() {
+  if(!usuarioActual) return;
+  const lista = document.getElementById('lista-mensajes-enviados');
+  
+  let misEnviados = mensajes.filter(m => m.remitenteDni === usuarioActual.dni).reverse();
+  
+  if(usuarioActual.isMaster) {
+     misEnviados = [...mensajes].reverse();
+  }
+
+  if(misEnviados.length === 0) {
+    lista.innerHTML = '<div class="vacio"><div class="vacio-icon">📭</div>No enviaste ninguna tarea a los grupos todavía.</div>';
+    return;
+  }
+
+  lista.innerHTML = misEnviados.map(m => {
+    let destText = '';
+    if (m.destinatariosIds && m.destinatariosIds.length > 0) {
+      destText = `Personal: ${m.destinatariosIds.length} seleccionado/s`;
+    } else {
+      const cred = credenciales.find(c => c.id === parseInt(m.credencialDestinoId));
+      destText = cred ? `Grupo: ${cred.nombre}` : 'Grupo Eliminado';
+    }
+    
+    let estadoBadge = '';
+    if(m.estado === 'pendiente') estadoBadge = `<span style="background:var(--amarillo); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PENDIENTE</span>`;
+    else if(m.estado === 'programada') {
+        let fp = m.fechaProgramada.replace('T', ' ');
+        estadoBadge = `<span style="background:var(--azul); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PROGRAMADA: ${fp}</span>`;
+    }
+    else if(m.estado === 'realizada') estadoBadge = `<span style="background:var(--verde); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">REALIZADA por ${m.realizadoPor}</span>`;
+
+    return `
+      <div class="config-item" style="display:block; border-left: 4px solid var(--rojo);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid var(--borde); padding-bottom:8px; flex-wrap:wrap; gap:10px;">
+           <div style="font-size:13px; color:var(--texto-secundario);">Para <strong style="color:var(--texto);">${destText}</strong> | Enviado: ${m.fechaEnvio} ${usuarioActual.isMaster ? `| <strong>De: ${m.remitente}</strong>` : ''}</div>
+           <div>${estadoBadge}</div>
+        </div>
+        <div style="font-size:15px; font-weight:500; color:var(--texto); padding: 4px 0;">${m.texto}</div>
+        <div style="text-align:right; margin-top:8px;">
+          <button class="btn-sm btn-rojo" style="padding:4px 10px; font-size:11px;" onclick="borrarMensajeEnviado(${m.id})">Borrar Registro</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function borrarMensajeEnviado(id) {
+   if(!confirm('¿Estás seguro que querés borrar este registro de la lista de tareas enviadas?')) return;
+   mensajes = mensajes.filter(m => m.id !== id);
+   guardarDatos();
+   renderMensajesEnviados();
+   if(document.getElementById('dashboard').classList.contains('visible')) renderNotificaciones();
+}
+
+// =====================
+// RENDER HUD DE GUARDIA (TV MODE)
+// =====================
+function renderHudGuardia() {
+  const activas = intervenciones.filter(i => i.estado !== 'finalizada');
+  let movilesAfuera = [];
+  let personalFuera = new Set();
+  
+  activas.forEach(i => {
+    i.moviles.forEach(m => {
+      if (!m.horaRegreso) {
+        m.personal.forEach(pObj => personalFuera.add(pObj.id));
+        movilesAfuera.push({
+          movil: m.nombre,
+          horaSalida: m.horaSalida,
+          siniestro: i.tipo,
+          domicilio: i.esEmergencia ? i.domicilio : 'RUTINA',
+          autorizador: m.autorizador || i.autorizador || 'N/A'
+        });
+      }
+    });
+  });
+
+  const personalPresente = personal.filter(p => p.activo !== false && p.presente && !personalFuera.has(p.id));
+  
+  let htmlMoviles = '';
+  if(movilesAfuera.length === 0) {
+    htmlMoviles = '<div style="color:#64748b; font-size:20px; font-style:italic; padding: 20px;">Todos los móviles en base. Ninguna salida activa.</div>';
+  } else {
+    htmlMoviles = movilesAfuera.map(m => `
+      <div class="hud-movil-item">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="hud-movil-nombre">🚒 ${m.movil}</div>
+          <div class="hud-movil-tiempo">SALIÓ: ${m.horaSalida}</div>
+        </div>
+        <div class="hud-movil-dest">📍 ${m.domicilio} <span style="color:#fbbf24; margin-left:8px;">[${m.siniestro}]</span></div>
+        <div style="color:#94a3b8; font-size:16px; margin-top:8px; text-transform:uppercase; font-weight:600;">A cargo: ${m.autorizador}</div>
+      </div>
+    `).join('');
+  }
+
+  let htmlPresentes = '';
+  if(personalPresente.length === 0) {
+    htmlPresentes = '<div style="color:#64748b; font-size:20px; font-style:italic; padding: 20px;">No hay personal disponible en base en este momento.</div>';
+  } else {
+    const ordenados = [...personalPresente].sort((a, b) => getOrdenRango(a.rangoId) - getOrdenRango(b.rangoId));
+    htmlPresentes = `
+      <div class="hud-personal-grid">
+        ${ordenados.map(p => `<div class="hud-bombero">${p.nombre}</div>`).join('')}
+      </div>
+    `;
+  }
+
+  let htmlTareas = '';
+  if (usuarioActual && (usuarioActual.credencialesIds || usuarioActual.personalId)) {
+     const misTareas = mensajes.filter(m => {
+        const vaParaMiGrupo = m.credencialDestinoId && usuarioActual.credencialesIds && usuarioActual.credencialesIds.includes(m.credencialDestinoId);
+        const vaParaMi = m.destinatariosIds && m.destinatariosIds.includes(usuarioActual.personalId);
+        return (vaParaMiGrupo || vaParaMi) && m.estado !== 'realizada';
+     }).reverse();
+     
+     if(misTareas.length > 0) {
+        htmlTareas = `
+        <div style="margin-top:24px; padding-top:20px; border-top: 2px dashed #334155;">
+          <div class="hud-card-title" style="font-size:20px; color:#fbbf24; border-bottom-color:#fbbf24;">Alertas / Tareas Pendientes</div>
+          ${misTareas.map(m => `
+            <div class="hud-tarea-tag">
+              <span style="font-size:14px; color:#cbd5e1; text-transform:uppercase;">De: ${m.remitente}</span>
+              ${m.texto}
+              ${m.fechaProgramada ? `<span style="font-size:14px; color:var(--azul);">Programada: ${m.fechaProgramada.replace('T', ' ')}</span>` : ''}
+            </div>
+          `).join('')}
+        </div>`;
+     }
+  }
+
+  const ahora = new Date();
+  const horaStr = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
+
+  document.getElementById('hud-pantalla-render').innerHTML = `
+    <div class="hud-reloj">🕒 ${horaStr}</div>
+    <div class="hud-grid">
+      <div class="hud-card red">
+        <div class="hud-card-title">MÓVILES EN LA CALLE</div>
+        ${htmlMoviles}
+      </div>
+      <div class="hud-card green">
+        <div class="hud-card-title">PERSONAL DISPONIBLE (${personalPresente.length})</div>
+        ${htmlPresentes}
+        ${htmlTareas}
+      </div>
+    </div>
+  `;
+}
+
+// Bucle de actualización automática del HUD (cada 5 segundos)
+setInterval(() => {
+  if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
+    renderHudGuardia();
+  }
+}, 5000);
+
+// =====================
+// RELOJ
+// =====================
+function actualizarReloj() {
+  const ahora = new Date();
+  const horaTexto = String(ahora.getHours()).padStart(2,'0') + ':' +
+                    String(ahora.getMinutes()).padStart(2,'0') + ':' +
+                    String(ahora.getSeconds()).padStart(2,'0');
+  
+  if(document.getElementById('reloj')) {
+    document.getElementById('reloj').textContent = horaTexto;
+  }
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+
+// =====================
+// NAVEGACIÓN
+// =====================
+function mostrarSeccion(id, btn) {
+  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('activo'));
+  document.getElementById(id).classList.add('visible');
+  btn.classList.add('activo');
+  
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'hud-guardia') renderHudGuardia();
+  if (id === 'mensajes-sec') renderMensajesEnviados();
+  if (id === 'historial') renderHistorial();
+  if (id === 'personal-sec') renderPersonalPanel();
+  if (id === 'estadisticas') { renderSelectorEstadisticas(); document.getElementById('est-resultados').innerHTML = ''; }
+  if (id === 'vehiculos') renderVehiculos();
+  if (id === 'configuracion') renderConfiguracion();
+}
+
+// =====================
+// RENDER DASHBOARD & ALERTAS
+// =====================
+function renderDashboard() {
+  renderNotificaciones(); 
+
+  const activas = intervenciones.filter(i => i.estado !== 'finalizada');
+  const personalFuera = new Set();
+  
+  activas.forEach(i => {
+    i.moviles.forEach(m => {
+      if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id));
+    });
+  });
+
+  const personalPresente = personal.filter(p => p.activo !== false && p.presente && !personalFuera.has(p.id)).length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="num amarillo">${activas.length}</div><div class="label">Salidas Activas</div></div>
+    <div class="stat-card"><div class="num">${personalFuera.size}</div><div class="label">Personal Afuera</div></div>
+    <div class="stat-card"><div class="num verde">${personalPresente}</div><div class="label">Presentes en Cuartel</div></div>
+    <div class="stat-card"><div class="num">${intervenciones.length}</div><div class="label">Total Registradas</div></div>
+  `;
+
+  // === REVISIÓN DE ALERTAS DE MANTENIMIENTO ===
+  let alertasVencidas = [];
+  const hoyDate = new Date();
+  const hoyStr = hoyDate.toISOString().split('T')[0]; 
+
+  moviles.forEach(m => {
+    m.alarmasKm.forEach(a => {
+      if (m.km >= a.limite) {
+        alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
+      }
+    });
+    m.alarmasFecha.forEach(a => {
+      if (hoyStr >= a.fecha) {
+        let fechaFormat = a.fecha.split('-').reverse().join('/');
+        alertasVencidas.push(`📅 <strong>${m.nombre}</strong>: ${a.desc} (Venció el ${fechaFormat})`);
+      }
+    });
+  });
+
+  const bannerAlertas = document.getElementById('alertas-dashboard');
+  if (alertasVencidas.length > 0) {
+    bannerAlertas.innerHTML = `
+      <h3>🚨 ATENCIÓN: ALERTAS DE MANTENIMIENTO</h3>
+      <ul>${alertasVencidas.map(al => `<li>${al}</li>`).join('')}</ul>
+    `;
+    bannerAlertas.classList.add('visible');
+  } else {
+    bannerAlertas.classList.remove('visible');
+    bannerAlertas.innerHTML = '';
+  }
+
+  const lista = document.getElementById('activas-lista');
+  if (activas.length === 0) {
+    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">🚒</div>No hay salidas activas en este momento.</div>`;
+    return;
+  }
+  
+  lista.innerHTML = activas.map(i => {
+    const pClave11 = (i.clave11 || []).map(id => {
+      const p = personal.find(x => x.id === id);
+      return p ? `<span class="badge-personal badge-clave11">🔔 ${p.nombre}</span>` : '';
+    }).join('');
+
+    const movilesHtml = i.moviles.map(m => {
+      const persNames = m.personal.map(pObj => {
+        const p = personal.find(x => x.id === pObj.id);
+        return p ? `<span class="badge-personal">👤 ${p.nombre} <span class="badge-personal-rol">[${pObj.rol.toUpperCase()}]</span></span>` : '';
+      }).join('');
+      
+      let tiemposHtml = '';
+      if (m.horaLlegada) tiemposHtml += `<span style="font-size:12px; color:var(--azul); font-weight:600;">📍 LLEGÓ: ${m.horaLlegada}</span> `;
+      if (m.horaRegreso) tiemposHtml += `<span style="font-size:12px; color:var(--verde); font-weight:600;">✓ REGRESÓ: ${m.horaRegreso}</span>`;
+
+      let btnLlegada = !m.horaLlegada && !m.horaRegreso ? `<button class="btn-sm btn-azul" onclick="registrarLlegadaMovil(${i.id}, ${m.idMovil})">📍 Llegó al lugar</button>` : '';
+      let btnRegreso = !m.horaRegreso ? `<button class="btn-sm btn-verde" onclick="registrarRegresoMovil(${i.id}, ${m.idMovil})">✓ Regresó a base</button>` : '';
+
+      return `
+        <div class="unidad-item">
+          <div class="unidad-header">
+            <div class="unidad-info">
+              <div class="unidad-movil">${m.nombre} <span style="font-size:13px;color:var(--texto-secundario);font-weight:600"> (Salió: ${m.horaSalida})</span></div>
+              <div style="font-size:12px; color:var(--texto-secundario); margin-top:-4px; margin-bottom:4px;">Autorizó salida: <strong>${m.autorizador || 'No registrado'}</strong></div>
+              <div class="unidad-personal">${persNames}</div>
+            </div>
+            <div class="unidad-tiempos">
+              ${tiemposHtml}
+              ${btnLlegada}
+              ${btnRegreso}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    let infoPrincipalHtml = '';
+    if(i.esEmergencia) {
+      let jurisColor = (i.jurisdiccion === 'Zonal') ? 'var(--rojo-vivo)' : 'var(--azul)';
+      infoPrincipalHtml = `
+        <div>
+          <div class="inter-tipo">N° ${i.id} - ${i.tipo} <span class="badge-jurisdiccion" style="background:${jurisColor}; margin-left:8px;">${(i.jurisdiccion || 'LOCAL').toUpperCase()}</span></div>
+          <div class="inter-domicilio">📍 ${i.domicilio}</div>
+          <div class="inter-meta">
+            <span>🕐 Alarma: <strong>${i.horaAlarma ? i.horaAlarma.replace('T', ' ') : '—'}</strong></span>
+            <span>📞 Llama: ${i.llamante || '—'}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      infoPrincipalHtml = `
+        <div>
+          <div class="inter-tipo" style="color:var(--gris-salida)">N° ${i.id} - NO EMERGENCIA</div>
+          <div class="inter-domicilio" style="font-size:16px; font-weight:700; color:var(--texto)">📌 Motivo: ${i.tipo}</div>
+          <div class="inter-meta">
+            <span>🕐 Registrada: <strong>${i.horaAlarma ? i.horaAlarma.replace('T', ' ') : '—'}</strong></span>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="intervencion-card ${!i.esEmergencia ? 'no-emergencia' : ''}">
+        <div class="inter-info">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            ${infoPrincipalHtml}
+          </div>
+          
+          <div class="unidades-lista">${movilesHtml}</div>
+          
+          ${i.clave11.length > 0 ? `<div style="margin-top:16px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--amarillo)">PERSONAL CLAVE 11:</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${pClave11}</div>` : ''}
+          
+          <div class="inter-acciones-bottom">
+            ${i.esEmergencia ? `<button class="btn-sm btn-rojo" onclick="abrirModalApoyo(${i.id})">＋ Sumar Unidad de Apoyo</button>
+                                <button class="btn-sm btn-amarillo" onclick="abrirModalClave11(${i.id})">🔔 Cargar Clave 11</button>` : ''}
+            <button class="btn-sm btn-azul" onclick="abrirModalFinalizar(${i.id})">📝 Finalizar Salida</button>
+            <button class="btn-sm btn-gris" onclick="exportarExcelUna(${i.id})">📊 Bajar Excel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// =====================
+// RENDER HISTORIAL Y BORRAR
+// =====================
+function renderHistorial() {
+  const cerradas = [...intervenciones].filter(i => i.estado === 'finalizada').reverse();
+  const lista = document.getElementById('historial-lista');
+  if (cerradas.length === 0) {
+    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>Aún no hay salidas finalizadas.</div>`;
+    return;
+  }
+  
+  lista.innerHTML = cerradas.map(i => {
+    let jurisColor = (i.jurisdiccion === 'Zonal') ? 'var(--rojo-vivo)' : 'var(--azul)';
+    let tipoText = i.esEmergencia 
+      ? `N° ${i.id} - ${i.tipo} <span class="badge-jurisdiccion" style="background:${jurisColor}; margin-left:8px; font-size:10px;">${(i.jurisdiccion || 'LOCAL').toUpperCase()}</span>` 
+      : `N° ${i.id} - NO EMERGENCIA: ${i.tipo}`;
+
+    return `
+      <div class="intervencion-card cerrada ${!i.esEmergencia ? 'no-emergencia' : ''}" style="margin-bottom:12px; grid-template-columns: 1fr;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap: 12px;">
+            <input type="checkbox" class="chk-historial" value="${i.id}">
+            <div>
+              <div class="inter-tipo" style="${!i.esEmergencia?'color:var(--gris-salida)':''}">${tipoText}</div>
+              <div class="inter-domicilio">📍 ${i.esEmergencia ? i.domicilio : 'Sin domicilio'} — <span style="font-size:12px;color:var(--texto-secundario);">${i.horaAlarma ? i.horaAlarma.replace('T', ' ') : ''}</span></div>
+              <div style="font-size:12px; font-weight:700; color:var(--verde); margin-top:6px; letter-spacing:1px;">✓ FINALIZADA</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn-sm btn-azul" onclick="abrirModalEditarInforme(${i.id})">📝 Editar Informe</button>
+            <button class="btn-sm btn-gris" onclick="generarPDF(${i.id}, false)">📄 Ver PDF</button>
+            <button class="btn-sm btn-gris" onclick="exportarExcelUna(${i.id})">📊 Excel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function borrarSeleccionadosHistorial() {
+  const checkboxes = document.querySelectorAll('.chk-historial:checked');
+  if (checkboxes.length === 0) return mostrarToast('⚠ Seleccioná al menos una intervención para borrar', 'warning');
+  
+  const seleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+  const password = prompt(`Estás por borrar ${seleccionados.length} registros. Ingresá la clave de confirmación:`);
+  if (password === "BORRAR") {
+    // 1. Eliminar del array
+    intervenciones = intervenciones.filter(i => !seleccionados.includes(i.id));
+    
+    // 2. Reacomodar números (IDs) para no tener saltos
+    intervenciones.sort((a,b) => new Date(a.horaAlarma) - new Date(b.horaAlarma)); 
+    intervenciones.forEach((inter, index) => {
+      inter.id = index + 1;
+    });
+    idCounter = intervenciones.length + 1;
+
+    guardarDatos();
+    renderHistorial();
+    renderDashboard(); 
+    if(document.getElementById('estadisticas').classList.contains('visible')) renderEstadisticasBombero();
+    
+    mostrarToast(`✓ Se borraron y reacomodaron los registros de historial`, "success");
+  } else if (password !== null) {
+    alert("❌ Clave incorrecta.");
+  }
+}
+
+// =====================
+// RENDER ESTADÍSTICAS BOMBERO
+// =====================
+let chartPartInstance = null;
+let chartRolesInstance = null;
+
+function renderSelectorEstadisticas() {
+  const sel = document.getElementById('est-bombero');
+  sel.innerHTML = '<option value="">Elegí un bombero...</option>';
+  
+  const personalOrdenado = [...personal].sort((a, b) => {
+    let oA = getOrdenRango(a.rangoId);
+    let oB = getOrdenRango(b.rangoId);
+    if (oA === oB) return a.nombre.localeCompare(b.nombre);
+    return oA - oB;
+  });
+
+  personalOrdenado.forEach(p => {
+    sel.appendChild(new Option(`${p.nombre} (${getNombreRango(p.rangoId)})`, p.id));
+  });
+}
+
+function formatearMilisegundosAHom(totalMs) {
+  let horas = Math.floor(totalMs / (1000 * 60 * 60));
+  let min = Math.floor((totalMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${horas}h ${min}m`;
+}
+
+function renderEstadisticasBombero() {
+  const idBombero = parseInt(document.getElementById('est-bombero').value);
+  const resultados = document.getElementById('est-resultados');
+  
+  if (!idBombero || isNaN(idBombero)) {
+    resultados.innerHTML = '';
+    return;
+  }
+
+  const p = personal.find(x => x.id === idBombero);
+  if (!p) return;
+
+  // 1. Calcular horas por MES CALENDARIO
+  let horasPorMes = {};
+  let totalMsGeneral = 0;
+  const ahora = new Date().getTime();
+  
+  (p.asistencia || []).forEach(a => {
+    if (a.ingreso) {
+      let fin = a.egreso ? a.egreso : ahora; 
+      let duracion = fin - a.ingreso;
+      totalMsGeneral += duracion;
+      
+      let fechaObj = new Date(a.ingreso);
+      let mesAnio = fechaObj.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+      mesAnio = mesAnio.charAt(0).toUpperCase() + mesAnio.slice(1); // Mayúscula
+      
+      if (!horasPorMes[mesAnio]) horasPorMes[mesAnio] = 0;
+      horasPorMes[mesAnio] += duracion;
+    }
+  });
+
+  let htmlMeses = Object.keys(horasPorMes).map(mes => {
+    return `<div class="mes-card">
+              <div class="mes-nombre">${mes}</div>
+              <div class="mes-horas">${formatearMilisegundosAHom(horasPorMes[mes])}</div>
+            </div>`;
+  }).join('');
+  
+  if(htmlMeses === '') htmlMeses = `<div style="font-size:13px; color:var(--texto-secundario); grid-column: 1/-1;">Sin registros de guardia aún.</div>`;
+
+  // 2. Extraer salidas y participación para gráficos
+  let totalSalidasCuartel = intervenciones.length;
+  let cantSalio = 0;
+  let cantEnCuartel = 0;
+  let cantAusente = 0;
+
+  let rolesCount = {};
+  let salidasParticipo = [];
+
+  intervenciones.forEach(inter => {
+    let rolBase = null;
+    let rolDesc = null;
+    
+    // Ver si salió en un móvil
+    inter.moviles.forEach(m => {
+      const pObj = m.personal.find(bp => bp.id === idBombero);
+      if (pObj) {
+        rolBase = pObj.rol;
+        rolDesc = `${pObj.rol} en ${m.nombre.split('—')[0].trim()}`;
+      }
+    });
+    
+    // O si fue Clave 11
+    if (!rolBase && inter.clave11.includes(idBombero)) {
+      rolBase = 'Clave 11';
+      rolDesc = 'Clave 11';
+    }
+
+    if (rolBase) {
+      cantSalio++;
+      rolesCount[rolBase] = (rolesCount[rolBase] || 0) + 1;
+      
+      let fechaFormat = inter.fecha || inter.horaAlarma.split(' ')[0];
+      salidasParticipo.push({
+        id: inter.id,
+        fecha: fechaFormat,
+        tipo: inter.tipo,
+        rol: rolDesc
+      });
+    } else if (inter.personalPresenteSnapshot && inter.personalPresenteSnapshot.includes(idBombero)) {
+      cantEnCuartel++;
+    } else {
+      cantAusente++;
+    }
+  });
+
+  // 3. Renderizar vista HTML base
+  let filasHtml = salidasParticipo.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.fecha}</td>
+      <td>${s.tipo}</td>
+      <td><strong>${s.rol}</strong></td>
+    </tr>
+  `).join('');
+
+  if (salidasParticipo.length === 0) {
+    filasHtml = `<tr><td colspan="4" style="text-align:center; color:var(--texto-secundario); padding:20px;">No participó en ninguna salida.</td></tr>`;
+  }
+
+  resultados.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
+      <div class="titulo-seccion" style="border:none; padding:0; margin:0;">Horas de Guardia por Mes</div>
+      <div style="font-size:14px; font-weight:700; color:var(--texto);">Total Histórico: <span style="color:var(--verde);">${formatearMilisegundosAHom(totalMsGeneral)}</span></div>
+    </div>
+    <div class="mes-grid">${htmlMeses}</div>
+
+    <div class="charts-grid">
+      <div class="chart-box">
+        <div class="chart-title">Nivel de Participación</div>
+        <div class="canvas-container"><canvas id="chartPart"></canvas></div>
+        <p style="text-align:center; font-size:12px; color:#666; margin-top:10px;">Sobre un total de ${totalSalidasCuartel} salidas del cuartel.</p>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Roles Ocupados</div>
+        <div class="canvas-container"><canvas id="chartRoles"></canvas></div>
+        <p style="text-align:center; font-size:12px; color:#666; margin-top:10px;">Sobre las ${cantSalio} salidas a las que asistió.</p>
+      </div>
+    </div>
+    
+    <div class="titulo-seccion">Detalle de Salidas Asistidas</div>
+    <table class="tabla-est">
+      <thead>
+        <tr><th>N°</th><th>Fecha</th><th>Siniestro / Motivo</th><th>Rol Asignado</th></tr>
+      </thead>
+      <tbody>
+        ${filasHtml}
+      </tbody>
+    </table>
+  `;
+
+  // 4. Dibujar Gráficos (Chart.js)
+  setTimeout(() => {
+    // Destruir gráficos anteriores si existen
+    if (chartPartInstance) chartPartInstance.destroy();
+    if (chartRolesInstance) chartRolesInstance.destroy();
+
+    // Gráfico 1: Participación
+    const ctxPart = document.getElementById('chartPart').getContext('2d');
+    chartPartInstance = new Chart(ctxPart, {
+      type: 'pie',
+      data: {
+        labels: ['Asistió al Siniestro', 'Se quedó en Cuartel', 'Ausente'],
+        datasets: [{
+          data: [cantSalio, cantEnCuartel, cantAusente],
+          backgroundColor: ['#CC2200', '#007BFF', '#E2E8F0'],
+          borderWidth: 1
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Gráfico 2: Roles
+    const ctxRoles = document.getElementById('chartRoles').getContext('2d');
+    const labelsRoles = Object.keys(rolesCount);
+    const dataRoles = Object.values(rolesCount);
+    
+    if(labelsRoles.length === 0) {
+      labelsRoles.push('Sin salidas');
+      dataRoles.push(1);
+    }
+
+    chartRolesInstance = new Chart(ctxRoles, {
+      type: 'pie',
+      data: {
+        labels: labelsRoles,
+        datasets: [{
+          data: dataRoles,
+          backgroundColor: ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#F43F5E', '#06B6D4'],
+          borderWidth: 1
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }, 50);
+}
+
+// =====================
+// RENDER PERSONAL PANEL E INTERACCIÓN
+// =====================
+function toggleBajaPersonal(id, darBaja) {
+  const p = personal.find(x => x.id === id);
+  if(p) {
+    p.activo = !darBaja;
+    if(darBaja) togglePresenciaPersonal(id, false); // Forzar ausencia y cerrar reloj si se da de baja
+    guardarDatos();
+    renderPersonalPanel();
+    if(document.getElementById('configuracion').classList.contains('visible')) renderConfiguracion();
+    if(document.getElementById('dashboard').classList.contains('visible')) renderDashboard();
+    mostrarToast(darBaja ? 'Bombero dado de baja' : 'Bombero reactivado', 'success');
+  }
+}
+
+function togglePresenciaPersonal(id, isPresente) {
+  const p = personal.find(x => x.id === id);
+  if (p) {
+    p.presente = isPresente;
+    
+    // GUARDAR REGISTRO DE HORAS
+    const ahora = new Date().getTime();
+    if (!p.asistencia) p.asistencia = [];
+
+    if (isPresente) {
+      p.asistencia.push({ ingreso: ahora, egreso: null });
+    } else {
+      for (let i = p.asistencia.length - 1; i >= 0; i--) {
+        if (p.asistencia[i].egreso === null) {
+          p.asistencia[i].egreso = ahora;
+          break;
+        }
+      }
+    }
+
+    guardarDatos();
+    renderPersonalPanel();
+    if(document.getElementById('dashboard').classList.contains('visible')) renderDashboard(); 
+  }
+}
+
+function renderPersonalPanel() {
+  const activas = intervenciones.filter(i => i.estado !== 'finalizada');
+  const personalFuera = new Set();
+  activas.forEach(i => {
+    i.moviles.forEach(m => {
+      if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id));
+    });
+  });
+
+  // ORDENAR PERSONAL POR RANGO JERÁRQUICO
+  const personalOrdenado = [...personal].sort((a, b) => {
+    let oA = getOrdenRango(a.rangoId);
+    let oB = getOrdenRango(b.rangoId);
+    if (oA === oB) return a.nombre.localeCompare(b.nombre);
+    return oA - oB;
+  });
+
+  const panel = document.getElementById('personal-panel');
+  panel.innerHTML = personalOrdenado.map(p => {
+    const fuera = personalFuera.has(p.id);
+    const inactivo = p.activo === false;
+    const presente = p.presente === true;
+    
+    let estadoTxt = '';
+    let colorClase = '';
+    let dotClase = '';
+    
+    if (inactivo) {
+      estadoTxt = '● INACTIVO / BAJA';
+      colorClase = 'var(--texto-secundario)';
+      dotClase = 'inactivo';
+    } else if (fuera) {
+      estadoTxt = '● EN INTERVENCIÓN';
+      colorClase = 'var(--rojo-vivo)';
+      dotClase = 'en-intervencion';
+    } else if (presente) {
+      estadoTxt = '● PRESENTE EN CUARTEL';
+      colorClase = 'var(--verde)';
+      dotClase = '';
+    } else {
+      estadoTxt = '● AUSENTE';
+      colorClase = 'var(--amarillo)';
+      dotClase = 'no-presente';
+    }
+
+    return `
+      <div class="personal-card ${inactivo ? 'baja' : ''}">
+        <div class="personal-card-info">
+          <div class="nombre">${p.nombre}</div>
+          <div class="rango">${getNombreRango(p.rangoId)}</div>
+          <div style="font-size:12px; font-weight:600; margin-top:6px; color:${colorClase}">
+            ${estadoTxt}
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+          <div class="dot ${dotClase}"></div>
+          ${!inactivo && !fuera ? `
+            <label class="chk-baja-label">
+              <input type="checkbox" class="chk-baja" onchange="togglePresenciaPersonal(${p.id}, this.checked)" ${presente ? 'checked' : ''}>
+              PRESENTE
+            </label>
+          ` : ''}
+          <label class="chk-baja-label" style="margin-top:${(!inactivo && !fuera) ? '4px' : '20px'};">
+            <input type="checkbox" class="chk-baja" onchange="toggleBajaPersonal(${p.id}, this.checked)" ${inactivo ? 'checked' : ''}>
+            BAJA
+          </label>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// =====================
+// RENDER VEHÍCULOS Y MANTENIMIENTO
+// =====================
+function renderVehiculos() {
+  const container = document.getElementById('vehiculos-lista');
+  
+  if (moviles.length === 0) {
+    container.innerHTML = `<div class="vacio" style="grid-column:1/-1"><div class="vacio-icon">🚐</div>No hay vehículos cargados en la flota.</div>`;
+    return;
+  }
+
+  container.innerHTML = moviles.map((m, mIndex) => {
+    
+    const alarmasKmHtml = m.alarmasKm.map((a, aIndex) => {
+      const vencida = m.km >= a.limite;
+      return `
+        <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
+          <span>⚙️ ${a.desc} <br><small style="color:var(--texto-secundario)">Avisar a los: ${a.limite} km</small></span>
+          <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'km', ${aIndex})">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    const alarmasFechaHtml = m.alarmasFecha.map((a, aIndex) => {
+      const hoy = new Date().toISOString().split('T')[0];
+      const vencida = hoy >= a.fecha;
+      const fechaFormat = a.fecha.split('-').reverse().join('/');
+      return `
+        <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
+          <span>📅 ${a.desc} <br><small style="color:var(--texto-secundario)">Vence: ${fechaFormat}</small></span>
+          <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'fecha', ${aIndex})">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="vehiculo-card">
+        <div class="vehiculo-header">
+          <div>
+            <div class="vehiculo-nombre">${m.nombre}</div>
+            <div class="vehiculo-km">KM Actual: ${m.km} <button class="btn-order" style="width:24px; height:24px;" onclick="editarKmMovil(${m.id})" title="Actualizar KM">✎</button></div>
+          </div>
+          <button class="btn-sm btn-rojo" onclick="eliminarMovil(${mIndex})">Borrar</button>
+        </div>
+        
+        <div class="vehiculo-desc">
+          <strong>Características Técnicas:</strong><br>
+          ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
+          <div style="margin-top:6px; text-align:right;">
+             <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
+          </div>
+        </div>
+
+        <div class="alarma-seccion">
+          <div class="alarma-titulo">Alarmas por Kilometraje (Mecánica) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'km')">＋ Nueva</button></div>
+          <div class="alarma-lista">
+            ${alarmasKmHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de km configuradas.</div>'}
+          </div>
+        </div>
+
+        <div class="alarma-seccion" style="margin-top:20px;">
+          <div class="alarma-titulo">Alarmas por Fecha (Vencimientos) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'fecha')">＋ Nueva</button></div>
+          <div class="alarma-lista">
+            ${alarmasFechaHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de fecha configuradas.</div>'}
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+function agregarMovil() {
+  const nombre = document.getElementById('veh-nombre').value.trim();
+  const kmInput = document.getElementById('veh-km').value;
+  if (!nombre) return mostrarToast('⚠ Completá el nombre de identificación', 'warning');
+  const km = kmInput ? parseInt(kmInput) : 0;
+  const nuevoId = moviles.length > 0 ? Math.max(...moviles.map(m => m.id)) + 1 : 1;
+  
+  moviles.push({ id: nuevoId, nombre, km, caracteristicas: '', alarmasKm: [], alarmasFecha: [] });
+  guardarDatos();
+  document.getElementById('veh-nombre').value = '';
+  document.getElementById('veh-km').value = '';
+  renderVehiculos();
+  mostrarToast('✓ Vehículo sumado a la flota', 'success');
+}
+
+function eliminarMovil(index) {
+  if(!confirm('¿Seguro que querés borrar este vehículo definitivamente?')) return;
+  moviles.splice(index, 1);
+  guardarDatos(); 
+  renderVehiculos();
+  mostrarToast('✓ Vehículo eliminado', 'success');
+}
+
+function editarKmMovil(id) {
+  const m = moviles.find(x => x.id === id);
+  if(!m) return;
+  const nuevoKm = prompt(`Actualizar kilometraje para ${m.nombre}:`, m.km);
+  if(nuevoKm !== null && !isNaN(nuevoKm) && nuevoKm !== "") {
+    m.km = parseInt(nuevoKm);
+    guardarDatos();
+    renderVehiculos();
+    mostrarToast('✓ Kilometraje guardado', 'success');
+  }
+}
+
+function editarCaracteristicasMovil(id) {
+  const m = moviles.find(x => x.id === id);
+  if(!m) return;
+  const nuevaDesc = prompt(`Escribí las características técnicas de ${m.nombre} (Bomba, capacidad, equipamiento):`, m.caracteristicas);
+  if(nuevaDesc !== null) {
+    m.caracteristicas = nuevaDesc.trim();
+    guardarDatos();
+    renderVehiculos();
+  }
+}
+
+// LOGICA MODAL ALARMAS
+function abrirModalAlarma(idMovil, tipoPorDefecto) {
+  document.getElementById('al-id-movil').value = idMovil;
+  document.getElementById('al-tipo').value = tipoPorDefecto;
+  document.getElementById('al-desc').value = '';
+  document.getElementById('al-km').value = '';
+  document.getElementById('al-fecha').value = '';
+  cambiarTipoAlarma();
+  document.getElementById('modal-alarma').classList.add('visible');
+}
+
+function cerrarModalAlarma() {
+  document.getElementById('modal-alarma').classList.remove('visible');
+}
+
+function cambiarTipoAlarma() {
+  const tipo = document.getElementById('al-tipo').value;
+  if (tipo === 'km') {
+    document.getElementById('al-grupo-km').style.display = 'flex';
+    document.getElementById('al-grupo-fecha').style.display = 'none';
+  } else {
+    document.getElementById('al-grupo-km').style.display = 'none';
+    document.getElementById('al-grupo-fecha').style.display = 'flex';
+  }
+}
+
+function guardarAlarma() {
+  const idMovil = parseInt(document.getElementById('al-id-movil').value);
+  const m = moviles.find(x => x.id === idMovil);
+  if(!m) return;
+
+  const tipo = document.getElementById('al-tipo').value;
+  const desc = document.getElementById('al-desc').value.trim();
+  
+  if(!desc) return mostrarToast('⚠ Escribí una descripción', 'warning');
+
+  if (tipo === 'km') {
+    const km = parseInt(document.getElementById('al-km').value);
+    if(isNaN(km) || km <= 0) return mostrarToast('⚠ Ingresá un límite de KM válido', 'warning');
+    m.alarmasKm.push({ desc: desc, limite: km });
+  } else {
+    const fecha = document.getElementById('al-fecha').value;
+    if(!fecha) return mostrarToast('⚠ Seleccioná una fecha', 'warning');
+    m.alarmasFecha.push({ desc: desc, fecha: fecha });
+  }
+
+  m.alarmasKm.sort((a, b) => a.limite - b.limite);
+  m.alarmasFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  guardarDatos();
+  cerrarModalAlarma();
+  renderVehiculos();
+  mostrarToast('✓ Alerta preventiva configurada', 'success');
+}
+
+function eliminarAlarmaMovil(idMovil, tipo, indexAlarma) {
+  if(!confirm('¿Borrar esta alerta?')) return;
+  const m = moviles.find(x => x.id === idMovil);
+  if(!m) return;
+  
+  if (tipo === 'km') m.alarmasKm.splice(indexAlarma, 1);
+  else m.alarmasFecha.splice(indexAlarma, 1);
+
+  guardarDatos();
+  renderVehiculos();
+}
+
+// =====================
+// RENDER CONFIGURACIÓN GRAL
+// =====================
+function renderConfiguracion() {
+  // Rangos
+  rangos.sort((a,b) => a.orden - b.orden);
+  document.getElementById('lista-rangos-config').innerHTML = rangos.map((r, i) => `
+    <div class="config-item">
+      <div class="config-item-info">
+        <span class="config-item-title">${r.nombre}</span>
+        <span class="config-item-sub">Nivel de Jerarquía: ${r.orden}</span>
+      </div>
+      <div style="display:flex; align-items:center;">
+        <div class="order-controls">
+          <button class="btn-order" onclick="moverRango(${r.id}, -1)" ${i===0?'disabled style="opacity:0.3"':''}>▲</button>
+          <button class="btn-order" onclick="moverRango(${r.id}, 1)" ${i===rangos.length-1?'disabled style="opacity:0.3"':''}>▼</button>
+        </div>
+        <button class="btn-sm btn-rojo" onclick="eliminarRango(${r.id})">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('conf-per-rango').innerHTML = rangos.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+
+  // Personal
+  document.getElementById('lista-personal-config').innerHTML = personal.map((p, i) => `
+    <div class="config-item ${p.activo === false ? 'baja' : ''}">
+      <div class="config-item-info">
+        <span class="config-item-title">${p.nombre}</span>
+        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap: 10px;">
+        <div class="order-controls" style="margin-right:0;">
+          <button class="btn-order" onclick="moverPersonal(${p.id}, -1)" ${i===0?'disabled style="opacity:0.3"':''}>▲</button>
+          <button class="btn-order" onclick="moverPersonal(${p.id}, 1)" ${i===personal.length-1?'disabled style="opacity:0.3"':''}>▼</button>
+        </div>
+        <button class="btn-sm btn-gris" onclick="editarDniPersonal(${p.id})">DNI</button>
+        ${usuarioActual && usuarioActual.isMaster ? `<button class="btn-sm btn-amarillo" onclick="asignarCredencialPersonal(${p.id})" style="color:black; font-weight:800;">🔑 Accesos</button>` : ''}
+        <button class="btn-sm btn-rojo" onclick="eliminarPersonalDefinitivo(${p.id})">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Tipos Emergencia
+  document.getElementById('lista-tipos-config').innerHTML = tiposEmergencia.map((t, index) => `
+    <div class="config-item">
+      <div class="config-item-info"><span class="config-item-title">${t}</span></div>
+      <button class="btn-sm btn-rojo" onclick="eliminarTipoEmergencia(${index})">Borrar</button>
+    </div>
+  `).join('');
+
+  // Motivos No Emergencia
+  document.getElementById('lista-motivos-config').innerHTML = motivosNoEmerg.map((mot, index) => `
+    <div class="config-item">
+      <div class="config-item-info"><span class="config-item-title">${mot.nombre}</span></div>
+      <button class="btn-sm btn-rojo" onclick="eliminarMotivo(${index})">Borrar</button>
+    </div>
+  `).join('');
+}
+
+// Lógica Rangos
+function agregarRango() {
+  const nombre = document.getElementById('conf-rango-nombre').value.trim();
+  if (!nombre) return;
+  const nuevoId = rangos.length > 0 ? Math.max(...rangos.map(r => r.id)) + 1 : 1;
+  const nuevoOrden = rangos.length > 0 ? Math.max(...rangos.map(r => r.orden)) + 1 : 1;
+  rangos.push({ id: nuevoId, nombre, orden: nuevoOrden });
+  guardarDatos();
+  document.getElementById('conf-rango-nombre').value = '';
+  renderConfiguracion();
+  mostrarToast('✓ Rango agregado', 'success');
+}
+function moverRango(id, direccion) {
+  const index = rangos.findIndex(r => r.id === id);
+  if (index < 0) return;
+  const targetIndex = index + direccion;
+  if (targetIndex < 0 || targetIndex >= rangos.length) return;
+  const tempOrden = rangos[index].orden;
+  rangos[index].orden = rangos[targetIndex].orden;
+  rangos[targetIndex].orden = tempOrden;
+  guardarDatos(); renderConfiguracion();
+}
+function eliminarRango(id) {
+  if(personal.some(p => p.rangoId === id)) return alert('No podés borrar un rango que está asignado a un bombero.');
+  rangos = rangos.filter(r => r.id !== id);
+  guardarDatos(); renderConfiguracion();
+  mostrarToast('✓ Rango borrado', 'success');
+}
+
+// Lógica Personal
+function agregarPersonal() {
+  const nombre = document.getElementById('conf-per-nombre').value.trim();
+  const rangoId = parseInt(document.getElementById('conf-per-rango').value);
+  const dni = document.getElementById('conf-per-dni').value.trim().replace(/\./g, '');
+  if (!nombre || isNaN(rangoId)) return mostrarToast('⚠ Ingresá el nombre', 'warning');
+  const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
+  const nuevoOrden = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
+  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [] });
+  guardarDatos();
+  document.getElementById('conf-per-nombre').value = '';
+  document.getElementById('conf-per-dni').value = '';
+  renderConfiguracion();
+  if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
+  mostrarToast('✓ Personal agregado', 'success');
+}
+function moverPersonal(id, direccion) {
+  const index = personal.findIndex(p => p.id === id);
+  if (index < 0) return;
+  const targetIndex = index + direccion;
+  if (targetIndex < 0 || targetIndex >= personal.length) return;
+  const temp = personal[index].ordenManual;
+  personal[index].ordenManual = personal[targetIndex].ordenManual;
+  personal[targetIndex].ordenManual = temp;
+  personal.sort((a, b) => a.ordenManual - b.ordenManual);
+  guardarDatos(); renderConfiguracion(); 
+  if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
+}
+function editarDniPersonal(id) {
+  const p = personal.find(x => x.id === id);
+  if(!p) return;
+  const nuevoDni = prompt(`Ingresá o modificá el DNI para ${p.nombre} (Sin puntos):`, p.dni);
+  if(nuevoDni !== null) {
+    p.dni = nuevoDni.trim().replace(/\./g, '');
+    guardarDatos();
+    renderConfiguracion();
+    mostrarToast('✓ DNI actualizado', 'success');
+  }
+}
+function eliminarPersonalDefinitivo(id) {
+  if(!confirm('⚠️ ATENCIÓN: Borrar a un bombero definitivamente hará que desaparezca de los historiales y planillas viejas donde haya participado.\n\nSi solo querés que no salga más para despachar, andá a la pestaña "Personal" y marcalo como "BAJA".\n\n¿Estás completamente seguro de querer ELIMINARLO PARA SIEMPRE?')) return;
+  
+  const password = prompt('Ingresá la palabra BORRAR en mayúsculas para confirmar la eliminación definitiva:');
+  if (password === 'BORRAR') {
+    personal = personal.filter(p => p.id !== id);
+    guardarDatos(); 
+    renderConfiguracion();
+    if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
+    mostrarToast('✓ Bombero eliminado definitivamente', 'success');
+  } else if (password !== null) {
+    alert('❌ Palabra incorrecta. No se eliminó nada.');
+  }
+}
+
+// Lógica Tipos Emergencia
+function agregarTipoEmergencia() {
+  const nombre = document.getElementById('conf-tipo-nombre').value.trim();
+  if (!nombre) return mostrarToast('⚠ Completá el tipo', 'warning');
+  tiposEmergencia.push(nombre);
+  guardarDatos();
+  document.getElementById('conf-tipo-nombre').value = '';
+  renderConfiguracion();
+  mostrarToast('✓ Tipo agregado', 'success');
+}
+function eliminarTipoEmergencia(index) {
+  if(!confirm('¿Seguro que querés borrar este tipo de intervención?')) return;
+  tiposEmergencia.splice(index, 1);
+  guardarDatos(); renderConfiguracion();
+  mostrarToast('✓ Tipo eliminado', 'success');
+}
+
+// Lógica Motivos No Emergencia
+function agregarMotivo() {
+  const nombre = document.getElementById('conf-motivo-nombre').value.trim();
+  if (!nombre) return mostrarToast('⚠ Completá el motivo', 'warning');
+  const nuevoId = motivosNoEmerg.length > 0 ? Math.max(...motivosNoEmerg.map(m => m.id)) + 1 : 1;
+  motivosNoEmerg.push({ id: nuevoId, nombre });
+  guardarDatos();
+  document.getElementById('conf-motivo-nombre').value = '';
+  renderConfiguracion();
+  mostrarToast('✓ Motivo agregado', 'success');
+}
+function eliminarMotivo(index) {
+  if(!confirm('¿Seguro que querés borrar este motivo?')) return;
+  motivosNoEmerg.splice(index, 1);
+  guardarDatos(); renderConfiguracion();
+  mostrarToast('✓ Motivo eliminado', 'success');
+}
+
+// =====================
+// BACKUP IMPORT / EXPORT
+// =====================
+function exportarBackup() {
+  const backup = {
+    bom_rangos: localStorage.getItem('bom_rangos'),
+    bom_personal: localStorage.getItem('bom_personal'),
+    bom_moviles: localStorage.getItem('bom_moviles'),
+    bom_tipos_emergencia: localStorage.getItem('bom_tipos_emergencia'),
+    bom_motivos: localStorage.getItem('bom_motivos'),
+    bom_inter: localStorage.getItem('bom_inter'),
+    bom_counter: localStorage.getItem('bom_counter')
+  };
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+  const downloadNode = document.createElement('a');
+  downloadNode.setAttribute("href", dataStr);
+  downloadNode.setAttribute("download", "Backup_Bomberos_RC_" + new Date().toISOString().slice(0,10) + ".json");
+  document.body.appendChild(downloadNode);
+  downloadNode.click();
+  downloadNode.remove();
+  mostrarToast('✓ Archivo de respaldo descargado', 'success');
+}
+
+function importarBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (confirm('⚠️ ATENCIÓN: Esto borrará los datos actuales de esta computadora y los reemplazará por los del archivo. ¿Desea continuar?')) {
+        if (data.bom_rangos) localStorage.setItem('bom_rangos', data.bom_rangos);
+        if (data.bom_personal) localStorage.setItem('bom_personal', data.bom_personal);
+        if (data.bom_moviles) localStorage.setItem('bom_moviles', data.bom_moviles);
+        if (data.bom_tipos_emergencia) localStorage.setItem('bom_tipos_emergencia', data.bom_tipos_emergencia);
+        if (data.bom_motivos) localStorage.setItem('bom_motivos', data.bom_motivos);
+        if (data.bom_inter) localStorage.setItem('bom_inter', data.bom_inter);
+        if (data.bom_counter) localStorage.setItem('bom_counter', data.bom_counter);
+        
+        alert('✓ Datos importados correctamente. El sistema se reiniciará para aplicar los cambios.');
+        location.reload();
+      }
+    } catch(err) {
+      alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.');
+    }
+    event.target.value = ''; 
+  };
+  reader.readAsText(file);
+}
+
+
+// =====================
+// IDENTIFICACIÓN DNI Y MODAL DESPACHOS
+// =====================
+function identificarDNI() {
+  const dniInput = document.getElementById('f-dni-confeccionador').value.trim().replace(/\./g, '');
+  const div = document.getElementById('dni-identidad');
+  const btn = document.getElementById('btn-guardar-movil');
+
+  if(!dniInput) {
+    div.textContent = '';
+    btn.disabled = true;
+    return;
+  }
+  
+  const bombero = personal.find(p => p.dni && p.dni.replace(/\./g, '') === dniInput && p.activo !== false);
+  if(bombero) {
+    div.innerHTML = '✅ Autorizado: <strong>' + bombero.nombre + '</strong> (' + getNombreRango(bombero.rangoId) + ')';
+    div.style.color = '#155724';
+    btn.disabled = false; // Habilita el botón
+  } else {
+    div.textContent = '❌ DNI no coincide con personal activo';
+    div.style.color = '#991A00';
+    btn.disabled = true;  // Bloquea el botón
+  }
+}
+
+function getPersonalOcupado() {
+  const activas = intervenciones.filter(i => i.estado !== 'finalizada');
+  const ocupados = new Set();
+  activas.forEach(i => {
+    i.moviles.forEach(m => {
+      if (!m.horaRegreso) m.personal.forEach(pObj => ocupados.add(pObj.id));
+    });
+  });
+  return ocupados;
+}
+
+// NUEVAS VARIABLES TEMPORALES PARA EL MODAL DE DESPACHO
+let tiposSeleccionadosTemp = [];
+let personalSeleccionadoTemp = [];
+
+function rellenarSelectores() {
+  const selMov = document.getElementById('f-movil');
+  selMov.innerHTML = '<option value="">Seleccionar...</option>';
+  moviles.forEach(m => { selMov.appendChild(new Option(`${m.nombre} (KM: ${m.km})`, m.nombre)); });
+
+  const selMot = document.getElementById('f-ne-motivo');
+  selMot.innerHTML = '<option value="">Seleccionar...</option>';
+  motivosNoEmerg.forEach(m => { selMot.appendChild(new Option(m.nombre, m.nombre)); });
+  
+  const selAutoriza = document.getElementById('f-autoriza');
+  if (selAutoriza) {
+    selAutoriza.innerHTML = '<option value="">Seleccionar quién autoriza...</option>';
+    const personalDisponible = personal.filter(p => p.activo !== false && p.presente === true);
+    if (personalDisponible.length > 0) {
+      personalDisponible.forEach(p => {
+        selAutoriza.appendChild(new Option(`${p.nombre} (${getNombreRango(p.rangoId)})`, p.nombre));
+      });
+    }
+  }
+}
+
+function actualizarVistaTipos() {
+  const dl = document.getElementById('dl-tipos');
+  if (dl) {
+    dl.innerHTML = tiposEmergencia
+      .filter(t => !tiposSeleccionadosTemp.includes(t))
+      .map(t => `<option value="${t}">`)
+      .join('');
+  }
+  
+  const tagsContainer = document.getElementById('f-tipo-tags');
+  if (tagsContainer) {
+    tagsContainer.innerHTML = tiposSeleccionadosTemp.map(t => `
+      <span style="background:var(--azul); color:white; padding:6px 12px; border-radius:4px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+         ${t} <span style="cursor:pointer; background:rgba(0,0,0,0.2); border-radius:50%; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center;" onclick="quitarTipoIntervencion('${t}')">✕</span>
+      </span>
+    `).join('');
+  }
+}
+
+function agregarTipoIntervencion() {
+  const input = document.getElementById('f-tipo-busqueda');
+  const val = input.value.trim();
+  if(!val) return;
+  
+  const tipoEncontrado = tiposEmergencia.find(t => t.toLowerCase() === val.toLowerCase());
+  if(!tipoEncontrado) return mostrarToast('⚠ Elegí un tipo válido de la lista (podés crear nuevos en Configuración).', 'warning');
+  if(tiposSeleccionadosTemp.includes(tipoEncontrado)) return mostrarToast('⚠ Ese tipo ya está agregado.', 'warning');
+  
+  tiposSeleccionadosTemp.push(tipoEncontrado);
+  input.value = '';
+  actualizarVistaTipos();
+}
+
+function quitarTipoIntervencion(tipo) {
+  tiposSeleccionadosTemp = tiposSeleccionadosTemp.filter(t => t !== tipo);
+  actualizarVistaTipos();
+}
+
+function actualizarVistaPersonal() {
+  const ocupados = getPersonalOcupado();
+  const disponibles = personal.filter(p => p.activo !== false && p.presente === true && !ocupados.has(p.id) && !personalSeleccionadoTemp.some(ps => ps.id === p.id));
+  
+  const sel = document.getElementById('f-personal-select');
+  if (sel) {
+    sel.innerHTML = '<option value="">Elegí un bombero...</option>' + 
+                    disponibles.map(p => `<option value="${p.id}">${p.nombre} (${getNombreRango(p.rangoId)})</option>`).join('');
+  }
+
+  const lista = document.getElementById('personal-seleccionado-lista');
+  if (lista) {
+    if (personalSeleccionadoTemp.length === 0) {
+      lista.innerHTML = '<div style="font-size:13px; color:var(--texto-secundario); font-style:italic;">Aún no se agregó personal a la dotación de esta unidad.</div>';
+    } else {
+      lista.innerHTML = personalSeleccionadoTemp.map((ps, index) => {
+        const p = personal.find(x => x.id === ps.id);
+        if(!p) return '';
+        return `
+          <div class="personal-item seleccionado">
+            <div class="personal-info-caja">
+              <div class="personal-nombre">${p.nombre}</div>
+              <div class="personal-rango">${getNombreRango(p.rangoId)} — <strong style="color:var(--rojo)">${ps.rol.toUpperCase()}</strong></div>
+            </div>
+            <button class="btn-order" style="color:var(--rojo); font-weight:bold;" onclick="quitarPersonalDotacion(${index})" title="Quitar de dotación">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+function agregarPersonalDotacion() {
+  const select = document.getElementById('f-personal-select');
+  const id = parseInt(select.value);
+  const rol = document.getElementById('f-personal-rol').value;
+  
+  if (isNaN(id)) return mostrarToast('⚠ Primero elegí a un bombero de la lista.', 'warning');
+  
+  personalSeleccionadoTemp.push({ id: id, rol: rol });
+  actualizarVistaPersonal();
+}
+
+function quitarPersonalDotacion(index) {
+  personalSeleccionadoTemp.splice(index, 1);
+  actualizarVistaPersonal();
+}
+
+function configurarModalBase() {
+  tiposSeleccionadosTemp = [];
+  personalSeleccionadoTemp = [];
+  
+  rellenarSelectores();
+  actualizarVistaTipos();
+  actualizarVistaPersonal();
+  
+  document.getElementById('f-dni-confeccionador').value = '';
+  document.getElementById('dni-identidad').textContent = '';
+  document.getElementById('btn-guardar-movil').disabled = true; 
+  if(document.getElementById('f-tipo-busqueda')) document.getElementById('f-tipo-busqueda').value = '';
+  
+  if(document.getElementById('f-autoriza')) {
+    const personalPresente = personal.filter(p => p.activo !== false && p.presente === true);
+    if (personalPresente.length > 0) {
+      const personalOrdenado = [...personalPresente].sort((a, b) => getOrdenRango(a.rangoId) - getOrdenRango(b.rangoId));
+      document.getElementById('f-autoriza').value = personalOrdenado[0].nombre;
+    } else {
+      document.getElementById('f-autoriza').value = '';
+    }
+  }
+  
+  document.getElementById('f-jurisdiccion').value = 'Local'; 
+
+  const now = new Date();
+  const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById('f-hora-alarma').value = localISOTime;
+  document.getElementById('f-hora-salida').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  
+  document.getElementById('f-domicilio').value = '';
+  document.getElementById('f-llamante').value = '';
+  document.getElementById('f-telefono').value = '';
+  document.getElementById('f-receptor').value = '';
+  document.getElementById('f-obs').value = '';
+}
+
+function abrirModalNueva() {
+  document.getElementById('f-modo').value = 'nueva';
+  document.querySelector('.modal').classList.remove('modo-ne');
+  document.getElementById('modal-movil-titulo').innerText = '🚒 Nueva Intervención';
+  
+  document.getElementById('campo-dni').style.display = 'block'; 
+  document.getElementById('campos-emergencia').style.display = 'grid'; 
+  document.getElementById('campos-no-emergencia').style.display = 'none'; 
+  document.getElementById('campo-autoriza').style.display = 'block';
+  document.getElementById('campo-observaciones').style.display = 'block'; 
+  document.getElementById('separador-modal').style.display = 'block'; 
+
+  configurarModalBase();
+  document.getElementById('modal-movil').classList.add('visible');
+}
+
+function abrirModalNoEmergencia() {
+  document.getElementById('f-modo').value = 'no-emergencia';
+  document.querySelector('.modal').classList.add('modo-ne');
+  document.getElementById('modal-movil-titulo').innerText = '🚐 Salida No Emergencia';
+  
+  document.getElementById('campo-dni').style.display = 'block'; 
+  document.getElementById('campos-emergencia').style.display = 'none'; 
+  document.getElementById('campos-no-emergencia').style.display = 'grid'; 
+  document.getElementById('campo-autoriza').style.display = 'block';
+  document.getElementById('campo-observaciones').style.display = 'block'; 
+  document.getElementById('separador-modal').style.display = 'block'; 
+
+  configurarModalBase();
+  document.getElementById('modal-movil').classList.add('visible');
+}
+
+function abrirModalApoyo(idIntervencion) {
+  document.getElementById('f-modo').value = 'apoyo';
+  document.querySelector('.modal').classList.remove('modo-ne');
+  document.getElementById('f-id-inter').value = idIntervencion;
+  document.getElementById('modal-movil-titulo').innerText = '🚑 Despachar Unidad de Apoyo';
+  
+  document.getElementById('campo-dni').style.display = 'none'; 
+  document.getElementById('campos-emergencia').style.display = 'none'; 
+  document.getElementById('campos-no-emergencia').style.display = 'none'; 
+  document.getElementById('campo-autoriza').style.display = 'block'; 
+  document.getElementById('campo-observaciones').style.display = 'none'; 
+  document.getElementById('separador-modal').style.display = 'none'; 
+  
+  configurarModalBase();
+  document.getElementById('btn-guardar-movil').disabled = false;
+  document.getElementById('modal-movil').classList.add('visible');
+}
+
+function cerrarModalMovil() {
+  document.getElementById('modal-movil').classList.remove('visible');
+}
+
+function guardarUnidad() {
+  const modo = document.getElementById('f-modo').value;
+  const esEmergencia = (modo === 'nueva');
+  const esRutina = (modo === 'no-emergencia');
+  
+  let confeccionadorNombre = '';
+  let confeccionadorDni = '';
+  let autorizador = '';
+
+  if (esEmergencia || esRutina) {
+    const dniIngresado = document.getElementById('f-dni-confeccionador').value.trim().replace(/\./g, '');
+    if (!dniIngresado) return mostrarToast('⚠ Ingresá tu DNI para firmar la planilla', 'warning');
+    
+    const bomberoEncontrado = personal.find(p => p.dni && p.dni.replace(/\./g, '') === dniIngresado && p.activo !== false);
+    if (!bomberoEncontrado) {
+      return mostrarToast('❌ DNI no registrado o inactivo. Acceso denegado.', 'warning');
+    }
+    confeccionadorNombre = bomberoEncontrado.nombre;
+    confeccionadorDni = bomberoEncontrado.dni;
+    
+    autorizador = document.getElementById('f-autoriza').value;
+    if(!autorizador) return mostrarToast('⚠ Seleccioná quién autoriza la salida', 'warning');
+  } else {
+    autorizador = document.getElementById('f-autoriza').value;
+    if(!autorizador) return mostrarToast('⚠ Seleccioná quién autoriza la salida', 'warning');
+  }
+
+  const movilName = document.getElementById('f-movil').value; 
+  const horaSalida = document.getElementById('f-hora-salida').value;
+  
+  if (!movilName) return mostrarToast('⚠ Seleccioná un móvil', 'warning');
+
+  // Ahora leemos desde nuestro arreglo temporal
+  const personalSel = [...personalSeleccionadoTemp];
+
+  const unidadObj = {
+    idMovil: Date.now() + Math.random(),
+    nombre: movilName.split(' (KM')[0], 
+    horaSalida: horaSalida,
+    horaLlegada: null,
+    horaRegreso: null,
+    autorizador: autorizador,
+    personal: personalSel
+  };
+
+  const obs = document.getElementById('f-obs').value.trim();
+
+  if (esEmergencia || esRutina) {
+    let tipo = '';
+    let jurisdiccion = '';
+    let horaAlarma = '';
+    let receptor = '';
+
+    if (esEmergencia) {
+      if(tiposSeleccionadosTemp.length === 0) return mostrarToast('⚠ Elegí al menos un tipo de intervención', 'warning');
+      tipo = tiposSeleccionadosTemp.join(' + ');
+
+      jurisdiccion = document.getElementById('f-jurisdiccion').value;
+      horaAlarma = document.getElementById('f-hora-alarma').value;
+      receptor = document.getElementById('f-receptor').value.trim();
+      if(!horaAlarma) return mostrarToast('⚠ Completá la fecha de alarma', 'warning');
+    } else {
+      tipo = document.getElementById('f-ne-motivo').value;
+      if(!tipo) return mostrarToast('⚠ Seleccioná el motivo de salida', 'warning');
+      const now = new Date();
+      horaAlarma = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+
+    const snapshotPresentes = personal.filter(p => p.activo !== false && p.presente === true).map(p => p.id);
+
+    const intervencion = {
+      id: idCounter++,
+      estado: 'activa',
+      esEmergencia: esEmergencia,
+      jurisdiccion: jurisdiccion,
+      tipo: tipo, 
+      domicilio: esEmergencia ? document.getElementById('f-domicilio').value.trim() : 'No aplica',
+      horaAlarma: horaAlarma.replace('T', ' '),
+      llamante: esEmergencia ? document.getElementById('f-llamante').value.trim() : '',
+      telefono: esEmergencia ? document.getElementById('f-telefono').value.trim() : '',
+      receptor: receptor,
+      confeccionador: confeccionadorNombre,
+      confeccionadorDni: confeccionadorDni,
+      obs: obs,
+      moviles: [unidadObj],
+      clave11: [],
+      personalPresenteSnapshot: snapshotPresentes,
+      informe: '',
+      fecha: new Date().toLocaleDateString('es-AR')
+    };
+    intervenciones.push(intervencion);
+    mostrarToast(esEmergencia ? '✓ Intervención registrada' : '✓ Salida registrada', 'success');
+
+  } else if (modo === 'apoyo') {
+    const idInter = parseInt(document.getElementById('f-id-inter').value);
+    const i = intervenciones.find(x => x.id === idInter);
+    if(i) i.moviles.push(unidadObj);
+    mostrarToast('✓ Unidad de apoyo despachada', 'success');
+  }
+
+  guardarDatos();
+  cerrarModalMovil();
+  renderDashboard();
+}
+
+// =====================
+// TIEMPOS DE LOS MÓVILES
+// =====================
+function registrarLlegadaMovil(idInter, idMovilInstancia) {
+  const inter = intervenciones.find(x => x.id === idInter);
+  if(!inter) return;
+  const mov = inter.moviles.find(m => m.idMovil === idMovilInstancia);
+  if(!mov) return;
+
+  const ahora = new Date();
+  mov.horaLlegada = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  
+  guardarDatos();
+  renderDashboard();
+  mostrarToast('✓ Llegada al lugar registrada', 'success');
+}
+
+function registrarRegresoMovil(idInter, idMovilInstancia) {
+  const inter = intervenciones.find(x => x.id === idInter);
+  if(!inter) return;
+  const mov = inter.moviles.find(m => m.idMovil === idMovilInstancia);
+  if(!mov) return;
+
+  const movilGlobal = moviles.find(m => m.nombre === mov.nombre);
+  let kmSugerido = movilGlobal ? movilGlobal.km : 0;
+
+  const inputKm = prompt(`Ingresá el kilometraje de llegada para el móvil ${mov.nombre}:`, kmSugerido);
+  if (inputKm === null) return; 
+
+  const nuevoKm = parseInt(inputKm);
+  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) {
+    alert('Por favor ingresá un kilometraje válido (mayor o igual al de salida).');
+    return;
+  }
+
+  if (movilGlobal) movilGlobal.km = nuevoKm;
+
+  const ahora = new Date();
+  mov.horaRegreso = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  
+  guardarDatos();
+  renderDashboard();
+  if (document.getElementById('vehiculos').classList.contains('visible')) {
+    renderVehiculos();
+  }
+  mostrarToast('✓ Regreso y KM registrados', 'success');
+}
+
+
+// =====================
+// MODAL CLAVE 11 (SE MANTIENE EN FORMATO CUADRÍCULA DE CHECKBOX PARA RAPIDEZ)
+// =====================
+function abrirModalClave11(idInter) {
+  const inter = intervenciones.find(x => x.id === idInter);
+  if (!inter) return;
+  document.getElementById('c11-id-inter').value = idInter;
+
+  const personalEnMoviles = new Set();
+  inter.moviles.forEach(m => m.personal.forEach(pObj => personalEnMoviles.add(pObj.id)));
+  
+  const seleccionadosPrevios = new Set(inter.clave11 || []);
+  const container = document.getElementById('personal-selector-c11');
+  
+  const personalActivoYPresente = personal.filter(p => p.activo !== false && p.presente === true);
+
+  if (personalActivoYPresente.length === 0 && seleccionadosPrevios.size === 0) {
+    container.innerHTML = '<div style="font-size:13px; color:var(--rojo-vivo); font-weight:600;">No hay personal marcado como PRESENTE en el cuartel en este momento.</div>';
+    document.getElementById('modal-clave11').classList.add('visible');
+    return;
+  }
+
+  container.innerHTML = personalActivoYPresente.map(p => {
+    if (personalEnMoviles.has(p.id)) return ''; 
+    
+    const isChecked = seleccionadosPrevios.has(p.id) ? 'checked' : '';
+    const isSelectedClass = seleccionadosPrevios.has(p.id) ? 'seleccionado-clave11' : '';
+
+    return `
+      <div class="personal-item ${isSelectedClass}" onclick="this.classList.toggle('seleccionado-clave11'); this.querySelector('input').checked = this.classList.contains('seleccionado-clave11');">
+        <input type="checkbox" value="${p.id}" ${isChecked} tabindex="-1">
+        <div class="personal-info-caja">
+          <div class="personal-nombre">${p.nombre}</div>
+          <div class="personal-rango">${getNombreRango(p.rangoId)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('modal-clave11').classList.add('visible');
+}
+
+function cerrarModalClave11() { document.getElementById('modal-clave11').classList.remove('visible'); }
+
+function guardarClave11() {
+  const id = parseInt(document.getElementById('c11-id-inter').value);
+  const inter = intervenciones.find(x => x.id === id);
+  if (!inter) return;
+
+  const checkboxes = document.querySelectorAll('#personal-selector-c11 input[type=checkbox]:checked');
+  inter.clave11 = Array.from(checkboxes).map(c => parseInt(c.value));
+  
+  guardarDatos();
+  cerrarModalClave11();
+  renderDashboard();
+  mostrarToast('✓ Clave 11 actualizada', 'success');
+}
+
+// =====================
+// FINALIZAR E INFORME (DASHBOARD)
+// =====================
+function abrirModalFinalizar(idInter) {
+  const inter = intervenciones.find(x => x.id === idInter);
+  if (!inter) return;
+  
+  const faltanVolver = inter.moviles.some(m => !m.horaRegreso);
+  if(faltanVolver) {
+    if(!confirm("Hay unidades que figuran afuera. ¿Querés finalizar la salida de todos modos?")) return;
+  }
+
+  document.getElementById('fin-id-inter').value = idInter;
+  document.getElementById('fin-informe').value = inter.informe || '';
+  document.getElementById('modal-finalizar').classList.add('visible');
+}
+
+function cerrarModalFinalizar() { document.getElementById('modal-finalizar').classList.remove('visible'); }
+
+function guardarFinalizacion(descargarPdf = true) {
+  const id = parseInt(document.getElementById('fin-id-inter').value);
+  const inter = intervenciones.find(x => x.id === id);
+  if (!inter) return;
+
+  inter.informe = document.getElementById('fin-informe').value.trim();
+  inter.estado = 'finalizada';
+  
+  const ahora = new Date();
+  const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  inter.moviles.forEach(m => {
+    if(!m.horaRegreso) m.horaRegreso = horaStr;
+    if(!m.horaLlegada) m.horaLlegada = '-'; 
+  });
+
+  guardarDatos();
+  cerrarModalFinalizar();
+  renderDashboard();
+  renderHistorial();
+  
+  if (descargarPdf) {
+    generarPDF(id, true);
+  }
+  
+  mostrarToast('✓ Salida Finalizada', 'success');
+}
+
+// =====================
+// EDITAR INFORME EN HISTORIAL
+// =====================
+function abrirModalEditarInforme(idInter) {
+  const inter = intervenciones.find(x => x.id === idInter);
+  if (!inter) return;
+  document.getElementById('edit-id-inter').value = idInter;
+  document.getElementById('edit-informe').value = inter.informe || '';
+  document.getElementById('modal-editar-informe').classList.add('visible');
+}
+
+function cerrarModalEditarInforme() {
+  document.getElementById('modal-editar-informe').classList.remove('visible');
+}
+
+function guardarEdicionInforme() {
+  const id = parseInt(document.getElementById('edit-id-inter').value);
+  const inter = intervenciones.find(x => x.id === id);
+  if (!inter) return;
+
+  inter.informe = document.getElementById('edit-informe').value.trim();
+  guardarDatos();
+  cerrarModalEditarInforme();
+  renderHistorial();
+  mostrarToast('✓ Informe actualizado', 'success');
+}
+
+// =====================
+// GENERADOR PDF INDIVIDUAL (AJUSTADO PARA A4)
+// =====================
+function generarPDF(id, descargarAutomatico = false) {
+  const i = intervenciones.find(x => x.id === id); //
+  if (!i) return; //
+
+  const personalEnIntervencion = new Set(); //
+  i.moviles.forEach(m => m.personal.forEach(pObj => personalEnIntervencion.add(pObj.id))); //
+  i.clave11.forEach(p => personalEnIntervencion.add(p)); //
+
+  const personalEnCuartel = (i.personalPresenteSnapshot || []) //
+    .map(pid => personal.find(p => p.id === pid)) //
+    .filter(p => p && p.activo !== false && !personalEnIntervencion.has(p.id)); //
+
+  let rowsMovilesHtml = ''; //
+  i.moviles.forEach(m => {
+    const persNombres = m.personal.map(pObj => {
+      const p = personal.find(x => x.id === pObj.id); //
+      if(!p) return null; //
+      return `• ${p.nombre} (${getNombreRango(p.rangoId)}) - <b>${pObj.rol.toUpperCase()}</b>`; //
+    }).filter(Boolean).join('<br>'); //
+
+    rowsMovilesHtml += `
+      <tr>
+        <td style="padding: 5px; border: 1px solid #CBD5E1; vertical-align: top;">
+          <div style="font-size:12px; font-weight:800; color:#1E293B;">${m.nombre}</div>
+          <div style="font-size:9px; color:#64748B; margin-top:2px; text-transform:uppercase;">Autorizó: ${m.autorizador || i.autorizador || '—'}</div>
+        </td>
+        <td style="padding: 5px; border: 1px solid #CBD5E1; font-size:10px; vertical-align: top;">
+          <div><strong>S:</strong> ${m.horaSalida} | <strong>L:</strong> ${m.horaLlegada || '-'} | <strong>R:</strong> ${m.horaRegreso || '-'}</div>
+        </td>
+        <td style="padding: 5px; border: 1px solid #CBD5E1; font-size:10px; vertical-align: top;">${persNombres || 'Sin personal'}</td>
+      </tr>
+    `; //
+  });
+
+  const rowsClave11 = i.clave11.map(pid => personal.find(p => p.id === pid)).filter(Boolean).map(p =>
+    `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;"><strong style="color:#d39e00">CLAVE 11</strong></td></tr>`
+  ).join(''); //
+
+  const rowsQueda = personalEnCuartel.map(p =>
+    `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;">En Cuartel</td></tr>`
+  ).join(''); //
+
+  const isEmergencia = i.esEmergencia !== false; //
+  const tituloDocumento = isEmergencia ? 'PLANILLA DE INTERVENCIÓN' : 'PLANILLA DE SERVICIO (RUTINA)'; //
+
+  const htmlContent = `
+    <div style="width: 100%; max-width: 750px; background: white; color: #000; padding: 20px; font-family: 'Barlow', sans-serif; box-sizing: border-box;" id="pdf-content">
+      
+      <table style="width: 100%; border-bottom: 2px solid #CC2200; margin-bottom: 15px; border-collapse: collapse;">
+        <tr>
+          <td style="vertical-align: bottom; width: 70%; padding-bottom: 10px;">
+            <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; color: #CC2200; text-transform: uppercase; font-weight: 800;">Bomberos Voluntarios Río Cuarto</h1>
+            <div style="font-size: 11px; color: #475569; font-weight: 600;">Lamadrid 945, Río Cuarto | Tel: 100 / 4645847</div>
+            <div style="font-size: 14px; font-weight: 700; color: #1E293B; margin-top: 5px;">${tituloDocumento}</div>
+          </td>
+          <td style="vertical-align: bottom; width: 30%; text-align: right; padding-bottom: 10px;">
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #CC2200;">N° ${String(i.id).padStart(4,'0')}</div>
+            <div style="font-size: 11px; color: #64748B; font-weight: 600;">Fecha: ${i.fecha || '—'}</div>
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-bottom: 15px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:4px 10px; font-family:'Barlow Condensed', sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">1. DATOS DEL SERVICIO</div>
+        <table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #CBD5E1;">
+          <tr>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; width:20%; border:1px solid #CBD5E1;">TIPO:</td>
+            <td colspan="3" style="padding:6px; border:1px solid #CBD5E1;"><strong>${i.tipo}</strong></td>
+          </tr>
+          ${isEmergencia ? `
+          <tr>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">DOMICILIO:</td>
+            <td colspan="3" style="padding:6px; border:1px solid #CBD5E1;">${i.domicilio || '—'}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">JURISDICCIÓN:</td>
+            <td style="padding:6px; border:1px solid #CBD5E1; width:30%">${i.jurisdiccion || 'Local'}</td>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1; width:20%">ALARMA:</td>
+            <td style="padding:6px; border:1px solid #CBD5E1;">${i.horaAlarma || '—'}</td>
+          </tr>
+          ` : ''}
+          <tr>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">RECEPTOR:</td>
+            <td style="padding:6px; border:1px solid #CBD5E1;">${i.receptor || '—'}</td>
+            <td style="padding:6px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">CONFECCIONÓ:</td>
+            <td style="padding:6px; border:1px solid #CBD5E1;">${i.confeccionador || '—'}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:4px 10px; font-family:'Barlow Condensed', sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">2. UNIDADES Y DOTACIÓN</div>
+        <table style="width:100%; border-collapse:collapse; font-size:10px; border:1px solid #CBD5E1;">
+          <thead>
+            <tr style="background:#E2E8F0;">
+              <th style="padding:6px; border:1px solid #CBD5E1; text-align:left; width:25%;">MÓVIL</th>
+              <th style="padding:6px; border:1px solid #CBD5E1; text-align:left; width:25%;">HORARIOS</th>
+              <th style="padding:6px; border:1px solid #CBD5E1; text-align:left; width:50%;">PERSONAL</th>
+            </tr>
+          </thead>
+          <tbody>${rowsMovilesHtml}</tbody>
+        </table>
+      </div>
+
+      ${(rowsClave11 || rowsQueda) ? `
+      <div style="margin-bottom: 15px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:4px 10px; font-family:'Barlow Condensed', sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">3. PERSONAL EN BASE / CLAVE 11</div>
+        <table style="width:100%; border-collapse:collapse; font-size:10px; border:1px solid #CBD5E1;">
+          <tbody>${rowsClave11}${rowsQueda}</tbody>
+        </table>
+      </div>` : ''}
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:4px 10px; font-family:'Barlow Condensed', sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">4. INFORME DEL SERVICIO</div>
+        <div style="border:1px solid #CBD5E1; padding:10px; font-size:10px; line-height:1.4; min-height:100px; background:#FAFAFA; white-space:pre-wrap;">${i.informe || 'Sin informe redactado.'}</div>
+      </div>
+
+      <div style="margin-top: 40px; display: flex; justify-content: space-around; text-align: center;">
+        <div style="width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 600;">Firma Oficial a Cargo</div>
+        <div style="width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 600;">Firma Jefe de Guardia</div>
+      </div>
+
+    </div>
+  `; //
+
+  document.getElementById('pdf-container').innerHTML = htmlContent; //
+  const element = document.getElementById('pdf-content'); //
+
+  const opt = {
+    margin:       [10, 5, 10, 5], // Márgenes reducidos [top, left, bottom, right]
+    filename:     `Planilla_Salida_${i.id}.pdf`, //
+    image:        { type: 'jpeg', quality: 0.98 }, //
+    html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, //
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } //
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.getElementById('pdf-container').innerHTML = ''; //
+  });
+}
+
+// =====================
+// GENERAR BACKUP GENERAL PDF
+// =====================
+function generarBackupPDF() {
+  if(intervenciones.length === 0) return mostrarToast('⚠ No hay intervenciones para respaldar', 'warning');
+  
+  mostrarToast('⌛ Generando PDF, por favor aguardá...', 'warning');
+
+  let filas = intervenciones.map(i => {
+    let fechaStr = i.fecha || i.horaAlarma.split(' ')[0] || '';
+    return `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #CBD5E1;">${i.id}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #CBD5E1;">${fechaStr}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #CBD5E1;">${i.esEmergencia ? 'Emergencia' : 'No Emergencia'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #CBD5E1;">${i.tipo}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #CBD5E1;">${i.estado.toUpperCase()}</td>
+      </tr>
+    `;
+  }).join('');
+
+  let htmlContent = `
+    <div id="backup-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 800px; box-sizing: border-box;">
+      
+      <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; color: #CC2200; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Bomberos Voluntarios Río Cuarto</h1>
+        <div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px;">📍 Lamadrid 945, Río Cuarto, Córdoba</div>
+        <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px; letter-spacing: 0.5px;">REGISTRO GENERAL DE SALIDAS E INTERVENCIONES</div>
+      </div>
+      
+      <p style="text-align: right; font-size: 12px; color: #666; margin-bottom: 15px;">Fecha y hora de respaldo: ${new Date().toLocaleString('es-AR')}</p>
+      
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1;">
+        <thead>
+          <tr style="background: #E2E8F0; color: #1E293B;">
+            <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">N°</th>
+            <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Fecha</th>
+            <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Clasificación</th>
+            <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Motivo/Tipo</th>
+            <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById('pdf-container').innerHTML = htmlContent;
+  const element = document.getElementById('backup-content');
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `Backup_Bomberos_${new Date().toISOString().slice(0,10)}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.getElementById('pdf-container').innerHTML = '';
+    mostrarToast('✓ Backup descargado con éxito', 'success');
+  });
+}
+
+// =====================
+// EXCEL (SHEETJS)
+// =====================
+function aplanarIntervencionParaExcel(i) {
+  const uniStrs = i.moviles.map(m => `${m.nombre} (Salió: ${m.horaSalida} | Llegó: ${m.horaLlegada || '-'} | Volvió: ${m.horaRegreso || '-'} | Autorizó: ${m.autorizador || i.autorizador || '-'})`).join(' /// ');
+  
+  const perNombres = [];
+  i.moviles.forEach(m => m.personal.forEach(pObj => {
+    const p = personal.find(x=>x.id===pObj.id); 
+    if(p) perNombres.push(`${p.nombre} [${pObj.rol}] (${m.nombre.split('—')[0].trim()})`);
+  }));
+  
+  const clave11Nombres = i.clave11.map(pid => {
+    const p = personal.find(x=>x.id===pid); return p ? p.nombre : '';
+  }).filter(Boolean).join(', ');
+
+  const esEmergencia = i.esEmergencia !== false;
+
+  return {
+    "Nro Salida": i.id,
+    "Clasificación": esEmergencia ? "EMERGENCIA" : "RUTINA / NO EMERGENCIA",
+    "Jurisdicción": esEmergencia ? (i.jurisdiccion || 'Local') : 'N/A',
+    "Estado": i.estado.toUpperCase(),
+    "Tipo/Motivo": i.tipo,
+    "Domicilio": esEmergencia ? i.domicilio : 'N/A',
+    "Alarma/Registro": i.horaAlarma,
+    "Llamante": esEmergencia ? i.llamante : 'N/A',
+    "Teléfono": esEmergencia ? i.telefono : 'N/A',
+    "Recibió Llamada": esEmergencia ? i.receptor : 'N/A',
+    "Confeccionó": i.confeccionador,
+    "DNI Confeccionador": i.confeccionadorDni,
+    "Unidades Despachadas": uniStrs,
+    "Dotación Móviles": perNombres.join(', '),
+    "Personal Clave 11": clave11Nombres,
+    "Observaciones Iniciales": i.obs,
+    "Informe Final": i.informe || ''
+  };
+}
+
+function exportarExcelUna(id) {
+  const i = intervenciones.find(x => x.id === id);
+  if(!i) return;
+  const data = [ aplanarIntervencionParaExcel(i) ];
+  descargarExcel(data, `Salida_${i.id}`);
+}
+
+function exportarExcelGeneral() {
+  if(intervenciones.length === 0) return mostrarToast('⚠ No hay datos para exportar', 'warning');
+  const data = intervenciones.map(aplanarIntervencionParaExcel);
+  descargarExcel(data, `Historial_Bomberos`);
+}
+
+function descargarExcel(jsonArray, filename) {
+  const worksheet = XLSX.utils.json_to_sheet(jsonArray);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Salidas");
+  XLSX.writeFile(workbook, `${filename}.xlsx`);
+}
+
+function mostrarToast(msg, tipo = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visible ' + tipo;
+  setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+// Manejo de Auto Cierre
+let autoLogoutTimer = null;
+
+function programarCierreSesion() {
+  const mins = prompt("¿En cuántos minutos querés que se cierre la sesión automáticamente?");
+  if (mins !== null && !isNaN(mins) && mins > 0) {
+    if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+    autoLogoutTimer = setTimeout(cerrarSesion, mins * 60000);
+    mostrarToast(`✓ La sesión se cerrará sola en ${mins} minutos`, 'success');
+  }
+}
+
+function cerrarSesion() {
+  if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+  usuarioActual = null;
+  document.getElementById('login-screen').classList.remove('oculto');
+  document.getElementById('login-dni').value = '';
+  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
+  mostrarToast('Sesión cerrada correctamente', 'success');
+}
+
+// Iniciar con la pantalla oculta esperando Login
+</script>
+</body>
+</html>
