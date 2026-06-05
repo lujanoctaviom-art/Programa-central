@@ -2121,7 +2121,8 @@ function renderVehiculos() {
         <div class="vehiculo-desc">
           <strong>Características Técnicas:</strong><br>
           ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
-          <div style="margin-top:6px; text-align:right;">
+          <div style="margin-top:12px; display: flex; justify-content: space-between; align-items: center;">
+             <button class="btn-sm btn-rojo" onclick="descargarInformeVehiculo(${m.id})">📄 Bajar Informe</button>
              <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
           </div>
         </div>
@@ -3062,21 +3063,19 @@ function generarPDF(id, descargarAutomatico = false) {
   const tituloDocumento = isEmergencia ? 'PLANILLA DE INTERVENCIÓN' : 'PLANILLA DE SERVICIO (RUTINA)'; //
 
   const htmlContent = `
-    <div style="width: 100%; max-width: 750px; background: white; color: #000; padding: 20px; font-family: 'Barlow', sans-serif; box-sizing: border-box;" id="pdf-content">
+    <div style="width: 700px; margin: 0 auto; background: white; color: #000; padding: 20px; font-family: 'Barlow', sans-serif; box-sizing: border-box;" id="pdf-content">
       
-      <table style="width: 100%; border-bottom: 2px solid #CC2200; margin-bottom: 15px; border-collapse: collapse;">
-        <tr>
-          <td style="vertical-align: bottom; width: 70%; padding-bottom: 10px;">
-            <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; color: #CC2200; text-transform: uppercase; font-weight: 800;">Bomberos Voluntarios Río Cuarto</h1>
-            <div style="font-size: 11px; color: #475569; font-weight: 600;">Lamadrid 945, Río Cuarto | Tel: 100 / 4645847</div>
-            <div style="font-size: 14px; font-weight: 700; color: #1E293B; margin-top: 5px;">${tituloDocumento}</div>
-          </td>
-          <td style="vertical-align: bottom; width: 30%; text-align: right; padding-bottom: 10px;">
-            <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #CC2200;">N° ${String(i.id).padStart(4,'0')}</div>
-            <div style="font-size: 11px; color: #64748B; font-weight: 600;">Fecha: ${i.fecha || '—'}</div>
-          </td>
-        </tr>
-      </table>
+      <div style="border-bottom: 2px solid #CC2200; margin-bottom: 15px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 24px; color: #CC2200; text-transform: uppercase; font-weight: 800; line-height: 1;">Bomberos Voluntarios Río Cuarto</h1>
+          <div style="font-size: 11px; color: #475569; font-weight: 600; margin-top: 4px;">Lamadrid 945, Río Cuarto | Tel: 100 / 4645847</div>
+          <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 8px;">${tituloDocumento}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: #CC2200; line-height: 1;">N° ${String(i.id).padStart(4,'0')}</div>
+          <div style="font-size: 11px; color: #64748B; font-weight: 600; margin-top: 4px;">Fecha: ${i.fecha || '—'}</div>
+        </div>
+      </div>
 
       <div style="margin-bottom: 15px;">
         <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:4px 10px; font-family:'Barlow Condensed', sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">1. DATOS DEL SERVICIO</div>
@@ -3134,7 +3133,7 @@ function generarPDF(id, descargarAutomatico = false) {
       </div>
 
       <div style="margin-top: 40px; display: flex; justify-content: space-around; text-align: center;">
-        <div style="width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 600;">Firma Oficial a Cargo</div>
+        <div style="width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 600;">Firma Encargado de Dotación</div>
         <div style="width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 600;">Firma Jefe de Guardia</div>
       </div>
 
@@ -3145,7 +3144,7 @@ function generarPDF(id, descargarAutomatico = false) {
   const element = document.getElementById('pdf-content'); //
 
   const opt = {
-    margin:       [10, 5, 10, 5], // Márgenes reducidos [top, left, bottom, right]
+    margin:       [10, 10, 10, 10], // Márgenes reducidos [top, left, bottom, right]
     filename:     `Planilla_Salida_${i.id}.pdf`, //
     image:        { type: 'jpeg', quality: 0.98 }, //
     html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, //
@@ -3308,6 +3307,86 @@ function cerrarSesion() {
   document.getElementById('login-dni').value = '';
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
   mostrarToast('Sesión cerrada correctamente', 'success');
+}
+
+// =====================
+// INFORME DETALLADO DE VEHÍCULOS
+// =====================
+function descargarInformeVehiculo(id) {
+  const m = moviles.find(x => x.id === id);
+  if (!m) return;
+
+  mostrarToast('⌛ Generando informe del móvil...', 'warning');
+
+  const alarmasKmHtml = m.alarmasKm.length > 0 
+    ? m.alarmasKm.map(a => `<li style="margin-bottom: 6px;"><b>A los ${a.limite} km:</b> ${a.desc}</li>`).join('') 
+    : '<li style="color:#64748B;">No hay alertas preventivas por kilometraje.</li>';
+    
+  const alarmasFechaHtml = m.alarmasFecha.length > 0 
+    ? m.alarmasFecha.map(a => `<li style="margin-bottom: 6px;"><b>Vence el ${a.fecha.split('-').reverse().join('/')}:</b> ${a.desc}</li>`).join('') 
+    : '<li style="color:#64748B;">No hay alertas preventivas por fecha.</li>';
+
+  const htmlContent = `
+    <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
+      
+      <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; color: #CC2200; text-transform: uppercase; font-weight: 800; line-height: 1;">Bomberos Voluntarios Río Cuarto</h1>
+          <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px;">INFORME DE PARQUE AUTOMOTOR</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #CC2200; line-height: 1;">${m.nombre.split('—')[0].trim()}</div>
+          <div style="font-size: 11px; color: #64748B; font-weight: 600; margin-top: 6px;">Fecha: ${new Date().toLocaleDateString('es-AR')}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Datos Generales de la Unidad</div>
+        <table style="width:100%; border-collapse:collapse; font-size:13px; border:1px solid #CBD5E1;">
+          <tr>
+            <td style="padding:8px; background:#F8FAFC; font-weight:700; width:30%; border:1px solid #CBD5E1;">IDENTIFICACIÓN:</td>
+            <td style="padding:8px; border:1px solid #CBD5E1; font-weight: 700; color: #1E293B;">${m.nombre}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">KILOMETRAJE ACTUAL:</td>
+            <td style="padding:8px; border:1px solid #CBD5E1;">${m.km} km</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Características Técnicas / Equipamiento</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; line-height:1.6; background:#FAFAFA; white-space:pre-wrap;">${m.caracteristicas || 'Sin características técnicas cargadas en el sistema.'}</div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Alertas de Mantenimiento / Vencimientos</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Mecánica (Por Kilometraje)</h4>
+          <ul style="margin-top:0; margin-bottom:20px; padding-left:25px;">${alarmasKmHtml}</ul>
+          
+          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Documentación y Seguros (Por Fecha)</h4>
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${alarmasFechaHtml}</ul>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pdf-container').innerHTML = htmlContent;
+  const element = document.getElementById('pdf-vehiculo-content');
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `Informe_Movil_${m.nombre.split('—')[0].trim().replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.getElementById('pdf-container').innerHTML = '';
+    mostrarToast('✓ Informe descargado exitosamente', 'success');
+  });
 }
 
 // Iniciar con la pantalla oculta esperando Login
