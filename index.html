@@ -424,6 +424,7 @@
      <p style="color:var(--texto-secundario); font-size:14px; margin-bottom:24px;">Acceso restringido mediante DNI</p>
      <input type="text" id="login-dni" placeholder="Ingrese su DNI (sin puntos)" onkeypress="if(event.key === 'Enter') iniciarSesion()">
      <button onclick="iniciarSesion()">Ingresar</button>
+     <button onclick="usuarioActual = { nombre: 'Usuario sin Registro', isMaster: false, permisos: ['dashboard'], personalId: null, dni: null, credencialesIds: [] }; procesarIngreso(); const btnMensaje = document.querySelector('button[onclick=\'abrirModalNotificacion()\']'); if(btnMensaje) btnMensaje.style.display = 'none';" style="background: #E2E8F0; color: var(--texto); border: 1px solid #CBD5E1; margin-top: 12px; box-shadow: none;">Carga sin registro</button>
      <div id="login-error" class="login-error"></div>
   </div>
 </div>
