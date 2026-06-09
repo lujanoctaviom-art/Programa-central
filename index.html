@@ -19,6 +19,7 @@
     --amarillo-bg: #fff3cd;
     --azul: #007BFF;
     --gris-salida: #64748B;
+    --celeste: #0ea5e9;
     
     /* Paleta Clara */
     --fondo: #F4F6F9;
@@ -131,7 +132,7 @@
   .intervenciones-lista { display: flex; flex-direction: column; gap: 16px; }
   .intervencion-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-left: 5px solid var(--rojo-vivo); border-radius: 6px; padding: 20px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
   .intervencion-card.cerrada { border-left-color: #94A3B8; opacity: 0.8; }
-  .intervencion-card.no-emergencia { border-left-color: var(--gris-salida); }
+  .intervencion-card.no-emergencia { border-left-color: var(--celeste); }
   
   .inter-tipo { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
   .badge-jurisdiccion { font-size: 12px; padding: 3px 8px; border-radius: 4px; color: white; letter-spacing: 1px; }
@@ -191,7 +192,7 @@
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; backdrop-filter: blur(2px); }
   .modal-overlay.visible { display: flex; }
   .modal { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-top: 5px solid var(--rojo); border-radius: 8px; width: 100%; max-width: 680px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: border-color 0.3s;}
-  .modal.modo-ne { border-top-color: var(--gris-salida); }
+  .modal.modo-ne { border-top-color: var(--celeste); }
   .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; }
   .modal-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); }
   .modal-cerrar { background: none; border: none; color: var(--texto-secundario); font-size: 24px; cursor: pointer; line-height: 1; transition: color .2s; }
@@ -335,85 +336,45 @@
   }
 
   /* =========================================
-     MODO PANTALLA COMPLETA (TV 16:9)
+     MODO PANTALLA COMPLETA (TV 16:9) - VÍA CSS CLASS (PESTAÑA NUEVA)
      ========================================= */
+  body.modo-monitor header, body.modo-monitor nav, body.modo-monitor .btn-salir-fs { display: none !important; }
+  body.modo-monitor main { padding: 0; max-width: none; }
+  body.modo-monitor #hud-guardia {
+    background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
+  }
+  body.modo-monitor #hud-guardia > div:not(.hud-pantalla) { display: none !important; }
+  body.modo-monitor .hud-pantalla { background: transparent; box-shadow: none; padding: 0; flex: 1; display: flex; flex-direction: column; }
+  body.modo-monitor .hud-reloj { font-size: 10vh; margin-bottom: 3vh; }
+  body.modo-monitor .hud-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; min-height: 0; }
+  body.modo-monitor .hud-card { padding: 3vh 2.5vw; overflow-y: auto; }
+  body.modo-monitor .hud-card-title { font-size: 3.5vh; margin-bottom: 2.5vh; padding-bottom: 1vh; }
+  body.modo-monitor .hud-movil-nombre { font-size: 4.5vh; }
+  body.modo-monitor .hud-movil-dest { font-size: 3vh; margin-top: 1vh; }
+  body.modo-monitor .hud-movil-tiempo { font-size: 3vh; margin-top: 1.5vh; color: #fbbf24; }
+  body.modo-monitor .hud-bombero { font-size: 2.8vh; padding: 1.2vh 2vh; }
+  body.modo-monitor .hud-tarea-tag { font-size: 2.5vh; padding: 1.5vh 2vh; margin-bottom: 1.5vh; }
+
+  /* MODO PANTALLA COMPLETA NATIVO (F11 fallback) */
   #hud-guardia:fullscreen {
-    background-color: #0f172a; /* Fondo oscuro puro para la tele */
-    padding: 3vh 3vw;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden; /* Evita que aparezca la barra de scroll */
+    background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
   }
-
-  /* Ocultamos el título explicativo de arriba cuando está en la tele */
-  #hud-guardia:fullscreen > div:not(.hud-pantalla):not(.btn-salir-fs) {
-    display: none !important;
-  }
-
-  #hud-guardia:fullscreen .hud-pantalla {
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #hud-guardia:fullscreen .hud-reloj {
-    font-size: 10vh; /* Reloj gigante proporcional a la altura */
-    margin-bottom: 3vh;
-  }
-
-  #hud-guardia:fullscreen .hud-grid {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3vw;
-    min-height: 0;
-  }
-
-  #hud-guardia:fullscreen .hud-card {
-    padding: 3vh 2.5vw;
-    overflow-y: auto; /* Solo scrollea la tarjeta si hay muchísimos móviles */
-  }
-
-  /* Fuentes dinámicas adaptadas al 16:9 usando viewport height (vh) */
+  #hud-guardia:fullscreen > div:not(.hud-pantalla):not(.btn-salir-fs) { display: none !important; }
+  #hud-guardia:fullscreen .hud-pantalla { background: transparent; box-shadow: none; padding: 0; flex: 1; display: flex; flex-direction: column; }
+  #hud-guardia:fullscreen .hud-reloj { font-size: 10vh; margin-bottom: 3vh; }
+  #hud-guardia:fullscreen .hud-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; min-height: 0; }
+  #hud-guardia:fullscreen .hud-card { padding: 3vh 2.5vw; overflow-y: auto; }
   #hud-guardia:fullscreen .hud-card-title { font-size: 3.5vh; margin-bottom: 2.5vh; padding-bottom: 1vh; }
   #hud-guardia:fullscreen .hud-movil-nombre { font-size: 4.5vh; }
   #hud-guardia:fullscreen .hud-movil-dest { font-size: 3vh; margin-top: 1vh; }
   #hud-guardia:fullscreen .hud-movil-tiempo { font-size: 3vh; margin-top: 1.5vh; color: #fbbf24; }
   #hud-guardia:fullscreen .hud-bombero { font-size: 2.8vh; padding: 1.2vh 2vh; }
   #hud-guardia:fullscreen .hud-tarea-tag { font-size: 2.5vh; padding: 1.5vh 2vh; margin-bottom: 1.5vh; }
-  
-  /* Botón para salir (solo visible en pantalla completa) */
   .btn-salir-fs { display: none; }
   #hud-guardia:fullscreen .btn-salir-fs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: absolute;
-    top: 3vh;
-    right: 3vw;
-    background: rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 1vh 1.5vw;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2.5vh;
-    font-weight: 700;
-    text-transform: uppercase;
-    border-radius: 6px;
-    cursor: pointer;
-    z-index: 100;
-    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px; position: absolute; top: 3vh; right: 3vw; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.2); padding: 1vh 1.5vw; font-family: 'Barlow Condensed', sans-serif; font-size: 2.5vh; font-weight: 700; text-transform: uppercase; border-radius: 6px; cursor: pointer; z-index: 100; transition: all 0.2s;
   }
-  #hud-guardia:fullscreen .btn-salir-fs:hover {
-    background: var(--rojo-vivo);
-    color: white;
-    border-color: var(--rojo-vivo);
-  }
+  #hud-guardia:fullscreen .btn-salir-fs:hover { background: var(--rojo-vivo); color: white; border-color: var(--rojo-vivo); }
 </style>
 </head>
 <body>
@@ -444,10 +405,11 @@
 
 <nav>
   <button class="nav-btn activo" onclick="mostrarSeccion('dashboard', this)">▣ Dashboard</button>
-  <button class="nav-btn" onclick="mostrarSeccion('hud-guardia', this); activarPantallaTV();">📺 Monitor Guardia</button>
+  <button class="nav-btn" onclick="abrirMonitorNuevaPestana()">📺 Monitor Guardia</button>
   <button class="nav-btn" onclick="mostrarSeccion('mensajes-sec', this)">✉ Mensajes</button>
   <button class="nav-btn" onclick="mostrarSeccion('historial', this)">≡ Historial</button>
   <button class="nav-btn" onclick="mostrarSeccion('personal-sec', this)">● Personal</button>
+  <button class="nav-btn" onclick="mostrarSeccion('vestuario-sec', this)">👕 Vestuario</button>
   <button class="nav-btn" onclick="mostrarSeccion('estadisticas', this)">📈 Estadísticas</button>
   <button class="nav-btn" onclick="mostrarSeccion('vehiculos', this)">🚐 Vehículos</button>
   <button class="nav-btn" onclick="mostrarSeccion('configuracion', this)">⚙ Configuración</button>
@@ -501,7 +463,7 @@
 
   <div id="historial" class="seccion">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--borde); padding-bottom: 8px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-      <div class="titulo-seccion" style="border:none; margin:0; padding:0;">Historial de Salidas</div>
+      <div class="titulo-seccion" id="historial-titulo-texto" style="border:none; margin:0; padding:0;">Historial de Salidas</div>
       <div style="display:flex; gap:10px; flex-wrap: wrap;">
         <button class="btn-sm btn-rojo" onclick="borrarSeleccionadosHistorial()">🗑 Borrar Seleccionados</button>
         <button class="btn-sm btn-gris" onclick="generarBackupPDF()">💾 Guardar Backup (PDF)</button>
@@ -515,6 +477,45 @@
     <div class="titulo-seccion">Tablero de Asistencia de Personal</div>
     <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Marcá la casilla de "PRESENTE" cuando un bombero llegue al cuartel. Al hacerlo, comienza a acumularse su tiempo de guardia. Solo los presentes podrán ser asignados a los móviles. Recordá marcar "BAJA" si se desvinculó de la institución.</p>
     <div class="personal-panel-grid" id="personal-panel"></div>
+  </div>
+
+  <div id="vestuario-sec" class="seccion">
+      <div class="titulo-seccion">Gestión de Vestuario e Indumentaria</div>
+      <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px;">Administrá las prendas de cada bombero. Los préstamos y devoluciones quedarán firmados por tu usuario de manera automática.</p>
+      
+      <div class="form-grupo" style="max-width: 400px; margin-bottom: 24px;">
+        <label>Seleccionar Personal</label>
+        <select id="vest-bombero" onchange="renderListaVestuario()"></select>
+      </div>
+
+      <div id="vest-panel-carga" style="display:none; background:#F8FAFC; padding:20px; border:1px solid var(--borde); border-radius:6px; margin-bottom:24px;">
+          <h4 style="margin-bottom:12px; color:var(--texto); font-family:'Barlow Condensed', sans-serif; font-size:18px;">Cargar Nueva Prenda</h4>
+          <div class="form-grid">
+              <div class="form-grupo">
+                  <label>Prenda / Indumentaria</label>
+                  <input type="text" id="vest-prenda" placeholder="Ej: Chaqueta Estructural, Casco">
+              </div>
+              <div class="form-grupo">
+                  <label>Talle</label>
+                  <input type="text" id="vest-talle" placeholder="Ej: L, 42, Único">
+              </div>
+              <div class="form-grupo">
+                  <label>Marca</label>
+                  <input type="text" id="vest-marca" placeholder="Ej: Rosenbauer">
+              </div>
+              <div class="form-grupo">
+                  <label>Estado Inicial</label>
+                  <select id="vest-estado">
+                      <option value="en posesión">En posesión</option>
+                      <option value="talle a pedir">Talle a pedir</option>
+                      <option value="prestado">En préstamo fuera del cuartel</option>
+                  </select>
+              </div>
+          </div>
+          <button class="btn-sm btn-verde" style="margin-top:12px;" onclick="agregarPrenda()">Agregar Prenda</button>
+      </div>
+
+      <div id="vest-lista"></div>
   </div>
 
   <div id="estadisticas" class="seccion">
@@ -617,6 +618,7 @@
              <label><input type="checkbox" value="mensajes-sec" checked> Mensajes</label>
              <label><input type="checkbox" value="historial"> Historial</label>
              <label><input type="checkbox" value="personal-sec"> Personal</label>
+             <label><input type="checkbox" value="vestuario-sec"> Vestuario</label>
              <label><input type="checkbox" value="estadisticas"> Estadísticas</label>
              <label><input type="checkbox" value="vehiculos"> Vehículos</label>
              <label><input type="checkbox" value="configuracion"> Configuración</label>
@@ -932,8 +934,24 @@
 
 <script>
 // =====================
-// PANTALLA COMPLETA TV
+// FUNCIONALIDAD PESTAÑA MONITOR (NUEVO)
 // =====================
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('monitor') === 'true') {
+    document.body.classList.add('modo-monitor');
+    document.getElementById('login-screen').style.display = 'none';
+    document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
+    document.getElementById('hud-guardia').classList.add('visible');
+    renderHudGuardia();
+  }
+});
+
+function abrirMonitorNuevaPestana() {
+  window.open(window.location.pathname + '?monitor=true', '_blank');
+}
+
+// PANTALLA COMPLETA TV NATIVA FALLBACK
 function activarPantallaTV() {
   const monitor = document.getElementById('hud-guardia');
   if (!document.fullscreenElement) {
@@ -969,13 +987,13 @@ if (!rangos || rangos.length === 0) {
 let personal = JSON.parse(localStorage.getItem('bom_personal'));
 if (!personal || personal.length === 0) {
   personal = [
-    { id:1, nombre:'García, Roberto', rangoId:1, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:2, nombre:'López, Sergio', rangoId:2, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:3, nombre:'Martínez, Pablo', rangoId:3, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:4, nombre:'Rodríguez, Carlos', rangoId:3, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:5, nombre:'Fernández, Diego', rangoId:4, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:6, nombre:'González, Marcelo', rangoId:4, dni:'', activo: true, presente: false, asistencia: [] },
-    { id:7, nombre:'Sánchez, Lucas', rangoId:5, dni:'', activo: true, presente: false, asistencia: [] },
+    { id:1, nombre:'García, Roberto', rangoId:1, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:2, nombre:'López, Sergio', rangoId:2, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:3, nombre:'Martínez, Pablo', rangoId:3, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:4, nombre:'Rodríguez, Carlos', rangoId:3, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:5, nombre:'Fernández, Diego', rangoId:4, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:6, nombre:'González, Marcelo', rangoId:4, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
+    { id:7, nombre:'Sánchez, Lucas', rangoId:5, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
   ];
 }
 
@@ -1059,7 +1077,7 @@ intervenciones.forEach(i => {
 
 let idCounter = parseInt(localStorage.getItem('bom_counter') || '1');
 
-// === INICIALIZAR ORDEN MANUAL, BAJAS, DNI, ASISTENCIA Y CREDENCIALES ===
+// === INICIALIZAR ORDEN MANUAL, BAJAS, DNI, ASISTENCIA, CREDENCIALES Y VESTUARIO ===
 let personalModificado = false;
 personal.forEach((p, index) => { 
   if (typeof p.ordenManual === 'undefined') { p.ordenManual = index + 1; personalModificado = true; }
@@ -1067,6 +1085,7 @@ personal.forEach((p, index) => {
   if (typeof p.presente === 'undefined') { p.presente = false; personalModificado = true; }
   if (typeof p.dni === 'undefined') { p.dni = ''; personalModificado = true; }
   if (typeof p.asistencia === 'undefined') { p.asistencia = []; personalModificado = true; }
+  if (typeof p.vestuario === 'undefined') { p.vestuario = []; personalModificado = true; }
   
   // MIGRACIÓN MÚLTIPLES CREDENCIALES
   if (p.credencialId !== undefined) {
@@ -1114,7 +1133,7 @@ function iniciarSesion() {
   if (!dni) return errorDiv.textContent = 'Por favor, ingrese un DNI.';
 
   if (dni === DNI_MAESTRO) {
-    usuarioActual = { nombre: 'USUARIO MAESTRO', isMaster: true, permisos: ['dashboard', 'hud-guardia', 'historial', 'personal-sec', 'estadisticas', 'vehiculos', 'mensajes-sec', 'configuracion'], dni: DNI_MAESTRO };
+    usuarioActual = { nombre: 'USUARIO MAESTRO', isMaster: true, permisos: ['dashboard', 'hud-guardia', 'historial', 'personal-sec', 'vestuario-sec', 'estadisticas', 'vehiculos', 'mensajes-sec', 'configuracion'], dni: DNI_MAESTRO };
     procesarIngreso();
     return;
   }
@@ -1142,11 +1161,20 @@ function procesarIngreso() {
   
   const navBtns = document.querySelectorAll('nav .nav-btn');
   navBtns.forEach(btn => {
-    const targetId = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
-    if (usuarioActual.permisos.includes(targetId)) {
+    // Si el botón abre en nueva pestaña, no lo filtramos igual
+    if (btn.getAttribute('onclick').includes('abrirMonitorNuevaPestana')) {
       btn.style.display = 'inline-block';
-    } else {
-      btn.style.display = 'none';
+      return;
+    }
+
+    const targetIdMatch = btn.getAttribute('onclick').match(/'([^']+)'/);
+    if(targetIdMatch) {
+      const targetId = targetIdMatch[1];
+      if (usuarioActual.permisos.includes(targetId)) {
+        btn.style.display = 'inline-block';
+      } else {
+        btn.style.display = 'none';
+      }
     }
   });
 
@@ -1569,6 +1597,7 @@ function mostrarSeccion(id, btn) {
   if (id === 'mensajes-sec') renderMensajesEnviados();
   if (id === 'historial') renderHistorial();
   if (id === 'personal-sec') renderPersonalPanel();
+  if (id === 'vestuario-sec') renderVestuario();
   if (id === 'estadisticas') { renderSelectorEstadisticas(); document.getElementById('est-resultados').innerHTML = ''; }
   if (id === 'vehiculos') renderVehiculos();
   if (id === 'configuracion') renderConfiguracion();
@@ -1688,7 +1717,7 @@ function renderDashboard() {
     } else {
       infoPrincipalHtml = `
         <div>
-          <div class="inter-tipo" style="color:var(--gris-salida)">N° ${i.id} - NO EMERGENCIA</div>
+          <div class="inter-tipo" style="color:var(--celeste)">N° ${i.id} - NO EMERGENCIA</div>
           <div class="inter-domicilio" style="font-size:16px; font-weight:700; color:var(--texto)">📌 Motivo: ${i.tipo}</div>
           <div class="inter-meta">
             <span>🕐 Registrada: <strong>${i.horaAlarma ? i.horaAlarma.replace('T', ' ') : '—'}</strong></span>
@@ -1725,6 +1754,11 @@ function renderDashboard() {
 // =====================
 function renderHistorial() {
   const cerradas = [...intervenciones].filter(i => i.estado === 'finalizada').reverse();
+  const emergenciasCount = cerradas.filter(i => i.esEmergencia).length;
+  const noEmergenciasCount = cerradas.filter(i => !i.esEmergencia).length;
+  
+  document.getElementById('historial-titulo-texto').innerHTML = `Historial de Salidas <span style="font-size:14px; font-weight:500; color:var(--texto-secundario); margin-left:12px; text-transform:none;">(Emergencias: <b style="color:var(--rojo)">${emergenciasCount}</b> | No Emergencias: <b style="color:var(--celeste)">${noEmergenciasCount}</b>)</span>`;
+
   const lista = document.getElementById('historial-lista');
   if (cerradas.length === 0) {
     lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>Aún no hay salidas finalizadas.</div>`;
@@ -1743,7 +1777,7 @@ function renderHistorial() {
           <div style="display:flex; align-items:center; gap: 12px;">
             <input type="checkbox" class="chk-historial" value="${i.id}">
             <div>
-              <div class="inter-tipo" style="${!i.esEmergencia?'color:var(--gris-salida)':''}">${tipoText}</div>
+              <div class="inter-tipo" style="${!i.esEmergencia?'color:var(--celeste)':''}">${tipoText}</div>
               <div class="inter-domicilio">📍 ${i.esEmergencia ? i.domicilio : 'Sin domicilio'} — <span style="font-size:12px;color:var(--texto-secundario);">${i.horaAlarma ? i.horaAlarma.replace('T', ' ') : ''}</span></div>
               <div style="font-size:12px; font-weight:700; color:var(--verde); margin-top:6px; letter-spacing:1px;">✓ FINALIZADA</div>
             </div>
@@ -1784,6 +1818,185 @@ function borrarSeleccionadosHistorial() {
   } else if (password !== null) {
     alert("❌ Clave incorrecta.");
   }
+}
+
+// =====================
+// GESTIÓN DE VESTUARIO
+// =====================
+function renderVestuario() {
+  const sel = document.getElementById('vest-bombero');
+  sel.innerHTML = '<option value="">Elegí un bombero...</option>';
+  const personalOrdenado = [...personal].sort((a, b) => getOrdenRango(a.rangoId) - getOrdenRango(b.rangoId));
+  personalOrdenado.forEach(p => {
+      sel.appendChild(new Option(`${p.nombre} (${getNombreRango(p.rangoId)})`, p.id));
+  });
+  document.getElementById('vest-panel-carga').style.display = 'none';
+  document.getElementById('vest-lista').innerHTML = '';
+}
+
+function renderListaVestuario() {
+  const id = parseInt(document.getElementById('vest-bombero').value);
+  const panel = document.getElementById('vest-panel-carga');
+  const lista = document.getElementById('vest-lista');
+
+  if (isNaN(id)) {
+      panel.style.display = 'none';
+      lista.innerHTML = '';
+      return;
+  }
+
+  panel.style.display = 'block';
+  const p = personal.find(x => x.id === id);
+  if (!p) return;
+
+  if (!p.vestuario || p.vestuario.length === 0) {
+      lista.innerHTML = '<div class="vacio"><div class="vacio-icon">👕</div>No hay prendas ni indumentaria registrada para este bombero.</div>';
+      return;
+  }
+
+  lista.innerHTML = p.vestuario.map(v => {
+      let badgeEstado = '';
+      let acciones = '';
+      let infoPrestamo = '';
+
+      if (v.estado === 'en posesión') {
+          badgeEstado = '<span style="background:var(--verde); color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px;">EN POSESIÓN</span>';
+          acciones = `
+              <button class="btn-sm btn-amarillo" onclick="cambiarEstadoPrenda(${p.id}, ${v.id}, 'prestado')">Prestar fuera del cuartel</button>
+              <button class="btn-sm btn-gris" onclick="cambiarEstadoPrenda(${p.id}, ${v.id}, 'talle a pedir')">Marcar para pedir talle</button>
+          `;
+      } else if (v.estado === 'talle a pedir') {
+          badgeEstado = '<span style="background:var(--amarillo); color:black; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px;">TALLE A PEDIR</span>';
+          acciones = `
+              <button class="btn-sm btn-verde" onclick="cambiarEstadoPrenda(${p.id}, ${v.id}, 'en posesión')">Marcar recibido (En posesión)</button>
+          `;
+      } else if (v.estado === 'prestado') {
+          badgeEstado = '<span style="background:var(--rojo-vivo); color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px;">PRESTADO (FUERA)</span>';
+          acciones = `
+              <button class="btn-sm btn-azul" onclick="devolverPrenda(${p.id}, ${v.id})">Registrar Devolución</button>
+          `;
+          if (v.prestamoDetalle) {
+              infoPrestamo = `<div style="font-size:13px; color:var(--texto-secundario); margin-top:8px;">Prestado el ${v.prestamoDetalle.fechaPrestamo} (Autorizó salida: <strong>${v.prestamoDetalle.autorizaPrestamo}</strong>)</div>`;
+          }
+      }
+
+      return `
+      <div class="config-item" style="display:block; margin-bottom:12px; border-left: 5px solid ${v.estado === 'en posesión' ? 'var(--verde)' : v.estado === 'prestado' ? 'var(--rojo-vivo)' : 'var(--amarillo)'}">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                  <div style="font-size:18px; font-weight:800; color:var(--texto);">👕 ${v.prenda}</div>
+                  <div style="font-size:14px; color:var(--texto-secundario); margin-top:4px;">Talle: <strong style="color:var(--texto);">${v.talle}</strong> | Marca: <strong style="color:var(--texto);">${v.marca || 'N/A'}</strong></div>
+                  ${infoPrestamo}
+              </div>
+              <div>${badgeEstado}</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--borde); padding-top:12px; margin-top:12px; flex-wrap:wrap; gap:10px;">
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  ${acciones}
+              </div>
+              <button class="btn-sm btn-rojo" onclick="borrarPrenda(${p.id}, ${v.id})">✕ Borrar Prenda</button>
+          </div>
+      </div>
+      `;
+  }).join('');
+}
+
+function agregarPrenda() {
+  const id = parseInt(document.getElementById('vest-bombero').value);
+  const p = personal.find(x => x.id === id);
+  if (!p) return;
+
+  const prenda = document.getElementById('vest-prenda').value.trim();
+  const talle = document.getElementById('vest-talle').value.trim();
+  const marca = document.getElementById('vest-marca').value.trim();
+  const estado = document.getElementById('vest-estado').value;
+
+  if (!prenda || !talle) return mostrarToast('⚠ Completá la prenda y el talle', 'warning');
+
+  if (!p.vestuario) p.vestuario = [];
+  
+  const nuevaPrenda = {
+      id: Date.now(),
+      prenda, talle, marca, estado,
+      prestamoDetalle: null
+  };
+
+  if (estado === 'prestado') {
+      if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para autorizar un préstamo', 'warning');
+      nuevaPrenda.prestamoDetalle = {
+          fechaPrestamo: new Date().toLocaleString('es-AR'),
+          autorizaPrestamo: usuarioActual.nombre,
+          fechaDevolucion: null,
+          autorizaDevolucion: null
+      };
+  }
+
+  p.vestuario.push(nuevaPrenda);
+  guardarDatos();
+  
+  document.getElementById('vest-prenda').value = '';
+  document.getElementById('vest-talle').value = '';
+  document.getElementById('vest-marca').value = '';
+  document.getElementById('vest-estado').value = 'en posesión';
+  
+  renderListaVestuario();
+  mostrarToast('✓ Prenda y talle guardados', 'success');
+}
+
+function cambiarEstadoPrenda(idPersonal, idPrenda, nuevoEstado) {
+  const p = personal.find(x => x.id === idPersonal);
+  if (!p) return;
+  const v = p.vestuario.find(x => x.id === idPrenda);
+  if (!v) return;
+
+  if (nuevoEstado === 'prestado') {
+      if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para autorizar un préstamo', 'warning');
+      v.estado = 'prestado';
+      v.prestamoDetalle = {
+          fechaPrestamo: new Date().toLocaleString('es-AR'),
+          autorizaPrestamo: usuarioActual.nombre,
+          fechaDevolucion: null,
+          autorizaDevolucion: null
+      };
+  } else {
+      v.estado = nuevoEstado;
+      if (v.prestamoDetalle && nuevoEstado === 'en posesión') {
+          v.prestamoDetalle = null;
+      }
+  }
+
+  guardarDatos();
+  renderListaVestuario();
+  mostrarToast('✓ Estado de la prenda actualizado', 'success');
+}
+
+function devolverPrenda(idPersonal, idPrenda) {
+  if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para firmar la devolución', 'warning');
+  
+  const p = personal.find(x => x.id === idPersonal);
+  if (!p) return;
+  const v = p.vestuario.find(x => x.id === idPrenda);
+  if (!v) return;
+
+  if (confirm(`¿Confirmás que recibís la prenda de vuelta? Va a quedar registrado tu nombre (${usuarioActual.nombre}) como receptor en el historial.`)) {
+      v.estado = 'en posesión';
+      v.prestamoDetalle = null; 
+      
+      guardarDatos();
+      renderListaVestuario();
+      mostrarToast('✓ Devolución registrada correctamente', 'success');
+  }
+}
+
+function borrarPrenda(idPersonal, idPrenda) {
+  if (!confirm('¿Seguro que querés borrar este ítem del vestuario de este bombero?')) return;
+  const p = personal.find(x => x.id === idPersonal);
+  if (!p) return;
+  
+  p.vestuario = p.vestuario.filter(x => x.id !== idPrenda);
+  guardarDatos();
+  renderListaVestuario();
+  mostrarToast('✓ Prenda borrada', 'success');
 }
 
 // =====================
@@ -2438,7 +2651,7 @@ function agregarPersonal() {
   if (!nombre || isNaN(rangoId)) return mostrarToast('⚠ Ingresá el nombre', 'warning');
   const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
   const nuevoOrden = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
-  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [] });
+  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [] });
   guardarDatos();
   document.getElementById('conf-per-nombre').value = '';
   document.getElementById('conf-per-dni').value = '';
