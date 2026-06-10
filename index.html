@@ -9,6 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <style>
   :root {
     --rojo: #CC2200;
@@ -448,7 +451,7 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--borde); padding-bottom: 8px; margin-bottom: 16px;">
       <div class="titulo-seccion" style="border:none; margin:0; padding:0;">Monitor de Guardia Activa</div>
-      <div style="font-size:13px; color:var(--texto-secundario);">* Se actualiza automáticamente cada 5 segundos. Ideal para proyectar en TV.</div>
+      <div style="font-size:13px; color:var(--texto-secundario);">* Actualizado en tiempo real desde la nube. Ideal para proyectar en TV.</div>
     </div>
     
     <div class="hud-pantalla" id="hud-pantalla-render">
@@ -630,10 +633,10 @@
     </div>
 
     <div class="titulo-seccion" style="border-top: 2px solid var(--borde); padding-top: 24px;">Copias de Seguridad del Sistema (Backup)</div>
-    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Descargue toda la información del sistema para trasladarla a otra computadora o como medida de seguridad.</p>
+    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Descargue toda la información del sistema a un archivo o restaure un backup previo.</p>
     <div style="display:flex; gap:10px; margin-bottom: 40px; flex-wrap: wrap;">
-      <button class="btn-sm btn-verde" style="padding: 10px 16px;" onclick="exportarBackup()">⬇ Exportar Base de Datos</button>
-      <button class="btn-sm btn-amarillo" style="padding: 10px 16px; color: #000;" onclick="document.getElementById('file-import').click()">⬆ Importar Base de Datos</button>
+      <button class="btn-sm btn-verde" style="padding: 10px 16px;" onclick="exportarBackup()">⬇ Exportar Backup (Archivo JSON)</button>
+      <button class="btn-sm btn-amarillo" style="padding: 10px 16px; color: #000;" onclick="document.getElementById('file-import').click()">⬆ Importar Backup (Archivo JSON)</button>
       <input type="file" id="file-import" style="display:none" accept=".json" onchange="importarBackup(event)">
     </div>
 
@@ -934,7 +937,123 @@
 
 <script>
 // =====================
-// FUNCIONALIDAD PESTAÑA MONITOR (NUEVO)
+// CONEXIÓN A FIREBASE REALTIME DATABASE
+// =====================
+const firebaseConfig = {
+    apiKey: "AIzaSyAyE9GZyYgb-IOkaJSBLt1OQYsQC3xKTNs",
+    authDomain: "sistema-bvrc.firebaseapp.com",
+    databaseURL: "https://sistema-bvrc-default-rtdb.firebaseio.com",
+    projectId: "sistema-bvrc",
+    storageBucket: "sistema-bvrc.firebasestorage.app",
+    messagingSenderId: "741340711028",
+    appId: "1:741340711028:web:41a95f3a61655f30c86921",
+    measurementId: "G-ZD4WB2D28D"
+};
+
+// Inicializar la aplicación de Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRef = db.ref('sistema_bvrc_data');
+
+// =====================
+// VARIABLES GLOBALES (Ahora sincronizadas con la nube)
+// =====================
+let credenciales = [];
+let mensajes = [];
+let rangos = [];
+let personal = [];
+let moviles = [];
+let tiposEmergencia = [];
+let motivosNoEmerg = [];
+let intervenciones = [];
+let idCounter = 1;
+
+let usuarioActual = null;
+const DNI_MAESTRO = '41483152';
+
+// =====================
+// ESCUCHADOR EN TIEMPO REAL (El corazón del sistema)
+// =====================
+dbRef.on('value', (snapshot) => {
+    const dataNube = snapshot.val();
+
+    if (dataNube) {
+        // Si hay datos en Firebase, los descargamos a la memoria
+        credenciales = dataNube.credenciales || [];
+        mensajes = dataNube.mensajes || [];
+        rangos = dataNube.rangos || [];
+        personal = dataNube.personal || [];
+        moviles = dataNube.moviles || [];
+        tiposEmergencia = dataNube.tiposEmergencia || [];
+        motivosNoEmerg = dataNube.motivosNoEmerg || [];
+        intervenciones = dataNube.intervenciones || [];
+        idCounter = dataNube.idCounter || 1;
+    } else {
+        // Si la base está totalmente vacía (primera vez), cargamos la estructura base
+        inicializarDatosPorDefecto();
+        guardarDatos();
+    }
+
+    // Refrescar automáticamente las pantallas si el usuario ya inició sesión o es el monitor
+    const seccionVisible = document.querySelector('.seccion.visible');
+    if (seccionVisible || document.body.classList.contains('modo-monitor')) {
+        if (seccionVisible && seccionVisible.id === 'dashboard') renderDashboard();
+        if (seccionVisible && seccionVisible.id === 'hud-guardia') renderHudGuardia();
+        if (seccionVisible && seccionVisible.id === 'mensajes-sec') renderMensajesEnviados();
+        if (seccionVisible && seccionVisible.id === 'historial') renderHistorial();
+        if (seccionVisible && seccionVisible.id === 'personal-sec') renderPersonalPanel();
+        if (seccionVisible && seccionVisible.id === 'vestuario-sec') renderListaVestuario();
+        if (seccionVisible && seccionVisible.id === 'estadisticas') renderEstadisticasBombero();
+        if (seccionVisible && seccionVisible.id === 'vehiculos') renderVehiculos();
+        if (seccionVisible && seccionVisible.id === 'configuracion') renderConfiguracion();
+
+        // Modo monitor TV
+        if (document.body.classList.contains('modo-monitor')) renderHudGuardia();
+        
+        // Actualizar datos dentro del modal de despacho si está abierto
+        if (document.getElementById('modal-movil').classList.contains('visible')) {
+            actualizarVistaPersonal();
+        }
+    }
+});
+
+// Guardar datos ahora manda a la nube en lugar del disco local
+function guardarDatos() {
+    dbRef.set({
+        credenciales: credenciales,
+        mensajes: mensajes,
+        rangos: rangos,
+        personal: personal,
+        moviles: moviles,
+        tiposEmergencia: tiposEmergencia,
+        motivosNoEmerg: motivosNoEmerg,
+        intervenciones: intervenciones,
+        idCounter: idCounter
+    });
+}
+
+function inicializarDatosPorDefecto() {
+    rangos = [
+        { id:1, nombre: 'Jefe de Guardia', orden: 1 },
+        { id:2, nombre: 'Suboficial', orden: 2 },
+        { id:3, nombre: 'Bombero 1°', orden: 3 },
+        { id:4, nombre: 'Bombero 2°', orden: 4 },
+        { id:5, nombre: 'Aspirante', orden: 5 }
+    ];
+    personal = [
+        { id:1, nombre:'García, Roberto', rangoId:1, dni:'', ordenManual: 1, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [] },
+        { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [] }
+    ];
+    moviles = [
+        { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
+        { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }
+    ];
+    tiposEmergencia = ['Incendio Estructural', 'Incendio Vehicular', 'Accidente de Tránsito', 'Rescate', 'Materiales Peligrosos', 'Apoyo a Otra Repartición', 'Falsa Alarma', 'Otro'];
+    motivosNoEmerg = [{ id: 1, nombre: 'Carga de combustible' }, { id: 2, nombre: 'Taller mecánico' }, { id: 3, nombre: 'Capacitación' }];
+}
+
+// =====================
+// FUNCIONALIDAD PESTAÑA MONITOR (TV MODE)
 // =====================
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -943,7 +1062,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-screen').style.display = 'none';
     document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
     document.getElementById('hud-guardia').classList.add('visible');
-    renderHudGuardia();
+    // El render se encarga ahora el callback de Firebase cuando descargue la data.
   }
 });
 
@@ -951,168 +1070,29 @@ function abrirMonitorNuevaPestana() {
   window.open(window.location.pathname + '?monitor=true', '_blank');
 }
 
-// PANTALLA COMPLETA TV NATIVA FALLBACK
 function activarPantallaTV() {
   const monitor = document.getElementById('hud-guardia');
   if (!document.fullscreenElement) {
     if (monitor.requestFullscreen) {
       monitor.requestFullscreen();
-    } else if (monitor.webkitRequestFullscreen) { /* Safari */
+    } else if (monitor.webkitRequestFullscreen) {
       monitor.webkitRequestFullscreen();
-    } else if (monitor.msRequestFullscreen) { /* IE11 */
+    } else if (monitor.msRequestFullscreen) {
       monitor.msRequestFullscreen();
     }
   }
 }
 
-// =====================
-// DATOS INICIALES Y LOCALSTORAGE
-// =====================
-let credenciales = JSON.parse(localStorage.getItem('bom_credenciales')) || [];
-let mensajes = JSON.parse(localStorage.getItem('bom_mensajes')) || [];
-let usuarioActual = null;
-const DNI_MAESTRO = '41483152';
-
-let rangos = JSON.parse(localStorage.getItem('bom_rangos'));
-if (!rangos || rangos.length === 0) {
-  rangos = [
-    { id:1, nombre: 'Jefe de Guardia', orden: 1 },
-    { id:2, nombre: 'Suboficial', orden: 2 },
-    { id:3, nombre: 'Bombero 1°', orden: 3 },
-    { id:4, nombre: 'Bombero 2°', orden: 4 },
-    { id:5, nombre: 'Aspirante', orden: 5 },
-  ];
-}
-
-let personal = JSON.parse(localStorage.getItem('bom_personal'));
-if (!personal || personal.length === 0) {
-  personal = [
-    { id:1, nombre:'García, Roberto', rangoId:1, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:2, nombre:'López, Sergio', rangoId:2, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:3, nombre:'Martínez, Pablo', rangoId:3, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:4, nombre:'Rodríguez, Carlos', rangoId:3, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:5, nombre:'Fernández, Diego', rangoId:4, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:6, nombre:'González, Marcelo', rangoId:4, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-    { id:7, nombre:'Sánchez, Lucas', rangoId:5, dni:'', activo: true, presente: false, asistencia: [], vestuario: [] },
-  ];
-}
-
-let moviles = JSON.parse(localStorage.getItem('bom_moviles'));
-if (!moviles || moviles.length === 0) {
-  moviles = [
-    { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
-    { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
-    { id: 3, nombre: 'UT-1 — Utilitario', km: 24000, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }
-  ];
-} else {
-  if (typeof moviles[0] === 'string') {
-    moviles = moviles.map((m, i) => ({ id: i+1, nombre: m, km: 0, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }));
-  } else {
-    moviles = moviles.map(m => {
-      if(typeof m.caracteristicas === 'undefined') m.caracteristicas = '';
-      if(typeof m.alarmasKm === 'undefined') m.alarmasKm = [];
-      if(typeof m.alarmasFecha === 'undefined') m.alarmasFecha = [];
-      if(typeof m.historialMantenimiento === 'undefined') m.historialMantenimiento = [];
-      return m;
-    });
+// Reloj interno solo visual
+setInterval(() => {
+  if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
+      const ahora = new Date();
+      const horaStr = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
+      const relojEl = document.querySelector('.hud-reloj');
+      if (relojEl) relojEl.innerHTML = `🕒 ${horaStr}`;
   }
-}
+}, 1000);
 
-let tiposEmergencia = JSON.parse(localStorage.getItem('bom_tipos_emergencia'));
-if (!tiposEmergencia || tiposEmergencia.length === 0) {
-  tiposEmergencia = [
-    'Incendio Estructural', 'Incendio Vehicular', 'Incendio Forestal / Campo',
-    'Accidente de Tránsito', 'Rescate', 'Materiales Peligrosos',
-    'Inundación', 'Apoyo a Otra Repartición', 'Falsa Alarma', 'Otro'
-  ];
-}
-
-let motivosNoEmerg = JSON.parse(localStorage.getItem('bom_motivos'));
-if (!motivosNoEmerg || motivosNoEmerg.length === 0) {
-  motivosNoEmerg = [
-    { id: 1, nombre: 'Carga de combustible' },
-    { id: 2, nombre: 'Taller mecánico' },
-    { id: 3, nombre: 'Capacitación' },
-    { id: 4, nombre: 'Desfile / Evento' },
-    { id: 5, nombre: 'Trámite' }
-  ];
-}
-
-let intervenciones = JSON.parse(localStorage.getItem('bom_inter') || '[]');
-intervenciones.forEach(i => {
-  if (i.esEmergencia === undefined) i.esEmergencia = true;
-  if (!i.jurisdiccion) i.jurisdiccion = 'Local'; 
-  if (!i.clave11) i.clave11 = [];
-  if (!i.confeccionador) i.confeccionador = '';
-  if (!i.confeccionadorDni) i.confeccionadorDni = '';
-  if (!i.receptor) i.receptor = '';
-  
-  if (!i.personalPresenteSnapshot) {
-    i.personalPresenteSnapshot = personal.filter(p => p.activo !== false).map(p => p.id); 
-  }
-
-  if (i.moviles) {
-    i.moviles.forEach(m => {
-      if (m.horaLlegada === undefined) m.horaLlegada = null;
-      if (m.autorizador === undefined) m.autorizador = i.autorizador || ''; 
-      m.personal = m.personal.map(p => {
-        if (typeof p === 'number') return { id: p, rol: 'Dotación' };
-        return p;
-      });
-    });
-  } else {
-    i.moviles = [{
-      idMovil: Date.now() + Math.random(),
-      nombre: i.movil,
-      horaSalida: i.hora ? i.hora.split(' ')[1] : '',
-      horaLlegada: null,
-      horaRegreso: i.regreso || null,
-      autorizador: i.autorizador || '',
-      personal: (i.personal || []).map(pid => ({ id: pid, rol: 'Dotación' }))
-    }];
-    i.horaAlarma = i.hora;
-    i.estado = i.regreso ? 'finalizada' : 'activa';
-  }
-});
-
-let idCounter = parseInt(localStorage.getItem('bom_counter') || '1');
-
-// === INICIALIZAR ORDEN MANUAL, BAJAS, DNI, ASISTENCIA, CREDENCIALES Y VESTUARIO ===
-let personalModificado = false;
-personal.forEach((p, index) => { 
-  if (typeof p.ordenManual === 'undefined') { p.ordenManual = index + 1; personalModificado = true; }
-  if (typeof p.activo === 'undefined') { p.activo = true; personalModificado = true; }
-  if (typeof p.presente === 'undefined') { p.presente = false; personalModificado = true; }
-  if (typeof p.dni === 'undefined') { p.dni = ''; personalModificado = true; }
-  if (typeof p.asistencia === 'undefined') { p.asistencia = []; personalModificado = true; }
-  if (typeof p.vestuario === 'undefined') { p.vestuario = []; personalModificado = true; }
-  
-  // MIGRACIÓN MÚLTIPLES CREDENCIALES
-  if (p.credencialId !== undefined) {
-    p.credencialesIds = p.credencialId ? [p.credencialId] : [];
-    delete p.credencialId;
-    personalModificado = true;
-  }
-  if (!p.credencialesIds) {
-    p.credencialesIds = [];
-    personalModificado = true;
-  }
-});
-personal.sort((a, b) => a.ordenManual - b.ordenManual);
-
-if (personalModificado) localStorage.setItem('bom_personal', JSON.stringify(personal));
-
-function guardarDatos() {
-  localStorage.setItem('bom_mensajes', JSON.stringify(mensajes));
-  localStorage.setItem('bom_credenciales', JSON.stringify(credenciales));
-  localStorage.setItem('bom_rangos', JSON.stringify(rangos));
-  localStorage.setItem('bom_personal', JSON.stringify(personal));
-  localStorage.setItem('bom_moviles', JSON.stringify(moviles));
-  localStorage.setItem('bom_tipos_emergencia', JSON.stringify(tiposEmergencia));
-  localStorage.setItem('bom_motivos', JSON.stringify(motivosNoEmerg));
-  localStorage.setItem('bom_inter', JSON.stringify(intervenciones));
-  localStorage.setItem('bom_counter', idCounter);
-}
 
 function getNombreRango(rangoId) {
   const r = rangos.find(x => x.id == parseInt(rangoId));
@@ -1161,12 +1141,10 @@ function procesarIngreso() {
   
   const navBtns = document.querySelectorAll('nav .nav-btn');
   navBtns.forEach(btn => {
-    // Si el botón abre en nueva pestaña, no lo filtramos igual
     if (btn.getAttribute('onclick').includes('abrirMonitorNuevaPestana')) {
       btn.style.display = 'inline-block';
       return;
     }
-
     const targetIdMatch = btn.getAttribute('onclick').match(/'([^']+)'/);
     if(targetIdMatch) {
       const targetId = targetIdMatch[1];
@@ -1217,7 +1195,6 @@ function agregarCredencial() {
   
   document.getElementById('conf-cred-nombre').value = '';
   checkboxes.forEach(c => c.checked = false);
-  renderConfiguracion();
   mostrarToast('✓ Credencial creada', 'success');
 }
 
@@ -1227,7 +1204,6 @@ function eliminarCredencial(id) {
   }
   credenciales = credenciales.filter(c => c.id !== id);
   guardarDatos();
-  renderConfiguracion();
   mostrarToast('✓ Credencial eliminada', 'success');
 }
 
@@ -1242,7 +1218,7 @@ function asignarCredencialPersonal(idPersonal) {
   credenciales.forEach(c => mensaje += `${c.id}: ${c.nombre}\n`);
   mensaje += '\nIngrese los NÚMEROS separados por coma (Ejemplo: 1,3):';
   
-  const actuales = p.credencialesIds.join(', ');
+  const actuales = p.credencialesIds ? p.credencialesIds.join(', ') : '';
   const respuesta = prompt(mensaje, actuales);
   
   if (respuesta !== null) {
@@ -1253,7 +1229,6 @@ function asignarCredencialPersonal(idPersonal) {
        p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
     }
     guardarDatos();
-    renderConfiguracion();
     mostrarToast('✓ Accesos actualizados', 'success');
   }
 }
@@ -1326,7 +1301,6 @@ function enviarNotificacion() {
   guardarDatos();
   cerrarModalNotificacion();
   mostrarToast('✓ Tarea enviada exitosamente', 'success');
-  if(document.getElementById('mensajes-sec').classList.contains('visible')) renderMensajesEnviados();
 }
 
 function renderNotificaciones() {
@@ -1392,8 +1366,6 @@ function programarTarea(id, fecha) {
     m.fechaProgramada = fecha;
     if(m.estado === 'pendiente') m.estado = 'programada';
     guardarDatos();
-    renderNotificaciones();
-    if(document.getElementById('hud-guardia').classList.contains('visible')) renderHudGuardia();
     mostrarToast('✓ Fecha y hora guardada', 'success');
   }
 }
@@ -1405,8 +1377,6 @@ function marcarTareaRealizada(id) {
     m.estado = 'realizada';
     m.realizadoPor = usuarioActual.nombre;
     guardarDatos();
-    renderNotificaciones();
-    if(document.getElementById('hud-guardia').classList.contains('visible')) renderHudGuardia();
     mostrarToast('✓ Tarea marcada como completada', 'success');
   }
 }
@@ -1462,8 +1432,6 @@ function borrarMensajeEnviado(id) {
    if(!confirm('¿Estás seguro que querés borrar este registro de la lista de tareas enviadas?')) return;
    mensajes = mensajes.filter(m => m.id !== id);
    guardarDatos();
-   renderMensajesEnviados();
-   if(document.getElementById('dashboard').classList.contains('visible')) renderNotificaciones();
 }
 
 // =====================
@@ -1542,30 +1510,25 @@ function renderHudGuardia() {
      }
   }
 
-  const ahora = new Date();
-  const horaStr = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
-
-  document.getElementById('hud-pantalla-render').innerHTML = `
-    <div class="hud-reloj">🕒 ${horaStr}</div>
-    <div class="hud-grid">
-      <div class="hud-card red">
-        <div class="hud-card-title">MÓVILES EN LA CALLE</div>
-        ${htmlMoviles}
-      </div>
-      <div class="hud-card green">
-        <div class="hud-card-title">PERSONAL DISPONIBLE (${personalPresente.length})</div>
-        ${htmlPresentes}
-        ${htmlTareas}
-      </div>
-    </div>
-  `;
-}
-
-setInterval(() => {
-  if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
-    renderHudGuardia();
+  // Mantenemos solo el HTML que cambia sin alterar el reloj central
+  const pantallaContenedor = document.getElementById('hud-pantalla-render');
+  if (pantallaContenedor) {
+      pantallaContenedor.innerHTML = `
+        <div class="hud-reloj">🕒 ${new Date().toLocaleTimeString('es-AR')}</div>
+        <div class="hud-grid">
+          <div class="hud-card red">
+            <div class="hud-card-title">MÓVILES EN LA CALLE</div>
+            ${htmlMoviles}
+          </div>
+          <div class="hud-card green">
+            <div class="hud-card-title">PERSONAL DISPONIBLE (${personalPresente.length})</div>
+            ${htmlPresentes}
+            ${htmlTareas}
+          </div>
+        </div>
+      `;
   }
-}, 5000);
+}
 
 // =====================
 // RELOJ
@@ -1633,12 +1596,12 @@ function renderDashboard() {
   const hoyStr = hoyDate.toISOString().split('T')[0]; 
 
   moviles.forEach(m => {
-    m.alarmasKm.forEach(a => {
+    m.alarmasKm?.forEach(a => {
       if (m.km >= a.limite) {
         alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
       }
     });
-    m.alarmasFecha.forEach(a => {
+    m.alarmasFecha?.forEach(a => {
       if (hoyStr >= a.fecha) {
         let fechaFormat = a.fecha.split('-').reverse().join('/');
         alertasVencidas.push(`📅 <strong>${m.nombre}</strong>: ${a.desc} (Venció el ${fechaFormat})`);
@@ -1677,10 +1640,10 @@ function renderDashboard() {
       }).join('');
       
       let tiemposHtml = '';
-      if (m.horaLlegada) tiemposHtml += `<span style="font-size:12px; color:var(--azul); font-weight:600;">📍 LLEGÓ: ${m.horaLlegada}</span> `;
+      if (m.horaLlegada && m.horaLlegada !== '-') tiemposHtml += `<span style="font-size:12px; color:var(--azul); font-weight:600;">📍 LLEGÓ: ${m.horaLlegada}</span> `;
       if (m.horaRegreso) tiemposHtml += `<span style="font-size:12px; color:var(--verde); font-weight:600;">✓ REGRESÓ: ${m.horaRegreso}</span>`;
 
-      let btnLlegada = !m.horaLlegada && !m.horaRegreso ? `<button class="btn-sm btn-azul" onclick="registrarLlegadaMovil(${i.id}, ${m.idMovil})">📍 Llegó al lugar</button>` : '';
+      let btnLlegada = (!m.horaLlegada || m.horaLlegada === '-') && !m.horaRegreso ? `<button class="btn-sm btn-azul" onclick="registrarLlegadaMovil(${i.id}, ${m.idMovil})">📍 Llegó al lugar</button>` : '';
       let btnRegreso = !m.horaRegreso ? `<button class="btn-sm btn-verde" onclick="registrarRegresoMovil(${i.id}, ${m.idMovil})">✓ Regresó a base</button>` : '';
 
       return `
@@ -1735,7 +1698,7 @@ function renderDashboard() {
           
           <div class="unidades-lista">${movilesHtml}</div>
           
-          ${i.clave11.length > 0 ? `<div style="margin-top:16px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--amarillo)">PERSONAL CLAVE 11:</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${pClave11}</div>` : ''}
+          ${i.clave11 && i.clave11.length > 0 ? `<div style="margin-top:16px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--amarillo)">PERSONAL CLAVE 11:</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${pClave11}</div>` : ''}
           
           <div class="inter-acciones-bottom">
             ${i.esEmergencia ? `<button class="btn-sm btn-rojo" onclick="abrirModalApoyo(${i.id})">＋ Sumar Unidad de Apoyo</button>
@@ -1810,10 +1773,6 @@ function borrarSeleccionadosHistorial() {
     idCounter = intervenciones.length + 1;
 
     guardarDatos();
-    renderHistorial();
-    renderDashboard(); 
-    if(document.getElementById('estadisticas').classList.contains('visible')) renderEstadisticasBombero();
-    
     mostrarToast(`✓ Se borraron y reacomodaron los registros de historial`, "success");
   } else if (password !== null) {
     alert("❌ Clave incorrecta.");
@@ -1939,7 +1898,6 @@ function agregarPrenda() {
   document.getElementById('vest-marca').value = '';
   document.getElementById('vest-estado').value = 'en posesión';
   
-  renderListaVestuario();
   mostrarToast('✓ Prenda y talle guardados', 'success');
 }
 
@@ -1966,7 +1924,6 @@ function cambiarEstadoPrenda(idPersonal, idPrenda, nuevoEstado) {
   }
 
   guardarDatos();
-  renderListaVestuario();
   mostrarToast('✓ Estado de la prenda actualizado', 'success');
 }
 
@@ -1983,7 +1940,6 @@ function devolverPrenda(idPersonal, idPrenda) {
       v.prestamoDetalle = null; 
       
       guardarDatos();
-      renderListaVestuario();
       mostrarToast('✓ Devolución registrada correctamente', 'success');
   }
 }
@@ -1995,7 +1951,6 @@ function borrarPrenda(idPersonal, idPrenda) {
   
   p.vestuario = p.vestuario.filter(x => x.id !== idPrenda);
   guardarDatos();
-  renderListaVestuario();
   mostrarToast('✓ Prenda borrada', 'success');
 }
 
@@ -2087,7 +2042,7 @@ function renderEstadisticasBombero() {
       }
     });
     
-    if (!rolBase && inter.clave11.includes(idBombero)) {
+    if (!rolBase && inter.clave11 && inter.clave11.includes(idBombero)) {
       rolBase = 'Clave 11';
       rolDesc = 'Clave 11';
     }
@@ -2205,9 +2160,6 @@ function toggleBajaPersonal(id, darBaja) {
     p.activo = !darBaja;
     if(darBaja) togglePresenciaPersonal(id, false); 
     guardarDatos();
-    renderPersonalPanel();
-    if(document.getElementById('configuracion').classList.contains('visible')) renderConfiguracion();
-    if(document.getElementById('dashboard').classList.contains('visible')) renderDashboard();
     mostrarToast(darBaja ? 'Bombero dado de baja' : 'Bombero reactivado', 'success');
   }
 }
@@ -2230,10 +2182,7 @@ function togglePresenciaPersonal(id, isPresente) {
         }
       }
     }
-
     guardarDatos();
-    renderPersonalPanel();
-    if(document.getElementById('dashboard').classList.contains('visible')) renderDashboard(); 
   }
 }
 
@@ -2321,7 +2270,7 @@ function renderVehiculos() {
 
   container.innerHTML = moviles.map((m, mIndex) => {
     
-    const alarmasKmHtml = m.alarmasKm.map((a, aIndex) => {
+    const alarmasKmHtml = (m.alarmasKm || []).map((a, aIndex) => {
       const vencida = m.km >= a.limite;
       return `
         <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
@@ -2331,7 +2280,7 @@ function renderVehiculos() {
       `;
     }).join('');
 
-    const alarmasFechaHtml = m.alarmasFecha.map((a, aIndex) => {
+    const alarmasFechaHtml = (m.alarmasFecha || []).map((a, aIndex) => {
       const hoy = new Date().toISOString().split('T')[0];
       const vencida = hoy >= a.fecha;
       const fechaFormat = a.fecha.split('-').reverse().join('/');
@@ -2409,7 +2358,6 @@ function agregarMovil() {
   guardarDatos();
   document.getElementById('veh-nombre').value = '';
   document.getElementById('veh-km').value = '';
-  renderVehiculos();
   mostrarToast('✓ Vehículo sumado a la flota', 'success');
 }
 
@@ -2417,7 +2365,6 @@ function eliminarMovil(index) {
   if(!confirm('¿Seguro que querés borrar este vehículo definitivamente?')) return;
   moviles.splice(index, 1);
   guardarDatos(); 
-  renderVehiculos();
   mostrarToast('✓ Vehículo eliminado', 'success');
 }
 
@@ -2428,7 +2375,6 @@ function editarKmMovil(id) {
   if(nuevoKm !== null && !isNaN(nuevoKm) && nuevoKm !== "") {
     m.km = parseInt(nuevoKm);
     guardarDatos();
-    renderVehiculos();
     mostrarToast('✓ Kilometraje guardado', 'success');
   }
 }
@@ -2440,7 +2386,6 @@ function editarCaracteristicasMovil(id) {
   if(nuevaDesc !== null) {
     m.caracteristicas = nuevaDesc.trim();
     guardarDatos();
-    renderVehiculos();
   }
 }
 
@@ -2483,19 +2428,19 @@ function guardarAlarma() {
   if (tipo === 'km') {
     const km = parseInt(document.getElementById('al-km').value);
     if(isNaN(km) || km <= 0) return mostrarToast('⚠ Ingresá un límite de KM válido', 'warning');
+    if (!m.alarmasKm) m.alarmasKm = [];
     m.alarmasKm.push({ desc: desc, limite: km });
+    m.alarmasKm.sort((a, b) => a.limite - b.limite);
   } else {
     const fecha = document.getElementById('al-fecha').value;
     if(!fecha) return mostrarToast('⚠ Seleccioná una fecha', 'warning');
+    if (!m.alarmasFecha) m.alarmasFecha = [];
     m.alarmasFecha.push({ desc: desc, fecha: fecha });
+    m.alarmasFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
   }
-
-  m.alarmasKm.sort((a, b) => a.limite - b.limite);
-  m.alarmasFecha.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
   guardarDatos();
   cerrarModalAlarma();
-  renderVehiculos();
   mostrarToast('✓ Alerta preventiva configurada', 'success');
 }
 
@@ -2508,7 +2453,6 @@ function eliminarAlarmaMovil(idMovil, tipo, indexAlarma) {
   else m.alarmasFecha.splice(indexAlarma, 1);
 
   guardarDatos();
-  renderVehiculos();
 }
 
 // LOGICA HISTORIAL MANTENIMIENTO
@@ -2539,12 +2483,10 @@ function guardarMantenimiento() {
 
   if (!m.historialMantenimiento) m.historialMantenimiento = [];
   m.historialMantenimiento.push({ fecha, km, detalle, costo });
-
   m.historialMantenimiento.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   guardarDatos();
   cerrarModalMantenimiento();
-  renderVehiculos();
   mostrarToast('✓ Arreglo guardado en el historial', 'success');
 }
 
@@ -2555,7 +2497,6 @@ function eliminarMantenimiento(idMovil, index) {
 
   m.historialMantenimiento.splice(index, 1);
   guardarDatos();
-  renderVehiculos();
 }
 
 // =====================
@@ -2623,7 +2564,6 @@ function agregarRango() {
   rangos.push({ id: nuevoId, nombre, orden: nuevoOrden });
   guardarDatos();
   document.getElementById('conf-rango-nombre').value = '';
-  renderConfiguracion();
   mostrarToast('✓ Rango agregado', 'success');
 }
 function moverRango(id, direccion) {
@@ -2634,12 +2574,12 @@ function moverRango(id, direccion) {
   const tempOrden = rangos[index].orden;
   rangos[index].orden = rangos[targetIndex].orden;
   rangos[targetIndex].orden = tempOrden;
-  guardarDatos(); renderConfiguracion();
+  guardarDatos();
 }
 function eliminarRango(id) {
   if(personal.some(p => p.rangoId === id)) return alert('No podés borrar un rango que está asignado a un bombero.');
   rangos = rangos.filter(r => r.id !== id);
-  guardarDatos(); renderConfiguracion();
+  guardarDatos();
   mostrarToast('✓ Rango borrado', 'success');
 }
 
@@ -2655,8 +2595,6 @@ function agregarPersonal() {
   guardarDatos();
   document.getElementById('conf-per-nombre').value = '';
   document.getElementById('conf-per-dni').value = '';
-  renderConfiguracion();
-  if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
   mostrarToast('✓ Personal agregado', 'success');
 }
 function moverPersonal(id, direccion) {
@@ -2668,8 +2606,7 @@ function moverPersonal(id, direccion) {
   personal[index].ordenManual = personal[targetIndex].ordenManual;
   personal[targetIndex].ordenManual = temp;
   personal.sort((a, b) => a.ordenManual - b.ordenManual);
-  guardarDatos(); renderConfiguracion(); 
-  if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
+  guardarDatos(); 
 }
 function editarDniPersonal(id) {
   const p = personal.find(x => x.id === id);
@@ -2678,7 +2615,6 @@ function editarDniPersonal(id) {
   if(nuevoDni !== null) {
     p.dni = nuevoDni.trim().replace(/\./g, '');
     guardarDatos();
-    renderConfiguracion();
     mostrarToast('✓ DNI actualizado', 'success');
   }
 }
@@ -2689,8 +2625,6 @@ function eliminarPersonalDefinitivo(id) {
   if (password === 'BORRAR') {
     personal = personal.filter(p => p.id !== id);
     guardarDatos(); 
-    renderConfiguracion();
-    if(document.getElementById('personal-sec').classList.contains('visible')) renderPersonalPanel();
     mostrarToast('✓ Bombero eliminado definitivamente', 'success');
   } else if (password !== null) {
     alert('❌ Palabra incorrecta. No se eliminó nada.');
@@ -2704,13 +2638,12 @@ function agregarTipoEmergencia() {
   tiposEmergencia.push(nombre);
   guardarDatos();
   document.getElementById('conf-tipo-nombre').value = '';
-  renderConfiguracion();
   mostrarToast('✓ Tipo agregado', 'success');
 }
 function eliminarTipoEmergencia(index) {
   if(!confirm('¿Seguro que querés borrar este tipo de intervención?')) return;
   tiposEmergencia.splice(index, 1);
-  guardarDatos(); renderConfiguracion();
+  guardarDatos();
   mostrarToast('✓ Tipo eliminado', 'success');
 }
 
@@ -2722,28 +2655,29 @@ function agregarMotivo() {
   motivosNoEmerg.push({ id: nuevoId, nombre });
   guardarDatos();
   document.getElementById('conf-motivo-nombre').value = '';
-  renderConfiguracion();
   mostrarToast('✓ Motivo agregado', 'success');
 }
 function eliminarMotivo(index) {
   if(!confirm('¿Seguro que querés borrar este motivo?')) return;
   motivosNoEmerg.splice(index, 1);
-  guardarDatos(); renderConfiguracion();
+  guardarDatos();
   mostrarToast('✓ Motivo eliminado', 'success');
 }
 
 // =====================
-// BACKUP IMPORT / EXPORT
+// BACKUP IMPORT / EXPORT (Ahora usando los datos en memoria en lugar de localStorage)
 // =====================
 function exportarBackup() {
   const backup = {
-    bom_rangos: localStorage.getItem('bom_rangos'),
-    bom_personal: localStorage.getItem('bom_personal'),
-    bom_moviles: localStorage.getItem('bom_moviles'),
-    bom_tipos_emergencia: localStorage.getItem('bom_tipos_emergencia'),
-    bom_motivos: localStorage.getItem('bom_motivos'),
-    bom_inter: localStorage.getItem('bom_inter'),
-    bom_counter: localStorage.getItem('bom_counter')
+    credenciales: credenciales,
+    mensajes: mensajes,
+    rangos: rangos,
+    personal: personal,
+    moviles: moviles,
+    tiposEmergencia: tiposEmergencia,
+    motivosNoEmerg: motivosNoEmerg,
+    intervenciones: intervenciones,
+    idCounter: idCounter
   };
   
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
@@ -2764,17 +2698,12 @@ function importarBackup(event) {
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (confirm('⚠️ ATENCIÓN: Esto borrará los datos actuales de esta computadora y los reemplazará por los del archivo. ¿Desea continuar?')) {
-        if (data.bom_rangos) localStorage.setItem('bom_rangos', data.bom_rangos);
-        if (data.bom_personal) localStorage.setItem('bom_personal', data.bom_personal);
-        if (data.bom_moviles) localStorage.setItem('bom_moviles', data.bom_moviles);
-        if (data.bom_tipos_emergencia) localStorage.setItem('bom_tipos_emergencia', data.bom_tipos_emergencia);
-        if (data.bom_motivos) localStorage.setItem('bom_motivos', data.bom_motivos);
-        if (data.bom_inter) localStorage.setItem('bom_inter', data.bom_inter);
-        if (data.bom_counter) localStorage.setItem('bom_counter', data.bom_counter);
-        
-        alert('✓ Datos importados correctamente. El sistema se reiniciará para aplicar los cambios.');
-        location.reload();
+      if (confirm('⚠️ ATENCIÓN: Esto subirá los datos del archivo a Firebase y reemplazará la base de datos para todos los usuarios conectados. ¿Desea continuar?')) {
+        dbRef.set(data).then(() => {
+            alert('✓ Datos importados a la nube correctamente.');
+        }).catch((error) => {
+            alert('❌ Error al subir a Firebase: ' + error.message);
+        });
       }
     } catch(err) {
       alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.');
@@ -3124,7 +3053,6 @@ function guardarUnidad() {
 
   guardarDatos();
   cerrarModalMovil();
-  renderDashboard();
 }
 
 // =====================
@@ -3140,7 +3068,6 @@ function registrarLlegadaMovil(idInter, idMovilInstancia) {
   mov.horaLlegada = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   
   guardarDatos();
-  renderDashboard();
   mostrarToast('✓ Llegada al lugar registrada', 'success');
 }
 
@@ -3168,10 +3095,6 @@ function registrarRegresoMovil(idInter, idMovilInstancia) {
   mov.horaRegreso = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   
   guardarDatos();
-  renderDashboard();
-  if (document.getElementById('vehiculos').classList.contains('visible')) {
-    renderVehiculos();
-  }
   mostrarToast('✓ Regreso y KM registrados', 'success');
 }
 
@@ -3230,7 +3153,6 @@ function guardarClave11() {
   
   guardarDatos();
   cerrarModalClave11();
-  renderDashboard();
   mostrarToast('✓ Clave 11 actualizada', 'success');
 }
 
@@ -3265,13 +3187,11 @@ function guardarFinalizacion(descargarPdf = true) {
   const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   inter.moviles.forEach(m => {
     if(!m.horaRegreso) m.horaRegreso = horaStr;
-    if(!m.horaLlegada) m.horaLlegada = '-'; 
+    if(!m.horaLlegada || m.horaLlegada === '') m.horaLlegada = '-'; 
   });
 
   guardarDatos();
   cerrarModalFinalizar();
-  renderDashboard();
-  renderHistorial();
   
   if (descargarPdf) {
     generarPDF(id, true);
@@ -3303,7 +3223,6 @@ function guardarEdicionInforme() {
   inter.informe = document.getElementById('edit-informe').value.trim();
   guardarDatos();
   cerrarModalEditarInforme();
-  renderHistorial();
   mostrarToast('✓ Informe actualizado', 'success');
 }
 
@@ -3316,7 +3235,7 @@ function generarPDF(id, descargarAutomatico = false) {
 
   const personalEnIntervencion = new Set(); 
   i.moviles.forEach(m => m.personal.forEach(pObj => personalEnIntervencion.add(pObj.id))); 
-  i.clave11.forEach(p => personalEnIntervencion.add(p)); 
+  if(i.clave11) i.clave11.forEach(p => personalEnIntervencion.add(p)); 
 
   const personalEnCuartel = (i.personalPresenteSnapshot || []) 
     .map(pid => personal.find(p => p.id === pid)) 
@@ -3344,9 +3263,12 @@ function generarPDF(id, descargarAutomatico = false) {
     `; 
   });
 
-  const rowsClave11 = i.clave11.map(pid => personal.find(p => p.id === pid)).filter(Boolean).map(p =>
-    `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;"><strong style="color:#d39e00">CLAVE 11</strong></td></tr>`
-  ).join(''); 
+  let rowsClave11 = '';
+  if (i.clave11) {
+    rowsClave11 = i.clave11.map(pid => personal.find(p => p.id === pid)).filter(Boolean).map(p =>
+      `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;"><strong style="color:#d39e00">CLAVE 11</strong></td></tr>`
+    ).join(''); 
+  }
 
   const rowsQueda = personalEnCuartel.map(p =>
     `<tr><td style="padding:4px; border:1px solid #CBD5E1;">${p.nombre}</td><td style="padding:4px; border:1px solid #CBD5E1;">${getNombreRango(p.rangoId)}</td><td style="padding:4px; border:1px solid #CBD5E1;">En Cuartel</td></tr>`
@@ -3527,9 +3449,12 @@ function aplanarIntervencionParaExcel(i) {
     if(p) perNombres.push(`${p.nombre} [${pObj.rol}] (${m.nombre.split('—')[0].trim()})`);
   }));
   
-  const clave11Nombres = i.clave11.map(pid => {
-    const p = personal.find(x=>x.id===pid); return p ? p.nombre : '';
-  }).filter(Boolean).join(', ');
+  let clave11Nombres = '';
+  if (i.clave11) {
+    clave11Nombres = i.clave11.map(pid => {
+      const p = personal.find(x=>x.id===pid); return p ? p.nombre : '';
+    }).filter(Boolean).join(', ');
+  }
 
   const esEmergencia = i.esEmergencia !== false;
 
@@ -3611,11 +3536,11 @@ function descargarInformeVehiculo(id) {
 
   mostrarToast('⌛ Generando informe del móvil...', 'warning');
 
-  const alarmasKmHtml = m.alarmasKm.length > 0 
+  const alarmasKmHtml = (m.alarmasKm || []).length > 0 
     ? m.alarmasKm.map(a => `<li style="margin-bottom: 6px;"><b>A los ${a.limite} km:</b> ${a.desc}</li>`).join('') 
     : '<li style="color:#64748B;">No hay alertas preventivas por kilometraje.</li>';
     
-  const alarmasFechaHtml = m.alarmasFecha.length > 0 
+  const alarmasFechaHtml = (m.alarmasFecha || []).length > 0 
     ? m.alarmasFecha.map(a => `<li style="margin-bottom: 6px;"><b>Vence el ${a.fecha.split('-').reverse().join('/')}:</b> ${a.desc}</li>`).join('') 
     : '<li style="color:#64748B;">No hay alertas preventivas por fecha.</li>';
 
