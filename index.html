@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bomberos Voluntarios Río Cuarto — Sistema Interno 4/5</title>
+<title>Bomberos Voluntarios Río Cuarto — Sistema de Intervenciones</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -162,8 +162,8 @@
   .inter-acciones-bottom { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
 
   /* GESTIÓN DE VEHÍCULOS */
-  .vehiculos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
-  .vehiculo-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .vehiculos-grid { display: block; margin-top: 16px; }
+  .vehiculo-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
   .vehiculo-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--borde); padding-bottom: 12px; margin-bottom: 12px; }
   .vehiculo-nombre { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--texto); }
   .vehiculo-km { font-size: 14px; font-weight: 600; color: var(--azul); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
@@ -398,7 +398,7 @@
     <span class="logo-icon">🚒</span>
     <div>
       <div class="logo-text">Bomberos Voluntarios Río Cuarto</div>
-      <span class="logo-sub">Sistema de Intervenciones</span>
+      <span class="logo-sub">Sistema Integral 4/5</span>
     </div>
   </div>
   <div class="header-right">
@@ -548,7 +548,14 @@
       <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarMovil()">Agregar Móvil</button>
     </div>
 
-    <div class="vehiculos-grid" id="vehiculos-lista"></div>
+    <div class="form-grupo" style="max-width: 400px; margin-bottom: 24px;">
+      <label>Seleccionar Vehículo a Gestionar</label>
+      <select id="veh-selector" onchange="renderVehiculoSeleccionado()">
+        <option value="">Elegí un vehículo...</option>
+      </select>
+    </div>
+
+    <div class="vehiculos-grid" id="vehiculos-lista" style="display: block;"></div>
   </div>
 
   <div id="configuracion" class="seccion">
@@ -1045,8 +1052,8 @@ function inicializarDatosPorDefecto() {
         { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [] }
     ];
     moviles = [
-        { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] },
-        { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] }
+        { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [], fichasMantenimiento: [] },
+        { id: 2, nombre: 'RE-1 — Rescate', km: 8200, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [], fichasMantenimiento: [] }
     ];
     tiposEmergencia = ['Incendio Estructural', 'Incendio Vehicular', 'Accidente de Tránsito', 'Rescate', 'Materiales Peligrosos', 'Apoyo a Otra Repartición', 'Falsa Alarma', 'Otro'];
     motivosNoEmerg = [{ id: 1, nombre: 'Carga de combustible' }, { id: 2, nombre: 'Taller mecánico' }, { id: 3, nombre: 'Capacitación' }];
@@ -2261,90 +2268,182 @@ function renderPersonalPanel() {
 // RENDER VEHÍCULOS Y MANTENIMIENTO
 // =====================
 function renderVehiculos() {
+  const sel = document.getElementById('veh-selector');
+  if (!sel) return;
+
+  // Guardamos el ID seleccionado para que no se pierda al actualizar Firebase
+  const idSeleccionado = sel.value;
+
+  sel.innerHTML = '<option value="">Elegí un vehículo...</option>';
+  moviles.forEach(m => {
+    const opt = new Option(`${m.nombre} (KM: ${m.km})`, m.id);
+    if (m.id.toString() === idSeleccionado) {
+      opt.selected = true;
+    }
+    sel.appendChild(opt);
+  });
+
+  renderVehiculoSeleccionado();
+}
+
+function renderVehiculoSeleccionado() {
+  const idSeleccionado = parseInt(document.getElementById('veh-selector').value);
   const container = document.getElementById('vehiculos-lista');
-  
-  if (moviles.length === 0) {
-    container.innerHTML = `<div class="vacio" style="grid-column:1/-1"><div class="vacio-icon">🚐</div>No hay vehículos cargados en la flota.</div>`;
+
+  if (isNaN(idSeleccionado)) {
+    container.innerHTML = `<div class="vacio" style="grid-column:1/-1"><div class="vacio-icon">🚐</div>Seleccioná un vehículo del menú para ver y gestionar su información.</div>`;
     return;
   }
 
-  container.innerHTML = moviles.map((m, mIndex) => {
-    
-    const alarmasKmHtml = (m.alarmasKm || []).map((a, aIndex) => {
-      const vencida = m.km >= a.limite;
-      return `
-        <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
-          <span>⚙️ ${a.desc} <br><small style="color:var(--texto-secundario)">Avisar a los: ${a.limite} km</small></span>
-          <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'km', ${aIndex})">✕</button>
-        </div>
-      `;
-    }).join('');
+  const m = moviles.find(x => x.id === idSeleccionado);
+  if (!m) return;
+  const mIndex = moviles.indexOf(m);
 
-    const alarmasFechaHtml = (m.alarmasFecha || []).map((a, aIndex) => {
-      const hoy = new Date().toISOString().split('T')[0];
-      const vencida = hoy >= a.fecha;
-      const fechaFormat = a.fecha.split('-').reverse().join('/');
-      return `
-        <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
-          <span>📅 ${a.desc} <br><small style="color:var(--texto-secundario)">Vence: ${fechaFormat}</small></span>
-          <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'fecha', ${aIndex})">✕</button>
-        </div>
-      `;
-    }).join('');
-
-    const historialMantHtml = (m.historialMantenimiento || []).map((h, hIndex) => {
-      const fFormat = h.fecha.split('-').reverse().join('/');
-      return `
-        <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1;">
-          <span>🛠 <strong>${fFormat}</strong> (A los ${h.km} km)<br><small style="color:var(--texto-secundario)">${h.detalle} ${h.costo ? `| 💰 ${h.costo}` : ''}</small></span>
-          <button class="btn-order" onclick="eliminarMantenimiento(${m.id}, ${hIndex})">✕</button>
-        </div>
-      `;
-    }).join('');
-
+  // Generamos los HTML de alarmas y mantenimiento previos
+  const alarmasKmHtml = (m.alarmasKm || []).map((a, aIndex) => {
+    const vencida = m.km >= a.limite;
     return `
-      <div class="vehiculo-card">
-        <div class="vehiculo-header">
-          <div>
-            <div class="vehiculo-nombre">${m.nombre}</div>
-            <div class="vehiculo-km">KM Actual: ${m.km} <button class="btn-order" style="width:24px; height:24px;" onclick="editarKmMovil(${m.id})" title="Actualizar KM">✎</button></div>
-          </div>
-          <button class="btn-sm btn-rojo" onclick="eliminarMovil(${mIndex})">Borrar</button>
-        </div>
-        
-        <div class="vehiculo-desc">
-          <strong>Características Técnicas:</strong><br>
-          ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
-          <div style="margin-top:12px; display: flex; justify-content: space-between; align-items: center;">
-             <button class="btn-sm btn-rojo" onclick="descargarInformeVehiculo(${m.id})">📄 Bajar Informe</button>
-             <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
-          </div>
-        </div>
-
-        <div class="alarma-seccion">
-          <div class="alarma-titulo">Alarmas por Kilometraje (Mecánica) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'km')">＋ Nueva</button></div>
-          <div class="alarma-lista">
-            ${alarmasKmHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de km configuradas.</div>'}
-          </div>
-        </div>
-
-        <div class="alarma-seccion" style="margin-top:20px;">
-          <div class="alarma-titulo">Alarmas por Fecha (Vencimientos) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'fecha')">＋ Nueva</button></div>
-          <div class="alarma-lista">
-            ${alarmasFechaHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de fecha configuradas.</div>'}
-          </div>
-        </div>
-
-        <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
-          <div class="alarma-titulo">Historial de Reparaciones <button class="btn-sm btn-azul" style="padding:4px 8px; font-size:10px;" onclick="abrirModalMantenimiento(${m.id}, ${m.km})">＋ Cargar Arreglo</button></div>
-          <div class="alarma-lista" style="max-height: 200px; overflow-y: auto;">
-            ${historialMantHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay arreglos registrados en esta unidad.</div>'}
-          </div>
-        </div>
-
+      <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
+        <span>⚙️ ${a.desc} <br><small style="color:var(--texto-secundario)">Avisar a los: ${a.limite} km</small></span>
+        <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'km', ${aIndex})">✕</button>
       </div>
     `;
   }).join('');
+
+  const alarmasFechaHtml = (m.alarmasFecha || []).map((a, aIndex) => {
+    const hoy = new Date().toISOString().split('T')[0];
+    const vencida = hoy >= a.fecha;
+    const fechaFormat = a.fecha.split('-').reverse().join('/');
+    return `
+      <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
+        <span>📅 ${a.desc} <br><small style="color:var(--texto-secundario)">Vence: ${fechaFormat}</small></span>
+        <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'fecha', ${aIndex})">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  const historialMantHtml = (m.historialMantenimiento || []).map((h, hIndex) => {
+    const fFormat = h.fecha.split('-').reverse().join('/');
+    return `
+      <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1;">
+        <span>🛠 <strong>${fFormat}</strong> (A los ${h.km} km)<br><small style="color:var(--texto-secundario)">${h.detalle} ${h.costo ? `| 💰 ${h.costo}` : ''}</small></span>
+        <button class="btn-order" onclick="eliminarMantenimiento(${m.id}, ${hIndex})">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  // NUEVA FUNCIÓN: Generar HTML de la Ficha Diaria de Anotaciones
+  const fichasHtml = (m.fichasMantenimiento || []).map(f => `
+    <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+      <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+        <span style="font-size:14px; white-space:pre-wrap;">${f.texto}</span>
+        <span style="font-size:11px; color:var(--texto-secundario);">✍️ Firmado por: <strong>${f.autor}</strong> el ${f.fecha}</span>
+      </div>
+      <button class="btn-order" onclick="eliminarAnotacionFicha(${m.id}, ${f.id})" style="flex-shrink:0;" title="Borrar anotación">✕</button>
+    </div>
+  `).join('');
+
+  // Renderizamos la tarjeta ocupando todo el ancho (grid-column: 1 / -1)
+  container.innerHTML = `
+    <div class="vehiculo-card" style="grid-column: 1 / -1;">
+      <div class="vehiculo-header">
+        <div>
+          <div class="vehiculo-nombre">${m.nombre}</div>
+          <div class="vehiculo-km">KM Actual: ${m.km} <button class="btn-order" style="width:24px; height:24px;" onclick="editarKmMovil(${m.id})" title="Actualizar KM">✎</button></div>
+        </div>
+        <button class="btn-sm btn-rojo" onclick="eliminarMovil(${mIndex})">Borrar Móvil</button>
+      </div>
+      
+      <div class="vehiculo-desc">
+        <strong>Características Técnicas:</strong><br>
+        ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
+        <div style="margin-top:12px; display: flex; justify-content: space-between; align-items: center;">
+           <button class="btn-sm btn-rojo" onclick="descargarInformeVehiculo(${m.id})">📄 Bajar Informe</button>
+           <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
+        </div>
+      </div>
+
+      <!-- NUEVA SECCIÓN: FICHA DE MANTENIMIENTO -->
+      <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
+        <div class="alarma-titulo">Ficha de Novedades y Mantenimiento</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="ficha-texto-${m.id}" placeholder="Escribí un detalle, novedad o arreglo rápido..." style="flex: 1;" onkeypress="if(event.key === 'Enter') agregarAnotacionFicha(${m.id})">
+          <button class="btn-sm btn-verde" onclick="agregarAnotacionFicha(${m.id})">Guardar</button>
+        </div>
+        <div class="alarma-lista" style="max-height: 250px; overflow-y: auto;">
+          ${fichasHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay anotaciones registradas en la ficha.</div>'}
+        </div>
+      </div>
+
+      <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
+        <div class="alarma-titulo">Alarmas por Kilometraje (Mecánica) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'km')">＋ Nueva</button></div>
+        <div class="alarma-lista">
+          ${alarmasKmHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de km configuradas.</div>'}
+        </div>
+      </div>
+
+      <div class="alarma-seccion" style="margin-top:20px;">
+        <div class="alarma-titulo">Alarmas por Fecha (Vencimientos) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'fecha')">＋ Nueva</button></div>
+        <div class="alarma-lista">
+          ${alarmasFechaHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de fecha configuradas.</div>'}
+        </div>
+      </div>
+
+      <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
+        <div class="alarma-titulo">Historial de Reparaciones Mayores <button class="btn-sm btn-azul" style="padding:4px 8px; font-size:10px;" onclick="abrirModalMantenimiento(${m.id}, ${m.km})">＋ Cargar Arreglo</button></div>
+        <div class="alarma-lista" style="max-height: 200px; overflow-y: auto;">
+          ${historialMantHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay arreglos registrados en esta unidad.</div>'}
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+// NUEVA FUNCIÓN PARA GUARDAR ANOTACIONES
+function agregarAnotacionFicha(idMovil) {
+  if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para que la anotación quede firmada a tu nombre.', 'warning');
+
+  const input = document.getElementById(`ficha-texto-${idMovil}`);
+  const texto = input.value.trim();
+
+  if (!texto) return mostrarToast('⚠ Escribí la anotación antes de guardar.', 'warning');
+
+  const m = moviles.find(x => x.id === idMovil);
+  if (!m) return;
+
+  if (!m.fichasMantenimiento) m.fichasMantenimiento = [];
+
+  m.fichasMantenimiento.push({
+    id: Date.now(),
+    texto: texto,
+    autor: usuarioActual.nombre,
+    fecha: new Date().toLocaleString('es-AR')
+  });
+
+  // Ordenamos para que la anotación más reciente quede siempre arriba
+  m.fichasMantenimiento.sort((a, b) => b.id - a.id);
+
+  guardarDatos(); 
+  
+  mostrarToast('✓ Anotación guardada y firmada', 'success');
+}
+
+function eliminarAnotacionFicha(idMovil, idFicha) {
+  const password = prompt('Para eliminar esta anotación del registro, ingresá la palabra BORRAR en mayúsculas:');
+  
+  if (password === 'BORRAR') {
+    const m = moviles.find(x => x.id === idMovil);
+    if (!m || !m.fichasMantenimiento) return;
+
+    // Filtramos para dejar todas las anotaciones menos la que coincide con el ID a borrar
+    m.fichasMantenimiento = m.fichasMantenimiento.filter(f => f.id !== idFicha);
+    
+    guardarDatos();
+    mostrarToast('✓ Anotación eliminada correctamente', 'success');
+  } else if (password !== null) {
+    alert('❌ Palabra de seguridad incorrecta. No se eliminó la anotación.');
+  }
 }
 
 function agregarMovil() {
@@ -2354,7 +2453,7 @@ function agregarMovil() {
   const km = kmInput ? parseInt(kmInput) : 0;
   const nuevoId = moviles.length > 0 ? Math.max(...moviles.map(m => m.id)) + 1 : 1;
   
-  moviles.push({ id: nuevoId, nombre, km, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [] });
+  moviles.push({ id: nuevoId, nombre, km, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [], fichasMantenimiento: [] });
   guardarDatos();
   document.getElementById('veh-nombre').value = '';
   document.getElementById('veh-km').value = '';
@@ -2364,6 +2463,7 @@ function agregarMovil() {
 function eliminarMovil(index) {
   if(!confirm('¿Seguro que querés borrar este vehículo definitivamente?')) return;
   moviles.splice(index, 1);
+  document.getElementById('veh-selector').value = ''; // Resetear selector
   guardarDatos(); 
   mostrarToast('✓ Vehículo eliminado', 'success');
 }
@@ -3548,6 +3648,10 @@ function descargarInformeVehiculo(id) {
     ? m.historialMantenimiento.map(h => `<li style="margin-bottom: 6px;"><b>${h.fecha.split('-').reverse().join('/')} (A los ${h.km} km):</b> ${h.detalle} ${h.costo ? `| ${h.costo}` : ''}</li>`).join('')
     : '<li style="color:#64748B;">No hay historial de reparaciones registrado.</li>';
 
+  const fichasPdfHtml = (m.fichasMantenimiento || []).length > 0
+    ? m.fichasMantenimiento.map(f => `<li style="margin-bottom: 6px;"><b>${f.fecha} (${f.autor}):</b> ${f.texto}</li>`).join('')
+    : '<li style="color:#64748B;">No hay anotaciones registradas en la ficha.</li>';
+
   const htmlContent = `
     <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
       
@@ -3579,6 +3683,13 @@ function descargarInformeVehiculo(id) {
       <div style="margin-bottom: 25px;">
         <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Características Técnicas / Equipamiento</div>
         <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; line-height:1.6; background:#FAFAFA; white-space:pre-wrap;">${m.caracteristicas || 'Sin características técnicas cargadas en el sistema.'}</div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Ficha Diaria de Novedades (Firmadas)</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${fichasPdfHtml}</ul>
+        </div>
       </div>
 
       <div style="margin-bottom: 25px;">
