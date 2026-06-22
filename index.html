@@ -455,8 +455,7 @@
       <div style="font-size:13px; color:var(--texto-secundario);">* Actualizado en tiempo real desde la nube. Ideal para proyectar en TV.</div>
     </div>
     
-    <div class="hud-pantalla" id="hud-pantalla-render">
-      </div>
+    <div class="hud-pantalla" id="hud-pantalla-render"></div>
   </div>
 
   <div id="mensajes-sec" class="seccion">
@@ -575,7 +574,6 @@
       <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarRango()">Agregar Rango</button>
     </div>
     <div class="config-list" id="lista-rangos-config" style="margin-bottom: 40px;"></div>
-
 
     <div class="titulo-seccion">Administrar Personal</div>
     <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Ordená a los bomberos usando las flechas o asignales el DNI correspondiente. También podés borrarlos definitivamente si fueron cargados por error.</p>
@@ -973,14 +971,10 @@ const firebaseConfig = {
     measurementId: "G-ZD4WB2D28D"
 };
 
-// Inicializar la aplicación de Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const dbRef = db.ref('sistema_bvrc_data');
 
-// =====================
-// VARIABLES GLOBALES (Ahora sincronizadas con la nube)
-// =====================
 let credenciales = [];
 let mensajes = [];
 let rangos = [];
@@ -994,12 +988,8 @@ let idCounter = 1;
 let usuarioActual = null;
 const DNI_MAESTRO = '41483152';
 
-// =====================
-// ESCUCHADOR EN TIEMPO REAL (El corazón del sistema)
-// =====================
 dbRef.on('value', (snapshot) => {
     const dataNube = snapshot.val();
-
     if (dataNube) {
         credenciales = dataNube.credenciales || [];
         mensajes = dataNube.mensajes || [];
@@ -1027,10 +1017,8 @@ dbRef.on('value', (snapshot) => {
         if (seccionVisible && seccionVisible.id === 'vehiculos') renderVehiculos();
         if (seccionVisible && seccionVisible.id === 'configuracion') renderConfiguracion();
 
-        // Modo monitor TV
         if (document.body.classList.contains('modo-monitor')) renderHudGuardia();
         
-        // Actualizar datos dentro del modal de despacho si está abierto
         if (document.getElementById('modal-movil').classList.contains('visible')) {
             actualizarVistaPersonal();
         }
@@ -1071,9 +1059,6 @@ function inicializarDatosPorDefecto() {
     motivosNoEmerg = [{ id: 1, nombre: 'Carga de combustible' }, { id: 2, nombre: 'Taller mecánico' }, { id: 3, nombre: 'Capacitación' }];
 }
 
-// =====================
-// FUNCIONALIDAD PESTAÑA MONITOR (TV MODE)
-// =====================
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('monitor') === 'true') {
@@ -1084,24 +1069,17 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function abrirMonitorNuevaPestana() {
-  window.open(window.location.pathname + '?monitor=true', '_blank');
-}
+function abrirMonitorNuevaPestana() { window.open(window.location.pathname + '?monitor=true', '_blank'); }
 
 function activarPantallaTV() {
   const monitor = document.getElementById('hud-guardia');
   if (!document.fullscreenElement) {
-    if (monitor.requestFullscreen) {
-      monitor.requestFullscreen();
-    } else if (monitor.webkitRequestFullscreen) {
-      monitor.webkitRequestFullscreen();
-    } else if (monitor.msRequestFullscreen) {
-      monitor.msRequestFullscreen();
-    }
+    if (monitor.requestFullscreen) monitor.requestFullscreen();
+    else if (monitor.webkitRequestFullscreen) monitor.webkitRequestFullscreen();
+    else if (monitor.msRequestFullscreen) monitor.msRequestFullscreen();
   }
 }
 
-// Reloj interno solo visual
 setInterval(() => {
   if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
       const ahora = new Date();
@@ -1110,7 +1088,6 @@ setInterval(() => {
       if (relojEl) relojEl.innerHTML = `🕒 ${horaStr}`;
   }
 }, 1000);
-
 
 function getNombreRango(rangoId) {
   const r = rangos.find(x => x.id == parseInt(rangoId));
@@ -1121,9 +1098,6 @@ function getOrdenRango(rangoId) {
   return r ? r.orden : 999;
 }
 
-// =====================
-// SISTEMA DE SESIONES
-// =====================
 function iniciarSesion() {
   const dni = document.getElementById('login-dni').value.trim().replace(/\./g, '');
   const errorDiv = document.getElementById('login-error');
@@ -1191,33 +1165,24 @@ function procesarIngreso() {
   `;
 
   const primerBotonVisible = Array.from(navBtns).find(b => b.style.display !== 'none');
-  if (primerBotonVisible) {
-      primerBotonVisible.click();
-  }
+  if (primerBotonVisible) primerBotonVisible.click();
 }
 
-// Helper: Permiso para Informe
 function puedeEditarInforme(intervencion) {
     if (!usuarioActual) return false;
     if (usuarioActual.isMaster) return true;
-    
     let puede = false;
     intervencion.moviles.forEach(m => {
         m.personal.forEach(p => {
             if (p.id === usuarioActual.personalId) {
                 let r = p.rol.toLowerCase();
-                if (r === 'encargado' || r === 'chofer y encargado') {
-                    puede = true;
-                }
+                if (r === 'encargado' || r === 'chofer y encargado') puede = true;
             }
         });
     });
     return puede;
 }
 
-// =====================
-// FUNCIONES MAESTRAS (CREDENCIALES)
-// =====================
 function agregarCredencial() {
   const nombre = document.getElementById('conf-cred-nombre').value.trim();
   const checkboxes = document.querySelectorAll('#conf-cred-permisos input:checked');
@@ -1260,19 +1225,13 @@ function asignarCredencialPersonal(idPersonal) {
   
   if (respuesta !== null) {
     const valores = respuesta.split(',').map(x => parseInt(x.trim()));
-    if (valores.includes(0)) {
-       p.credencialesIds = [];
-    } else {
-       p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
-    }
+    if (valores.includes(0)) p.credencialesIds = [];
+    else p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
     guardarDatos();
     mostrarToast('✓ Accesos actualizados', 'success');
   }
 }
 
-// =====================
-// TASKLIST Y MENSAJERÍA
-// =====================
 function toggleNotifDest() {
   const tipo = document.getElementById('notif-tipo-dest').value;
   document.getElementById('div-notif-grupo').style.display = tipo === 'grupo' ? 'flex' : 'none';
@@ -1296,13 +1255,10 @@ function abrirModalNotificacion() {
   document.getElementById('notif-texto').value = '';
   document.getElementById('notif-tipo-dest').value = 'grupo';
   toggleNotifDest();
-  
   document.getElementById('modal-notificacion').classList.add('visible');
 }
 
-function cerrarModalNotificacion() {
-  document.getElementById('modal-notificacion').classList.remove('visible');
-}
+function cerrarModalNotificacion() { document.getElementById('modal-notificacion').classList.remove('visible'); }
 
 function enviarNotificacion() {
   const tipo = document.getElementById('notif-tipo-dest').value;
@@ -1322,16 +1278,10 @@ function enviarNotificacion() {
   }
   
   const nuevoMensaje = {
-    id: Date.now(),
-    remitente: usuarioActual.nombre,
-    remitenteDni: usuarioActual.dni,
-    credencialDestinoId: credId ? parseInt(credId) : null,
-    destinatariosIds: destinatariosIds,
-    texto: texto,
-    fechaEnvio: new Date().toLocaleString('es-AR'),
-    estado: 'pendiente', 
-    fechaProgramada: '', 
-    realizadoPor: null
+    id: Date.now(), remitente: usuarioActual.nombre, remitenteDni: usuarioActual.dni,
+    credencialDestinoId: credId ? parseInt(credId) : null, destinatariosIds: destinatariosIds,
+    texto: texto, fechaEnvio: new Date().toLocaleString('es-AR'), estado: 'pendiente', 
+    fechaProgramada: '', realizadoPor: null
   };
 
   mensajes.push(nuevoMensaje);
@@ -1345,7 +1295,6 @@ function renderNotificaciones() {
     document.getElementById('panel-notificaciones').style.display = 'none';
     return;
   }
-  
   const panel = document.getElementById('panel-notificaciones');
   const lista = document.getElementById('lista-notificaciones');
   
@@ -1365,9 +1314,7 @@ function renderNotificaciones() {
     let isRealizada = m.estado === 'realizada';
     let bg = isRealizada ? '#F1F5F9' : '#FFFFFF';
     let border = isRealizada ? 'var(--borde)' : 'var(--amarillo)';
-    
-    let tagDestino = m.destinatariosIds && m.destinatariosIds.length > 0 ? 
-      `<span style="background:var(--rojo-vivo); color:white; padding:2px 6px; border-radius:4px; font-size:10px;">MENSAJE DIRECTO</span>` : '';
+    let tagDestino = m.destinatariosIds && m.destinatariosIds.length > 0 ? `<span style="background:var(--rojo-vivo); color:white; padding:2px 6px; border-radius:4px; font-size:10px;">MENSAJE DIRECTO</span>` : '';
 
     return `
     <div class="notif-card" style="background: ${bg}; border-left-color: ${border}; opacity: ${isRealizada ? '0.7' : '1'}">
@@ -1376,7 +1323,6 @@ function renderNotificaciones() {
         <span>Enviado el ${m.fechaEnvio}</span>
       </div>
       <div class="notif-texto">${m.texto}</div>
-      
       <div class="notif-actions" style="background:#F8FAFC; padding:10px; border-radius:4px; border:1px solid #E2E8F0; margin-top:10px;">
         ${!isRealizada ? `
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%;">
@@ -1414,19 +1360,15 @@ function marcarTareaRealizada(id) {
     m.estado = 'realizada';
     m.realizadoPor = usuarioActual.nombre;
     guardarDatos();
-    mostrarToast('✓ Tarea marcada como completada', 'success');
+    mostrarToast('✓ Tarea completada', 'success');
   }
 }
 
 function renderMensajesEnviados() {
   if(!usuarioActual) return;
   const lista = document.getElementById('lista-mensajes-enviados');
-  
   let misEnviados = mensajes.filter(m => m.remitenteDni === usuarioActual.dni).reverse();
-  
-  if(usuarioActual.isMaster) {
-     misEnviados = [...mensajes].reverse();
-  }
+  if(usuarioActual.isMaster) misEnviados = [...mensajes].reverse();
 
   if(misEnviados.length === 0) {
     lista.innerHTML = '<div class="vacio"><div class="vacio-icon">📭</div>No enviaste ninguna tarea a los grupos todavía.</div>';
@@ -1435,19 +1377,15 @@ function renderMensajesEnviados() {
 
   lista.innerHTML = misEnviados.map(m => {
     let destText = '';
-    if (m.destinatariosIds && m.destinatariosIds.length > 0) {
-      destText = `Personal: ${m.destinatariosIds.length} seleccionado/s`;
-    } else {
+    if (m.destinatariosIds && m.destinatariosIds.length > 0) destText = `Personal: ${m.destinatariosIds.length} seleccionado/s`;
+    else {
       const cred = credenciales.find(c => c.id === parseInt(m.credencialDestinoId));
       destText = cred ? `Grupo: ${cred.nombre}` : 'Grupo Eliminado';
     }
     
     let estadoBadge = '';
     if(m.estado === 'pendiente') estadoBadge = `<span style="background:var(--amarillo); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PENDIENTE</span>`;
-    else if(m.estado === 'programada') {
-        let fp = m.fechaProgramada.replace('T', ' ');
-        estadoBadge = `<span style="background:var(--azul); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PROGRAMADA: ${fp}</span>`;
-    }
+    else if(m.estado === 'programada') estadoBadge = `<span style="background:var(--azul); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PROGRAMADA: ${m.fechaProgramada.replace('T', ' ')}</span>`;
     else if(m.estado === 'realizada') estadoBadge = `<span style="background:var(--verde); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">REALIZADA por ${m.realizadoPor}</span>`;
 
     return `
@@ -1471,9 +1409,6 @@ function borrarMensajeEnviado(id) {
    guardarDatos();
 }
 
-// =====================
-// RENDER HUD DE GUARDIA (TV MODE)
-// =====================
 function renderHudGuardia() {
   const activas = intervenciones.filter(i => i.estado !== 'finalizada');
   let movilesAfuera = [];
@@ -1578,25 +1513,14 @@ function renderHudGuardia() {
   }
 }
 
-// =====================
-// RELOJ
-// =====================
 function actualizarReloj() {
   const ahora = new Date();
-  const horaTexto = String(ahora.getHours()).padStart(2,'0') + ':' +
-                    String(ahora.getMinutes()).padStart(2,'0') + ':' +
-                    String(ahora.getSeconds()).padStart(2,'0');
-  
-  if(document.getElementById('reloj')) {
-    document.getElementById('reloj').textContent = horaTexto;
-  }
+  const horaTexto = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
+  if(document.getElementById('reloj')) document.getElementById('reloj').textContent = horaTexto;
 }
 setInterval(actualizarReloj, 1000);
 actualizarReloj();
 
-// =====================
-// NAVEGACIÓN
-// =====================
 function mostrarSeccion(id, btn) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('activo'));
@@ -1614,9 +1538,6 @@ function mostrarSeccion(id, btn) {
   if (id === 'configuracion') renderConfiguracion();
 }
 
-// =====================
-// RENDER DASHBOARD & ALERTAS
-// =====================
 function renderDashboard() {
   renderNotificaciones(); 
 
@@ -1638,16 +1559,13 @@ function renderDashboard() {
     <div class="stat-card"><div class="num">${intervenciones.length}</div><div class="label">Total Registradas</div></div>
   `;
 
-  // === REVISIÓN DE ALERTAS DE MANTENIMIENTO ===
   let alertasVencidas = [];
   const hoyDate = new Date();
   const hoyStr = hoyDate.toISOString().split('T')[0]; 
 
   moviles.forEach(m => {
     m.alarmasKm?.forEach(a => {
-      if (m.km >= a.limite) {
-        alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
-      }
+      if (m.km >= a.limite) alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
     });
     m.alarmasFecha?.forEach(a => {
       if (hoyStr >= a.fecha) {
@@ -1659,10 +1577,7 @@ function renderDashboard() {
 
   const bannerAlertas = document.getElementById('alertas-dashboard');
   if (alertasVencidas.length > 0) {
-    bannerAlertas.innerHTML = `
-      <h3>🚨 ATENCIÓN: ALERTAS DE MANTENIMIENTO</h3>
-      <ul>${alertasVencidas.map(al => `<li>${al}</li>`).join('')}</ul>
-    `;
+    bannerAlertas.innerHTML = `<h3>🚨 ATENCIÓN: ALERTAS DE MANTENIMIENTO</h3><ul>${alertasVencidas.map(al => `<li>${al}</li>`).join('')}</ul>`;
     bannerAlertas.classList.add('visible');
   } else {
     bannerAlertas.classList.remove('visible');
@@ -1745,11 +1660,8 @@ function renderDashboard() {
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             ${infoPrincipalHtml}
           </div>
-          
           <div class="unidades-lista">${movilesHtml}</div>
-          
           ${i.clave11 && i.clave11.length > 0 ? `<div style="margin-top:16px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--amarillo)">PERSONAL CLAVE 11:</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${pClave11}</div>` : ''}
-          
           <div class="inter-acciones-bottom">
             ${i.esEmergencia ? `<button class="btn-sm btn-rojo" onclick="abrirModalApoyo(${i.id})">＋ Sumar Unidad de Apoyo</button>
                                 <button class="btn-sm btn-amarillo" onclick="abrirModalClave11(${i.id})">🔔 Cargar Clave 11</button>` : ''}
@@ -1762,9 +1674,6 @@ function renderDashboard() {
   }).join('');
 }
 
-// =====================
-// RENDER HISTORIAL Y BORRAR
-// =====================
 function renderHistorial() {
   const searchTerm = (document.getElementById('historial-search')?.value || '').toLowerCase();
   
@@ -1778,7 +1687,6 @@ function renderHistorial() {
   }
   
   cerradas = cerradas.reverse();
-
   const emergenciasCount = cerradas.filter(i => i.esEmergencia).length;
   const noEmergenciasCount = cerradas.filter(i => !i.esEmergencia).length;
   
@@ -1829,9 +1737,7 @@ function borrarSeleccionadosHistorial() {
     intervenciones = intervenciones.filter(i => !seleccionados.includes(i.id));
     
     intervenciones.sort((a,b) => new Date(a.horaAlarma) - new Date(b.horaAlarma)); 
-    intervenciones.forEach((inter, index) => {
-      inter.id = index + 1;
-    });
+    intervenciones.forEach((inter, index) => inter.id = index + 1);
     idCounter = intervenciones.length + 1;
 
     guardarDatos();
@@ -1841,9 +1747,6 @@ function borrarSeleccionadosHistorial() {
   }
 }
 
-// =====================
-// GESTIÓN DE VESTUARIO
-// =====================
 function renderVestuario() {
   const sel = document.getElementById('vest-bombero');
   sel.innerHTML = '<option value="">Elegí un bombero...</option>';
@@ -1936,20 +1839,11 @@ function agregarPrenda() {
 
   if (!p.vestuario) p.vestuario = [];
   
-  const nuevaPrenda = {
-      id: Date.now(),
-      prenda, talle, marca, estado,
-      prestamoDetalle: null
-  };
+  const nuevaPrenda = { id: Date.now(), prenda, talle, marca, estado, prestamoDetalle: null };
 
   if (estado === 'prestado') {
       if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para autorizar un préstamo', 'warning');
-      nuevaPrenda.prestamoDetalle = {
-          fechaPrestamo: new Date().toLocaleString('es-AR'),
-          autorizaPrestamo: usuarioActual.nombre,
-          fechaDevolucion: null,
-          autorizaDevolucion: null
-      };
+      nuevaPrenda.prestamoDetalle = { fechaPrestamo: new Date().toLocaleString('es-AR'), autorizaPrestamo: usuarioActual.nombre, fechaDevolucion: null, autorizaDevolucion: null };
   }
 
   p.vestuario.push(nuevaPrenda);
@@ -1959,7 +1853,6 @@ function agregarPrenda() {
   document.getElementById('vest-talle').value = '';
   document.getElementById('vest-marca').value = '';
   document.getElementById('vest-estado').value = 'en posesión';
-  
   mostrarToast('✓ Prenda y talle guardados', 'success');
 }
 
@@ -1972,26 +1865,17 @@ function cambiarEstadoPrenda(idPersonal, idPrenda, nuevoEstado) {
   if (nuevoEstado === 'prestado') {
       if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para autorizar un préstamo', 'warning');
       v.estado = 'prestado';
-      v.prestamoDetalle = {
-          fechaPrestamo: new Date().toLocaleString('es-AR'),
-          autorizaPrestamo: usuarioActual.nombre,
-          fechaDevolucion: null,
-          autorizaDevolucion: null
-      };
+      v.prestamoDetalle = { fechaPrestamo: new Date().toLocaleString('es-AR'), autorizaPrestamo: usuarioActual.nombre, fechaDevolucion: null, autorizaDevolucion: null };
   } else {
       v.estado = nuevoEstado;
-      if (v.prestamoDetalle && nuevoEstado === 'en posesión') {
-          v.prestamoDetalle = null;
-      }
+      if (v.prestamoDetalle && nuevoEstado === 'en posesión') v.prestamoDetalle = null;
   }
-
   guardarDatos();
   mostrarToast('✓ Estado de la prenda actualizado', 'success');
 }
 
 function devolverPrenda(idPersonal, idPrenda) {
   if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para firmar la devolución', 'warning');
-  
   const p = personal.find(x => x.id === idPersonal);
   if (!p) return;
   const v = p.vestuario.find(x => x.id === idPrenda);
@@ -2000,7 +1884,6 @@ function devolverPrenda(idPersonal, idPrenda) {
   if (confirm(`¿Confirmás que recibís la prenda de vuelta? Va a quedar registrado tu nombre (${usuarioActual.nombre}) como receptor en el historial.`)) {
       v.estado = 'en posesión';
       v.prestamoDetalle = null; 
-      
       guardarDatos();
       mostrarToast('✓ Devolución registrada correctamente', 'success');
   }
@@ -2010,29 +1893,22 @@ function borrarPrenda(idPersonal, idPrenda) {
   if (!confirm('¿Seguro que querés borrar este ítem del vestuario de este bombero?')) return;
   const p = personal.find(x => x.id === idPersonal);
   if (!p) return;
-  
   p.vestuario = p.vestuario.filter(x => x.id !== idPrenda);
   guardarDatos();
   mostrarToast('✓ Prenda borrada', 'success');
 }
 
-// =====================
-// RENDER ESTADÍSTICAS BOMBERO
-// =====================
 let chartPartInstance = null;
 let chartRolesInstance = null;
 
 function renderSelectorEstadisticas() {
   const sel = document.getElementById('est-bombero');
   sel.innerHTML = '<option value="">Elegí un bombero...</option>';
-  
   const personalOrdenado = [...personal].sort((a, b) => {
-    let oA = getOrdenRango(a.rangoId);
-    let oB = getOrdenRango(b.rangoId);
+    let oA = getOrdenRango(a.rangoId); let oB = getOrdenRango(b.rangoId);
     if (oA === oB) return a.nombre.localeCompare(b.nombre);
     return oA - oB;
   });
-
   personalOrdenado.forEach(p => {
     sel.appendChild(new Option(`${p.nombre} (${getNombreRango(p.rangoId)})`, p.id));
   });
@@ -2047,11 +1923,7 @@ function formatearMilisegundosAHom(totalMs) {
 function renderEstadisticasBombero() {
   const idBombero = parseInt(document.getElementById('est-bombero').value);
   const resultados = document.getElementById('est-resultados');
-  
-  if (!idBombero || isNaN(idBombero)) {
-    resultados.innerHTML = '';
-    return;
-  }
+  if (!idBombero || isNaN(idBombero)) { resultados.innerHTML = ''; return; }
 
   const p = personal.find(x => x.id === idBombero);
   if (!p) return;
@@ -2075,51 +1947,30 @@ function renderEstadisticasBombero() {
     }
   });
 
-  let htmlMeses = Object.keys(horasPorMes).map(mes => {
-    return `<div class="mes-card">
-              <div class="mes-nombre">${mes}</div>
-              <div class="mes-horas">${formatearMilisegundosAHom(horasPorMes[mes])}</div>
-            </div>`;
-  }).join('');
-  
+  let htmlMeses = Object.keys(horasPorMes).map(mes => `<div class="mes-card"><div class="mes-nombre">${mes}</div><div class="mes-horas">${formatearMilisegundosAHom(horasPorMes[mes])}</div></div>`).join('');
   if(htmlMeses === '') htmlMeses = `<div style="font-size:13px; color:var(--texto-secundario); grid-column: 1/-1;">Sin registros de guardia aún.</div>`;
 
   let totalSalidasCuartel = intervenciones.length;
-  let cantSalio = 0;
-  let cantEnCuartel = 0;
-  let cantAusente = 0;
-
+  let cantSalio = 0, cantEnCuartel = 0, cantAusente = 0;
   let rolesCount = {};
   let salidasParticipo = [];
 
   intervenciones.forEach(inter => {
-    let rolBase = null;
-    let rolDesc = null;
-    
+    let rolBase = null, rolDesc = null;
     inter.moviles.forEach(m => {
       const pObj = m.personal.find(bp => bp.id === idBombero);
-      if (pObj) {
-        rolBase = pObj.rol;
-        rolDesc = `${pObj.rol} en ${m.nombre.split('—')[0].trim()}`;
-      }
+      if (pObj) { rolBase = pObj.rol; rolDesc = `${pObj.rol} en ${m.nombre.split('—')[0].trim()}`; }
     });
     
     if (!rolBase && inter.clave11 && inter.clave11.includes(idBombero)) {
-      rolBase = 'Clave 11';
-      rolDesc = 'Clave 11';
+      rolBase = 'Clave 11'; rolDesc = 'Clave 11';
     }
 
     if (rolBase) {
       cantSalio++;
       rolesCount[rolBase] = (rolesCount[rolBase] || 0) + 1;
-      
       let fechaFormat = inter.fecha || inter.horaAlarma.split(' ')[0];
-      salidasParticipo.push({
-        id: inter.id,
-        fecha: fechaFormat,
-        tipo: inter.tipo,
-        rol: rolDesc
-      });
+      salidasParticipo.push({ id: inter.id, fecha: fechaFormat, tipo: inter.tipo, rol: rolDesc });
     } else if (inter.personalPresenteSnapshot && inter.personalPresenteSnapshot.includes(idBombero)) {
       cantEnCuartel++;
     } else {
@@ -2127,18 +1978,8 @@ function renderEstadisticasBombero() {
     }
   });
 
-  let filasHtml = salidasParticipo.map(s => `
-    <tr>
-      <td>${s.id}</td>
-      <td>${s.fecha}</td>
-      <td>${s.tipo}</td>
-      <td><strong>${s.rol}</strong></td>
-    </tr>
-  `).join('');
-
-  if (salidasParticipo.length === 0) {
-    filasHtml = `<tr><td colspan="4" style="text-align:center; color:var(--texto-secundario); padding:20px;">No participó en ninguna salida.</td></tr>`;
-  }
+  let filasHtml = salidasParticipo.map(s => `<tr><td>${s.id}</td><td>${s.fecha}</td><td>${s.tipo}</td><td><strong>${s.rol}</strong></td></tr>`).join('');
+  if (salidasParticipo.length === 0) filasHtml = `<tr><td colspan="4" style="text-align:center; color:var(--texto-secundario); padding:20px;">No participó en ninguna salida.</td></tr>`;
 
   resultados.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
@@ -2146,7 +1987,6 @@ function renderEstadisticasBombero() {
       <div style="font-size:14px; font-weight:700; color:var(--texto);">Total Histórico: <span style="color:var(--verde);">${formatearMilisegundosAHom(totalMsGeneral)}</span></div>
     </div>
     <div class="mes-grid">${htmlMeses}</div>
-
     <div class="charts-grid">
       <div class="chart-box">
         <div class="chart-title">Nivel de Participación</div>
@@ -2159,15 +1999,10 @@ function renderEstadisticasBombero() {
         <p style="text-align:center; font-size:12px; color:#666; margin-top:10px;">Sobre las ${cantSalio} salidas a las que asistió.</p>
       </div>
     </div>
-    
     <div class="titulo-seccion">Detalle de Salidas Asistidas</div>
     <table class="tabla-est">
-      <thead>
-        <tr><th>N°</th><th>Fecha</th><th>Siniestro / Motivo</th><th>Rol Asignado</th></tr>
-      </thead>
-      <tbody>
-        ${filasHtml}
-      </tbody>
+      <thead><tr><th>N°</th><th>Fecha</th><th>Siniestro / Motivo</th><th>Rol Asignado</th></tr></thead>
+      <tbody>${filasHtml}</tbody>
     </table>
   `;
 
@@ -2178,44 +2013,23 @@ function renderEstadisticasBombero() {
     const ctxPart = document.getElementById('chartPart').getContext('2d');
     chartPartInstance = new Chart(ctxPart, {
       type: 'pie',
-      data: {
-        labels: ['Asistió al Siniestro', 'Se quedó en Cuartel', 'Ausente'],
-        datasets: [{
-          data: [cantSalio, cantEnCuartel, cantAusente],
-          backgroundColor: ['#CC2200', '#007BFF', '#E2E8F0'],
-          borderWidth: 1
-        }]
-      },
+      data: { labels: ['Asistió al Siniestro', 'Se quedó en Cuartel', 'Ausente'], datasets: [{ data: [cantSalio, cantEnCuartel, cantAusente], backgroundColor: ['#CC2200', '#007BFF', '#E2E8F0'], borderWidth: 1 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 
     const ctxRoles = document.getElementById('chartRoles').getContext('2d');
     const labelsRoles = Object.keys(rolesCount);
     const dataRoles = Object.values(rolesCount);
-    
-    if(labelsRoles.length === 0) {
-      labelsRoles.push('Sin salidas');
-      dataRoles.push(1);
-    }
+    if(labelsRoles.length === 0) { labelsRoles.push('Sin salidas'); dataRoles.push(1); }
 
     chartRolesInstance = new Chart(ctxRoles, {
       type: 'pie',
-      data: {
-        labels: labelsRoles,
-        datasets: [{
-          data: dataRoles,
-          backgroundColor: ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#F43F5E', '#06B6D4'],
-          borderWidth: 1
-        }]
-      },
+      data: { labels: labelsRoles, datasets: [{ data: dataRoles, backgroundColor: ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#F43F5E', '#06B6D4'], borderWidth: 1 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
   }, 50);
 }
 
-// =====================
-// RENDER PERSONAL PANEL E INTERACCIÓN
-// =====================
 function toggleBajaPersonal(id, darBaja) {
   const p = personal.find(x => x.id === id);
   if(p) {
@@ -2230,18 +2044,13 @@ function togglePresenciaPersonal(id, isPresente) {
   const p = personal.find(x => x.id === id);
   if (p) {
     p.presente = isPresente;
-    
     const ahora = new Date().getTime();
     if (!p.asistencia) p.asistencia = [];
 
-    if (isPresente) {
-      p.asistencia.push({ ingreso: ahora, egreso: null });
-    } else {
+    if (isPresente) p.asistencia.push({ ingreso: ahora, egreso: null });
+    else {
       for (let i = p.asistencia.length - 1; i >= 0; i--) {
-        if (p.asistencia[i].egreso === null) {
-          p.asistencia[i].egreso = ahora;
-          break;
-        }
+        if (p.asistencia[i].egreso === null) { p.asistencia[i].egreso = ahora; break; }
       }
     }
     guardarDatos();
@@ -2252,14 +2061,11 @@ function renderPersonalPanel() {
   const activas = intervenciones.filter(i => i.estado !== 'finalizada');
   const personalFuera = new Set();
   activas.forEach(i => {
-    i.moviles.forEach(m => {
-      if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id));
-    });
+    i.moviles.forEach(m => { if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id)); });
   });
 
   const personalOrdenado = [...personal].sort((a, b) => {
-    let oA = getOrdenRango(a.rangoId);
-    let oB = getOrdenRango(b.rangoId);
+    let oA = getOrdenRango(a.rangoId); let oB = getOrdenRango(b.rangoId);
     if (oA === oB) return a.nombre.localeCompare(b.nombre);
     return oA - oB;
   });
@@ -2270,74 +2076,40 @@ function renderPersonalPanel() {
     const inactivo = p.activo === false;
     const presente = p.presente === true;
     
-    let estadoTxt = '';
-    let colorClase = '';
-    let dotClase = '';
-    
-    if (inactivo) {
-      estadoTxt = '● INACTIVO / BAJA';
-      colorClase = 'var(--texto-secundario)';
-      dotClase = 'inactivo';
-    } else if (fuera) {
-      estadoTxt = '● EN INTERVENCIÓN';
-      colorClase = 'var(--rojo-vivo)';
-      dotClase = 'en-intervencion';
-    } else if (presente) {
-      estadoTxt = '● PRESENTE EN CUARTEL';
-      colorClase = 'var(--verde)';
-      dotClase = '';
-    } else {
-      estadoTxt = '● AUSENTE';
-      colorClase = 'var(--amarillo)';
-      dotClase = 'no-presente';
-    }
+    let estadoTxt = '', colorClase = '', dotClase = '';
+    if (inactivo) { estadoTxt = '● INACTIVO / BAJA'; colorClase = 'var(--texto-secundario)'; dotClase = 'inactivo'; }
+    else if (fuera) { estadoTxt = '● EN INTERVENCIÓN'; colorClase = 'var(--rojo-vivo)'; dotClase = 'en-intervencion'; }
+    else if (presente) { estadoTxt = '● PRESENTE EN CUARTEL'; colorClase = 'var(--verde)'; dotClase = ''; }
+    else { estadoTxt = '● AUSENTE'; colorClase = 'var(--amarillo)'; dotClase = 'no-presente'; }
 
     return `
       <div class="personal-card ${inactivo ? 'baja' : ''}">
         <div class="personal-card-info">
           <div class="nombre">${p.nombre}</div>
           <div class="rango">${getNombreRango(p.rangoId)}</div>
-          <div style="font-size:12px; font-weight:600; margin-top:6px; color:${colorClase}">
-            ${estadoTxt}
-          </div>
+          <div style="font-size:12px; font-weight:600; margin-top:6px; color:${colorClase}">${estadoTxt}</div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <div class="dot ${dotClase}"></div>
-          ${!inactivo && !fuera ? `
-            <label class="chk-baja-label">
-              <input type="checkbox" class="chk-baja" onchange="togglePresenciaPersonal(${p.id}, this.checked)" ${presente ? 'checked' : ''}>
-              PRESENTE
-            </label>
-          ` : ''}
-          <label class="chk-baja-label" style="margin-top:${(!inactivo && !fuera) ? '4px' : '20px'};">
-            <input type="checkbox" class="chk-baja" onchange="toggleBajaPersonal(${p.id}, this.checked)" ${inactivo ? 'checked' : ''}>
-            BAJA
-          </label>
+          ${!inactivo && !fuera ? `<label class="chk-baja-label"><input type="checkbox" class="chk-baja" onchange="togglePresenciaPersonal(${p.id}, this.checked)" ${presente ? 'checked' : ''}>PRESENTE</label>` : ''}
+          <label class="chk-baja-label" style="margin-top:${(!inactivo && !fuera) ? '4px' : '20px'};"><input type="checkbox" class="chk-baja" onchange="toggleBajaPersonal(${p.id}, this.checked)" ${inactivo ? 'checked' : ''}>BAJA</label>
         </div>
       </div>
     `;
   }).join('');
 }
 
-// =====================
-// RENDER VEHÍCULOS Y MANTENIMIENTO
-// =====================
 function renderVehiculos() {
   const sel = document.getElementById('veh-selector');
   if (!sel) return;
-
-  // Guardamos el ID seleccionado para que no se pierda al actualizar Firebase
   const idSeleccionado = sel.value;
 
   sel.innerHTML = '<option value="">Elegí un vehículo...</option>';
   moviles.forEach(m => {
     const opt = new Option(`${m.nombre} (KM: ${m.km})`, m.id);
-    if (m.id.toString() === idSeleccionado) {
-      opt.selected = true;
-    }
+    if (m.id.toString() === idSeleccionado) opt.selected = true;
     sel.appendChild(opt);
   });
-
   renderVehiculoSeleccionado();
 }
 
@@ -2354,15 +2126,13 @@ function renderVehiculoSeleccionado() {
   if (!m) return;
   const mIndex = moviles.indexOf(m);
 
-  // Generamos los HTML de alarmas y mantenimiento previos
   const alarmasKmHtml = (m.alarmasKm || []).map((a, aIndex) => {
     const vencida = m.km >= a.limite;
     return `
       <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
         <span>⚙️ ${a.desc} <br><small style="color:var(--texto-secundario)">Avisar a los: ${a.limite} km</small></span>
         <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'km', ${aIndex})">✕</button>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   const alarmasFechaHtml = (m.alarmasFecha || []).map((a, aIndex) => {
@@ -2373,8 +2143,7 @@ function renderVehiculoSeleccionado() {
       <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
         <span>📅 ${a.desc} <br><small style="color:var(--texto-secundario)">Vence: ${fechaFormat}</small></span>
         <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'fecha', ${aIndex})">✕</button>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   const historialMantHtml = (m.historialMantenimiento || []).map((h, hIndex) => {
@@ -2383,8 +2152,7 @@ function renderVehiculoSeleccionado() {
       <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1;">
         <span>🛠 <strong>${fFormat}</strong> (A los ${h.km} km)<br><small style="color:var(--texto-secundario)">${h.detalle} ${h.costo ? `| 💰 ${h.costo}` : ''}</small></span>
         <button class="btn-order" onclick="eliminarMantenimiento(${m.id}, ${hIndex})">✕</button>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   const fichasHtml = (m.fichasMantenimiento || []).map(f => `
@@ -2397,7 +2165,6 @@ function renderVehiculoSeleccionado() {
     </div>
   `).join('');
 
-  // Renderizamos la tarjeta ocupando todo el ancho (grid-column: 1 / -1)
   container.innerHTML = `
     <div class="vehiculo-card" style="grid-column: 1 / -1;">
       <div class="vehiculo-header">
@@ -2407,7 +2174,6 @@ function renderVehiculoSeleccionado() {
         </div>
         <button class="btn-sm btn-rojo" onclick="eliminarMovil(${mIndex})">Borrar Móvil</button>
       </div>
-      
       <div class="vehiculo-desc">
         <strong>Características Técnicas:</strong><br>
         ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
@@ -2416,7 +2182,6 @@ function renderVehiculoSeleccionado() {
            <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
         </div>
       </div>
-
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Ficha de Novedades y Mantenimiento</div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -2427,52 +2192,39 @@ function renderVehiculoSeleccionado() {
           ${fichasHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay anotaciones registradas en la ficha.</div>'}
         </div>
       </div>
-
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Alarmas por Kilometraje (Mecánica) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'km')">＋ Nueva</button></div>
         <div class="alarma-lista">
           ${alarmasKmHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de km configuradas.</div>'}
         </div>
       </div>
-
       <div class="alarma-seccion" style="margin-top:20px;">
         <div class="alarma-titulo">Alarmas por Fecha (Vencimientos) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'fecha')">＋ Nueva</button></div>
         <div class="alarma-lista">
           ${alarmasFechaHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de fecha configuradas.</div>'}
         </div>
       </div>
-
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Historial de Reparaciones Mayores <button class="btn-sm btn-azul" style="padding:4px 8px; font-size:10px;" onclick="abrirModalMantenimiento(${m.id}, ${m.km})">＋ Cargar Arreglo</button></div>
         <div class="alarma-lista" style="max-height: 200px; overflow-y: auto;">
           ${historialMantHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay arreglos registrados en esta unidad.</div>'}
         </div>
       </div>
-
     </div>
   `;
 }
 
 function agregarAnotacionFicha(idMovil) {
   if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para que la anotación quede firmada a tu nombre.', 'warning');
-
   const input = document.getElementById(`ficha-texto-${idMovil}`);
   const texto = input.value.trim();
-
   if (!texto) return mostrarToast('⚠ Escribí la anotación antes de guardar.', 'warning');
 
   const m = moviles.find(x => x.id === idMovil);
   if (!m) return;
-
   if (!m.fichasMantenimiento) m.fichasMantenimiento = [];
 
-  m.fichasMantenimiento.push({
-    id: Date.now(),
-    texto: texto,
-    autor: usuarioActual.nombre,
-    fecha: new Date().toLocaleString('es-AR')
-  });
-
+  m.fichasMantenimiento.push({ id: Date.now(), texto: texto, autor: usuarioActual.nombre, fecha: new Date().toLocaleString('es-AR') });
   m.fichasMantenimiento.sort((a, b) => b.id - a.id);
 
   guardarDatos(); 
@@ -2481,11 +2233,9 @@ function agregarAnotacionFicha(idMovil) {
 
 function eliminarAnotacionFicha(idMovil, idFicha) {
   const password = prompt('Para eliminar esta anotación del registro, ingresá la palabra BORRAR en mayúsculas:');
-  
   if (password === 'BORRAR') {
     const m = moviles.find(x => x.id === idMovil);
     if (!m || !m.fichasMantenimiento) return;
-
     m.fichasMantenimiento = m.fichasMantenimiento.filter(f => f.id !== idFicha);
     guardarDatos();
     mostrarToast('✓ Anotación eliminada correctamente', 'success');
@@ -2537,7 +2287,6 @@ function editarCaracteristicasMovil(id) {
   }
 }
 
-// LOGICA MODAL ALARMAS
 function abrirModalAlarma(idMovil, tipoPorDefecto) {
   document.getElementById('al-id-movil').value = idMovil;
   document.getElementById('al-tipo').value = tipoPorDefecto;
@@ -2548,9 +2297,7 @@ function abrirModalAlarma(idMovil, tipoPorDefecto) {
   document.getElementById('modal-alarma').classList.add('visible');
 }
 
-function cerrarModalAlarma() {
-  document.getElementById('modal-alarma').classList.remove('visible');
-}
+function cerrarModalAlarma() { document.getElementById('modal-alarma').classList.remove('visible'); }
 
 function cambiarTipoAlarma() {
   const tipo = document.getElementById('al-tipo').value;
@@ -2599,11 +2346,9 @@ function eliminarAlarmaMovil(idMovil, tipo, indexAlarma) {
   
   if (tipo === 'km') m.alarmasKm.splice(indexAlarma, 1);
   else m.alarmasFecha.splice(indexAlarma, 1);
-
   guardarDatos();
 }
 
-// LOGICA HISTORIAL MANTENIMIENTO
 function abrirModalMantenimiento(idMovil, kmActual) {
   document.getElementById('mant-id-movil').value = idMovil;
   document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
@@ -2613,9 +2358,7 @@ function abrirModalMantenimiento(idMovil, kmActual) {
   document.getElementById('modal-mantenimiento').classList.add('visible');
 }
 
-function cerrarModalMantenimiento() {
-  document.getElementById('modal-mantenimiento').classList.remove('visible');
-}
+function cerrarModalMantenimiento() { document.getElementById('modal-mantenimiento').classList.remove('visible'); }
 
 function guardarMantenimiento() {
   const idMovil = parseInt(document.getElementById('mant-id-movil').value);
@@ -2642,14 +2385,10 @@ function eliminarMantenimiento(idMovil, index) {
   if(!confirm('¿Seguro que querés borrar este registro de mantenimiento?')) return;
   const m = moviles.find(x => x.id === idMovil);
   if(!m || !m.historialMantenimiento) return;
-
   m.historialMantenimiento.splice(index, 1);
   guardarDatos();
 }
 
-// =====================
-// RENDER CONFIGURACIÓN GRAL
-// =====================
 function renderConfiguracion() {
   rangos.sort((a,b) => a.orden - b.orden);
   document.getElementById('lista-rangos-config').innerHTML = rangos.map((r, i) => `
@@ -2674,7 +2413,7 @@ function renderConfiguracion() {
     <div class="config-item ${p.activo === false ? 'baja' : ''}">
       <div class="config-item-info">
         <span class="config-item-title">${p.nombre} ${p.esChofer ? '(C)' : ''}</span>
-        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'} | Color Monitor: ${p.colorCasco ? p.colorCasco.toUpperCase() : 'BLANCO'}</span>
+        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'} | Casco Monitor: ${p.colorCasco ? p.colorCasco.toUpperCase() : 'BLANCO'}</span>
       </div>
       <div style="display:flex; align-items:center; gap: 10px;">
         <div class="order-controls" style="margin-right:0;">
@@ -2682,7 +2421,6 @@ function renderConfiguracion() {
           <button class="btn-order" onclick="moverPersonal(${p.id}, 1)" ${i===personal.length-1?'disabled style="opacity:0.3"':''}>▼</button>
         </div>
         <button class="btn-sm btn-gris" onclick="editarDniPersonal(${p.id})">DNI</button>
-        <button class="btn-sm btn-gris" onclick="editarAtributosPersonal(${p.id})">Config Monitor</button>
         ${usuarioActual && usuarioActual.isMaster ? `<button class="btn-sm btn-amarillo" onclick="asignarCredencialPersonal(${p.id})" style="color:black; font-weight:800;">🔑 Accesos</button>` : ''}
         <button class="btn-sm btn-rojo" onclick="eliminarPersonalDefinitivo(${p.id})">Borrar</button>
       </div>
@@ -2702,7 +2440,7 @@ function renderConfiguracion() {
       <button class="btn-sm btn-rojo" onclick="eliminarMotivo(${index})">Borrar</button>
     </div>
   `).join('');
-
+  
   document.getElementById('lista-credenciales-config').innerHTML = credenciales.map(c => `
     <div class="config-item" style="border-left: 4px solid var(--amarillo);">
       <div class="config-item-info">
@@ -2714,7 +2452,6 @@ function renderConfiguracion() {
   `).join('');
 }
 
-// Lógica Rangos
 function agregarRango() {
   const nombre = document.getElementById('conf-rango-nombre').value.trim();
   if (!nombre) return;
@@ -2742,7 +2479,6 @@ function eliminarRango(id) {
   mostrarToast('✓ Rango borrado', 'success');
 }
 
-// Lógica Personal
 function agregarPersonal() {
   const nombre = document.getElementById('conf-per-nombre').value.trim();
   const rangoId = parseInt(document.getElementById('conf-per-rango').value);
@@ -2753,7 +2489,6 @@ function agregarPersonal() {
   if (!nombre || isNaN(rangoId)) return mostrarToast('⚠ Ingresá el nombre', 'warning');
   const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
   const nuevoOrden = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
-  
   personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [], colorCasco, esChofer });
   guardarDatos();
   document.getElementById('conf-per-nombre').value = '';
@@ -2762,21 +2497,6 @@ function agregarPersonal() {
   document.getElementById('conf-per-chofer').checked = false;
   mostrarToast('✓ Personal agregado', 'success');
 }
-
-function editarAtributosPersonal(id) {
-    const p = personal.find(x => x.id === id);
-    if (!p) return;
-    const isChofer = confirm(`¿${p.nombre} está habilitado como Chofer?\nAceptar = Sí / Cancelar = No`);
-    const color = prompt(`Ingresá el color en el monitor de guardia para ${p.nombre} (opciones válidas: blanco, amarillo, rojo):`, p.colorCasco || 'blanco');
-    
-    if (color !== null) {
-        p.esChofer = isChofer;
-        p.colorCasco = color.toLowerCase().trim();
-        guardarDatos();
-        mostrarToast('✓ Atributos de monitor actualizados', 'success');
-    }
-}
-
 function moverPersonal(id, direccion) {
   const index = personal.findIndex(p => p.id === id);
   if (index < 0) return;
@@ -2800,7 +2520,6 @@ function editarDniPersonal(id) {
 }
 function eliminarPersonalDefinitivo(id) {
   if(!confirm('⚠️ ATENCIÓN: Borrar a un bombero definitivamente hará que desaparezca de los historiales y planillas viejas donde haya participado.\n\nSi solo querés que no salga más para despachar, andá a la pestaña "Personal" y marcalo como "BAJA".\n\n¿Estás completamente seguro de querer ELIMINARLO PARA SIEMPRE?')) return;
-  
   const password = prompt('Ingresá la palabra BORRAR en mayúsculas para confirmar la eliminación definitiva:');
   if (password === 'BORRAR') {
     personal = personal.filter(p => p.id !== id);
@@ -2811,7 +2530,6 @@ function eliminarPersonalDefinitivo(id) {
   }
 }
 
-// Lógica Tipos Emergencia
 function agregarTipoEmergencia() {
   const nombre = document.getElementById('conf-tipo-nombre').value.trim();
   if (!nombre) return mostrarToast('⚠ Completá el tipo', 'warning');
@@ -2827,7 +2545,6 @@ function eliminarTipoEmergencia(index) {
   mostrarToast('✓ Tipo eliminado', 'success');
 }
 
-// Lógica Motivos No Emergencia
 function agregarMotivo() {
   const nombre = document.getElementById('conf-motivo-nombre').value.trim();
   if (!nombre) return mostrarToast('⚠ Completá el motivo', 'warning');
@@ -2844,22 +2561,8 @@ function eliminarMotivo(index) {
   mostrarToast('✓ Motivo eliminado', 'success');
 }
 
-// =====================
-// BACKUP IMPORT / EXPORT
-// =====================
 function exportarBackup() {
-  const backup = {
-    credenciales: credenciales,
-    mensajes: mensajes,
-    rangos: rangos,
-    personal: personal,
-    moviles: moviles,
-    tiposEmergencia: tiposEmergencia,
-    motivosNoEmerg: motivosNoEmerg,
-    intervenciones: intervenciones,
-    idCounter: idCounter
-  };
-  
+  const backup = { credenciales, mensajes, rangos, personal, moviles, tiposEmergencia, motivosNoEmerg, intervenciones, idCounter };
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
   const downloadNode = document.createElement('a');
   downloadNode.setAttribute("href", dataStr);
@@ -2873,30 +2576,20 @@ function exportarBackup() {
 function importarBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
       if (confirm('⚠️ ATENCIÓN: Esto subirá los datos del archivo a Firebase y reemplazará la base de datos para todos los usuarios conectados. ¿Desea continuar?')) {
-        dbRef.set(data).then(() => {
-            alert('✓ Datos importados a la nube correctamente.');
-        }).catch((error) => {
-            alert('❌ Error al subir a Firebase: ' + error.message);
-        });
+        dbRef.set(data).then(() => { alert('✓ Datos importados a la nube correctamente.'); })
+        .catch((error) => { alert('❌ Error al subir a Firebase: ' + error.message); });
       }
-    } catch(err) {
-      alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.');
-    }
+    } catch(err) { alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.'); }
     event.target.value = ''; 
   };
   reader.readAsText(file);
 }
 
-
-// =====================
-// IDENTIFICACIÓN DNI Y MODAL DESPACHOS
-// =====================
 function identificarDNI() {
   const dniInput = document.getElementById('f-dni-confeccionador').value.trim().replace(/\./g, '');
   const div = document.getElementById('dni-identidad');
@@ -2958,12 +2651,8 @@ function rellenarSelectores() {
 function actualizarVistaTipos() {
   const dl = document.getElementById('dl-tipos');
   if (dl) {
-    dl.innerHTML = tiposEmergencia
-      .filter(t => !tiposSeleccionadosTemp.includes(t))
-      .map(t => `<option value="${t}">`)
-      .join('');
+    dl.innerHTML = tiposEmergencia.filter(t => !tiposSeleccionadosTemp.includes(t)).map(t => `<option value="${t}">`).join('');
   }
-  
   const tagsContainer = document.getElementById('f-tipo-tags');
   if (tagsContainer) {
     tagsContainer.innerHTML = tiposSeleccionadosTemp.map(t => `
@@ -2978,7 +2667,6 @@ function agregarTipoIntervencion() {
   const input = document.getElementById('f-tipo-busqueda');
   const val = input.value.trim();
   if(!val) return;
-  
   const tipoEncontrado = tiposEmergencia.find(t => t.toLowerCase() === val.toLowerCase());
   if(!tipoEncontrado) return mostrarToast('⚠ Elegí un tipo válido de la lista (podés crear nuevos en Configuración).', 'warning');
   if(tiposSeleccionadosTemp.includes(tipoEncontrado)) return mostrarToast('⚠ Ese tipo ya está agregado.', 'warning');
@@ -2999,8 +2687,7 @@ function actualizarVistaPersonal() {
   
   const sel = document.getElementById('f-personal-select');
   if (sel) {
-    sel.innerHTML = '<option value="">Elegí un bombero...</option>' + 
-                    disponibles.map(p => `<option value="${p.id}">${p.nombre} (${getNombreRango(p.rangoId)})</option>`).join('');
+    sel.innerHTML = '<option value="">Elegí un bombero...</option>' + disponibles.map(p => `<option value="${p.id}">${p.nombre} (${getNombreRango(p.rangoId)})</option>`).join('');
   }
 
   const lista = document.getElementById('personal-seleccionado-lista');
@@ -3029,9 +2716,7 @@ function agregarPersonalDotacion() {
   const select = document.getElementById('f-personal-select');
   const id = parseInt(select.value);
   const rol = document.getElementById('f-personal-rol').value;
-  
   if (isNaN(id)) return mostrarToast('⚠ Primero elegí a un bombero de la lista.', 'warning');
-  
   personalSeleccionadoTemp.push({ id: id, rol: rol });
   actualizarVistaPersonal();
 }
@@ -3044,7 +2729,6 @@ function quitarPersonalDotacion(index) {
 function configurarModalBase() {
   tiposSeleccionadosTemp = [];
   personalSeleccionadoTemp = [];
-  
   rellenarSelectores();
   actualizarVistaTipos();
   actualizarVistaPersonal();
@@ -3053,9 +2737,13 @@ function configurarModalBase() {
   document.getElementById('dni-identidad').textContent = '';
   document.getElementById('btn-guardar-movil').disabled = true; 
   if(document.getElementById('f-tipo-busqueda')) document.getElementById('f-tipo-busqueda').value = '';
-  document.getElementById('f-movil').style.pointerEvents = 'auto';
-  document.getElementById('f-movil').style.opacity = '1';
   
+  const selMovil = document.getElementById('f-movil');
+  if(selMovil) {
+      selMovil.style.pointerEvents = 'auto';
+      selMovil.style.opacity = '1';
+  }
+
   if(document.getElementById('f-autoriza')) {
     const personalPresente = personal.filter(p => p.activo !== false && p.presente === true);
     if (personalPresente.length > 0) {
@@ -3067,7 +2755,6 @@ function configurarModalBase() {
   }
   
   document.getElementById('f-jurisdiccion').value = 'Local'; 
-
   const now = new Date();
   const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   document.getElementById('f-hora-alarma').value = localISOTime;
@@ -3153,9 +2840,8 @@ function iniciarRedespacho(idInter, idMovilInstancia) {
   const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   movilViejo.horaRegreso = horaStr;
   
-  guardarDatos(); // Guardamos el fin de esa unidad en la inter vieja
+  guardarDatos(); 
 
-  // Preparamos para el nuevo despacho
   document.getElementById('f-modo').value = 'redespacho';
   document.querySelector('.modal').classList.remove('modo-ne');
   document.getElementById('modal-movil-titulo').innerText = '🔄 Nuevo Siniestro (Desvío de Unidad)';
@@ -3180,9 +2866,7 @@ function iniciarRedespacho(idInter, idMovilInstancia) {
   document.getElementById('modal-movil').classList.add('visible');
 }
 
-function cerrarModalMovil() {
-  document.getElementById('modal-movil').classList.remove('visible');
-}
+function cerrarModalMovil() { document.getElementById('modal-movil').classList.remove('visible'); }
 
 function guardarUnidad() {
   const modo = document.getElementById('f-modo').value;
@@ -3198,12 +2882,10 @@ function guardarUnidad() {
     if (!dniIngresado) return mostrarToast('⚠ Ingresá tu DNI para firmar la planilla', 'warning');
     
     const bomberoEncontrado = personal.find(p => p.dni && p.dni.replace(/\./g, '') === dniIngresado && p.activo !== false);
-    if (!bomberoEncontrado) {
-      return mostrarToast('❌ DNI no registrado o inactivo. Acceso denegado.', 'warning');
-    }
+    if (!bomberoEncontrado) return mostrarToast('❌ DNI no registrado o inactivo. Acceso denegado.', 'warning');
+    
     confeccionadorNombre = bomberoEncontrado.nombre;
     confeccionadorDni = bomberoEncontrado.dni;
-    
     autorizador = document.getElementById('f-autoriza').value;
     if(!autorizador) return mostrarToast('⚠ Seleccioná quién autoriza la salida', 'warning');
   } else {
@@ -3213,11 +2895,9 @@ function guardarUnidad() {
 
   const movilName = document.getElementById('f-movil').value; 
   const horaSalida = document.getElementById('f-hora-salida').value;
-  
   if (!movilName) return mostrarToast('⚠ Seleccioná un móvil', 'warning');
 
   const personalSel = [...personalSeleccionadoTemp];
-
   const unidadObj = {
     idMovil: Date.now() + Math.random(),
     nombre: movilName.split(' (KM')[0], 
@@ -3239,7 +2919,6 @@ function guardarUnidad() {
     if (esEmergencia) {
       if(tiposSeleccionadosTemp.length === 0) return mostrarToast('⚠ Elegí al menos un tipo de intervención', 'warning');
       tipo = tiposSeleccionadosTemp.join(' + ');
-
       jurisdiccion = document.getElementById('f-jurisdiccion').value;
       horaAlarma = document.getElementById('f-hora-alarma').value;
       receptor = document.getElementById('f-receptor').value.trim();
@@ -3252,25 +2931,15 @@ function guardarUnidad() {
     }
 
     const snapshotPresentes = personal.filter(p => p.activo !== false && p.presente === true).map(p => p.id);
-
     const intervencion = {
       id: idCounter++,
-      estado: 'activa',
-      esEmergencia: esEmergencia,
-      jurisdiccion: jurisdiccion,
-      tipo: tipo, 
+      estado: 'activa', esEmergencia: esEmergencia, jurisdiccion: jurisdiccion, tipo: tipo, 
       domicilio: esEmergencia ? document.getElementById('f-domicilio').value.trim() : 'No aplica',
       horaAlarma: horaAlarma.replace('T', ' '),
       llamante: esEmergencia ? document.getElementById('f-llamante').value.trim() : '',
       telefono: esEmergencia ? document.getElementById('f-telefono').value.trim() : '',
-      receptor: receptor,
-      confeccionador: confeccionadorNombre,
-      confeccionadorDni: confeccionadorDni,
-      obs: obs,
-      moviles: [unidadObj],
-      clave11: [],
-      personalPresenteSnapshot: snapshotPresentes,
-      informe: '',
+      receptor: receptor, confeccionador: confeccionadorNombre, confeccionadorDni: confeccionadorDni,
+      obs: obs, moviles: [unidadObj], clave11: [], personalPresenteSnapshot: snapshotPresentes, informe: '',
       fecha: new Date().toLocaleDateString('es-AR')
     };
     intervenciones.push(intervencion);
@@ -3287,18 +2956,13 @@ function guardarUnidad() {
   cerrarModalMovil();
 }
 
-// =====================
-// TIEMPOS DE LOS MÓVILES
-// =====================
 function registrarLlegadaMovil(idInter, idMovilInstancia) {
   const inter = intervenciones.find(x => x.id === idInter);
   if(!inter) return;
   const mov = inter.moviles.find(m => m.idMovil === idMovilInstancia);
   if(!mov) return;
-
   const ahora = new Date();
   mov.horaLlegada = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
-  
   guardarDatos();
   mostrarToast('✓ Llegada al lugar registrada', 'success');
 }
@@ -3311,29 +2975,19 @@ function registrarRegresoMovil(idInter, idMovilInstancia) {
 
   const movilGlobal = moviles.find(m => m.nombre === mov.nombre);
   let kmSugerido = movilGlobal ? movilGlobal.km : 0;
-
   const inputKm = prompt(`Ingresá el kilometraje de llegada para el móvil ${mov.nombre}:`, kmSugerido);
   if (inputKm === null) return; 
 
   const nuevoKm = parseInt(inputKm);
-  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) {
-    alert('Por favor ingresá un kilometraje válido (mayor o igual al de salida).');
-    return;
-  }
-
+  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) { alert('Por favor ingresá un kilometraje válido (mayor o igual al de salida).'); return; }
   if (movilGlobal) movilGlobal.km = nuevoKm;
 
   const ahora = new Date();
   mov.horaRegreso = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
-  
   guardarDatos();
   mostrarToast('✓ Regreso y KM registrados', 'success');
 }
 
-
-// =====================
-// MODAL CLAVE 11 (SE MANTIENE EN FORMATO CUADRÍCULA DE CHECKBOX PARA RAPIDEZ)
-// =====================
 function abrirModalClave11(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
@@ -3344,7 +2998,6 @@ function abrirModalClave11(idInter) {
   
   const seleccionadosPrevios = new Set(inter.clave11 || []);
   const container = document.getElementById('personal-selector-c11');
-  
   const personalActivoYPresente = personal.filter(p => p.activo !== false && p.presente === true);
 
   if (personalActivoYPresente.length === 0 && seleccionadosPrevios.size === 0) {
@@ -3355,10 +3008,8 @@ function abrirModalClave11(idInter) {
 
   container.innerHTML = personalActivoYPresente.map(p => {
     if (personalEnMoviles.has(p.id)) return ''; 
-    
     const isChecked = seleccionadosPrevios.has(p.id) ? 'checked' : '';
     const isSelectedClass = seleccionadosPrevios.has(p.id) ? 'seleccionado-clave11' : '';
-
     return `
       <div class="personal-item ${isSelectedClass}" onclick="this.classList.toggle('seleccionado-clave11'); this.querySelector('input').checked = this.classList.contains('seleccionado-clave11');">
         <input type="checkbox" value="${p.id}" ${isChecked} tabindex="-1">
@@ -3369,7 +3020,6 @@ function abrirModalClave11(idInter) {
       </div>
     `;
   }).join('');
-
   document.getElementById('modal-clave11').classList.add('visible');
 }
 
@@ -3379,18 +3029,13 @@ function guardarClave11() {
   const id = parseInt(document.getElementById('c11-id-inter').value);
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
-
   const checkboxes = document.querySelectorAll('#personal-selector-c11 input[type=checkbox]:checked');
   inter.clave11 = Array.from(checkboxes).map(c => parseInt(c.value));
-  
   guardarDatos();
   cerrarModalClave11();
   mostrarToast('✓ Clave 11 actualizada', 'success');
 }
 
-// =====================
-// FINALIZAR E INFORME (DASHBOARD)
-// =====================
 function abrirModalFinalizar(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
@@ -3432,7 +3077,6 @@ function guardarFinalizacion(descargarPdf = true) {
   }
   
   inter.estado = 'finalizada';
-  
   const ahora = new Date();
   const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   inter.moviles.forEach(m => {
@@ -3442,49 +3086,34 @@ function guardarFinalizacion(descargarPdf = true) {
 
   guardarDatos();
   cerrarModalFinalizar();
-  
-  if (descargarPdf) {
-    generarPDF(id, true);
-  }
-  
+  if (descargarPdf) generarPDF(id, true);
   mostrarToast('✓ Salida Finalizada', 'success');
 }
 
-// =====================
-// EDITAR INFORME EN HISTORIAL
-// =====================
 function abrirModalEditarInforme(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
-
   if (!puedeEditarInforme(inter)) {
       mostrarToast('⚠ Solo el Encargado o Chofer y encargado pueden editar este informe.', 'warning');
       return;
   }
-
   document.getElementById('edit-id-inter').value = idInter;
   document.getElementById('edit-informe').value = inter.informe || '';
   document.getElementById('modal-editar-informe').classList.add('visible');
 }
 
-function cerrarModalEditarInforme() {
-  document.getElementById('modal-editar-informe').classList.remove('visible');
-}
+function cerrarModalEditarInforme() { document.getElementById('modal-editar-informe').classList.remove('visible'); }
 
 function guardarEdicionInforme() {
   const id = parseInt(document.getElementById('edit-id-inter').value);
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
-
   inter.informe = document.getElementById('edit-informe').value.trim();
   guardarDatos();
   cerrarModalEditarInforme();
   mostrarToast('✓ Informe actualizado', 'success');
 }
 
-// =====================
-// GENERADOR PDF INDIVIDUAL (AJUSTADO PARA A4)
-// =====================
 function generarPDF(id, descargarAutomatico = false) {
   const i = intervenciones.find(x => x.id === id); 
   if (!i) return; 
@@ -3627,12 +3256,8 @@ function generarPDF(id, descargarAutomatico = false) {
   });
 }
 
-// =====================
-// GENERAR BACKUP GENERAL PDF
-// =====================
 function generarBackupPDF() {
   if(intervenciones.length === 0) return mostrarToast('⚠ No hay intervenciones para respaldar', 'warning');
-  
   mostrarToast('⌛ Generando PDF, por favor aguardá...', 'warning');
 
   let filas = intervenciones.map(i => {
@@ -3650,15 +3275,12 @@ function generarBackupPDF() {
 
   let htmlContent = `
     <div id="backup-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 800px; box-sizing: border-box;">
-      
       <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 20px;">
         <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; color: #CC2200; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Bomberos Voluntarios Río Cuarto</h1>
         <div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px;">📍 Lamadrid 945, Río Cuarto, Córdoba</div>
         <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px; letter-spacing: 0.5px;">REGISTRO GENERAL DE SALIDAS E INTERVENCIONES</div>
       </div>
-      
       <p style="text-align: right; font-size: 12px; color: #666; margin-bottom: 15px;">Fecha y hora de respaldo: ${new Date().toLocaleString('es-AR')}</p>
-      
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1;">
         <thead>
           <tr style="background: #E2E8F0; color: #1E293B;">
@@ -3669,9 +3291,7 @@ function generarBackupPDF() {
             <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Estado</th>
           </tr>
         </thead>
-        <tbody>
-          ${filas}
-        </tbody>
+        <tbody>${filas}</tbody>
       </table>
     </div>
   `;
@@ -3680,10 +3300,8 @@ function generarBackupPDF() {
   const element = document.getElementById('backup-content');
 
   const opt = {
-    margin: [10, 10, 10, 10],
-    filename: `Backup_Bomberos_${new Date().toISOString().slice(0,10)}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    margin: [10, 10, 10, 10], filename: `Backup_Bomberos_${new Date().toISOString().slice(0,10)}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -3693,12 +3311,8 @@ function generarBackupPDF() {
   });
 }
 
-// =====================
-// EXCEL (SHEETJS)
-// =====================
 function aplanarIntervencionParaExcel(i) {
   const uniStrs = i.moviles.map(m => `${m.nombre} (Salió: ${m.horaSalida} | Llegó: ${m.horaLlegada || '-'} | Volvió: ${m.horaRegreso || '-'} | Autorizó: ${m.autorizador || i.autorizador || '-'})`).join(' /// ');
-  
   const perNombres = [];
   i.moviles.forEach(m => m.personal.forEach(pObj => {
     const p = personal.find(x=>x.id===pObj.id); 
@@ -3707,45 +3321,31 @@ function aplanarIntervencionParaExcel(i) {
   
   let clave11Nombres = '';
   if (i.clave11) {
-    clave11Nombres = i.clave11.map(pid => {
-      const p = personal.find(x=>x.id===pid); return p ? p.nombre : '';
-    }).filter(Boolean).join(', ');
+    clave11Nombres = i.clave11.map(pid => { const p = personal.find(x=>x.id===pid); return p ? p.nombre : ''; }).filter(Boolean).join(', ');
   }
 
   const esEmergencia = i.esEmergencia !== false;
-
   return {
-    "Nro Salida": i.id,
-    "Clasificación": esEmergencia ? "EMERGENCIA" : "RUTINA / NO EMERGENCIA",
-    "Jurisdicción": esEmergencia ? (i.jurisdiccion || 'Local') : 'N/A',
-    "Estado": i.estado.toUpperCase(),
-    "Tipo/Motivo": i.tipo,
-    "Domicilio": esEmergencia ? i.domicilio : 'N/A',
-    "Alarma/Registro": i.horaAlarma,
-    "Llamante": esEmergencia ? i.llamante : 'N/A',
-    "Teléfono": esEmergencia ? i.telefono : 'N/A',
-    "Recibió Llamada": esEmergencia ? i.receptor : 'N/A',
-    "Confeccionó": i.confeccionador,
-    "DNI Confeccionador": i.confeccionadorDni,
-    "Unidades Despachadas": uniStrs,
-    "Dotación Móviles": perNombres.join(', '),
-    "Personal Clave 11": clave11Nombres,
-    "Observaciones Iniciales": i.obs,
-    "Informe Final": i.informe || ''
+    "Nro Salida": i.id, "Clasificación": esEmergencia ? "EMERGENCIA" : "RUTINA / NO EMERGENCIA",
+    "Jurisdicción": esEmergencia ? (i.jurisdiccion || 'Local') : 'N/A', "Estado": i.estado.toUpperCase(),
+    "Tipo/Motivo": i.tipo, "Domicilio": esEmergencia ? i.domicilio : 'N/A', "Alarma/Registro": i.horaAlarma,
+    "Llamante": esEmergencia ? i.llamante : 'N/A', "Teléfono": esEmergencia ? i.telefono : 'N/A',
+    "Recibió Llamada": esEmergencia ? i.receptor : 'N/A', "Confeccionó": i.confeccionador,
+    "DNI Confeccionador": i.confeccionadorDni, "Unidades Despachadas": uniStrs,
+    "Dotación Móviles": perNombres.join(', '), "Personal Clave 11": clave11Nombres,
+    "Observaciones Iniciales": i.obs, "Informe Final": i.informe || ''
   };
 }
 
 function exportarExcelUna(id) {
   const i = intervenciones.find(x => x.id === id);
   if(!i) return;
-  const data = [ aplanarIntervencionParaExcel(i) ];
-  descargarExcel(data, `Salida_${i.id}`);
+  descargarExcel([ aplanarIntervencionParaExcel(i) ], `Salida_${i.id}`);
 }
 
 function exportarExcelGeneral() {
   if(intervenciones.length === 0) return mostrarToast('⚠ No hay datos para exportar', 'warning');
-  const data = intervenciones.map(aplanarIntervencionParaExcel);
-  descargarExcel(data, `Historial_Bomberos`);
+  descargarExcel(intervenciones.map(aplanarIntervencionParaExcel), `Historial_Bomberos`);
 }
 
 function descargarExcel(jsonArray, filename) {
@@ -3762,10 +3362,68 @@ function mostrarToast(msg, tipo = '') {
   setTimeout(() => t.classList.remove('visible'), 3000);
 }
 
-// Manejo de Auto Cierre
 let autoLogoutTimer = null;
-
 function programarCierreSesion() {
   const mins = prompt("¿En cuántos minutos querés que se cierre la sesión automáticamente?");
   if (mins !== null && !isNaN(mins) && mins > 0) {
-    if (autoLogoutTimer
+    if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+    autoLogoutTimer = setTimeout(cerrarSesion, mins * 60000);
+    mostrarToast(`✓ La sesión se cerrará sola en ${mins} minutos`, 'success');
+  }
+}
+
+function cerrarSesion() {
+  if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+  usuarioActual = null;
+  document.getElementById('login-screen').classList.remove('oculto');
+  document.getElementById('login-dni').value = '';
+  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
+  mostrarToast('Sesión cerrada correctamente', 'success');
+}
+
+function descargarInformeVehiculo(id) {
+  const m = moviles.find(x => x.id === id);
+  if (!m) return;
+  mostrarToast('⌛ Generando informe del móvil...', 'warning');
+
+  const alarmasKmHtml = (m.alarmasKm || []).length > 0 
+    ? m.alarmasKm.map(a => `<li style="margin-bottom: 6px;"><b>A los ${a.limite} km:</b> ${a.desc}</li>`).join('') 
+    : '<li style="color:#64748B;">No hay alertas preventivas por kilometraje.</li>';
+    
+  const alarmasFechaHtml = (m.alarmasFecha || []).length > 0 
+    ? m.alarmasFecha.map(a => `<li style="margin-bottom: 6px;"><b>Vence el ${a.fecha.split('-').reverse().join('/')}:</b> ${a.desc}</li>`).join('') 
+    : '<li style="color:#64748B;">No hay alertas preventivas por fecha.</li>';
+
+  const historialHtml = m.historialMantenimiento && m.historialMantenimiento.length > 0
+    ? m.historialMantenimiento.map(h => `<li style="margin-bottom: 6px;"><b>${h.fecha.split('-').reverse().join('/')} (A los ${h.km} km):</b> ${h.detalle} ${h.costo ? `| ${h.costo}` : ''}</li>`).join('')
+    : '<li style="color:#64748B;">No hay historial de reparaciones registrado.</li>';
+
+  const fichasPdfHtml = (m.fichasMantenimiento || []).length > 0
+    ? m.fichasMantenimiento.map(f => `<li style="margin-bottom: 6px;"><b>${f.fecha} (${f.autor}):</b> ${f.texto}</li>`).join('')
+    : '<li style="color:#64748B;">No hay anotaciones registradas en la ficha.</li>';
+
+  const htmlContent = `
+    <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
+      <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; color: #CC2200; text-transform: uppercase; font-weight: 800; line-height: 1;">Bomberos Voluntarios Río Cuarto</h1>
+          <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px;">INFORME DE PARQUE AUTOMOTOR</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #CC2200; line-height: 1;">${m.nombre.split('—')[0].trim()}</div>
+          <div style="font-size: 11px; color: #64748B; font-weight: 600; margin-top: 6px;">Fecha: ${new Date().toLocaleDateString('es-AR')}</div>
+        </div>
+      </div>
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Datos Generales de la Unidad</div>
+        <table style="width:100%; border-collapse:collapse; font-size:13px; border:1px solid #CBD5E1;">
+          <tr><td style="padding:8px; background:#F8FAFC; font-weight:700; width:30%; border:1px solid #CBD5E1;">IDENTIFICACIÓN:</td><td style="padding:8px; border:1px solid #CBD5E1; font-weight: 700; color: #1E293B;">${m.nombre}</td></tr>
+          <tr><td style="padding:8px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">KILOMETRAJE ACTUAL:</td><td style="padding:8px; border:1px solid #CBD5E1;">${m.km} km</td></tr>
+        </table>
+      </div>
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Características Técnicas / Equipamiento</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; line-height:1.6; background:#FAFAFA; white-space:pre-wrap;">${m.caracteristicas || 'Sin características técnicas cargadas en el sistema.'}</div>
+      </div>
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Bar
