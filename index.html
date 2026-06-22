@@ -105,7 +105,7 @@
   .hud-movil-dest { font-size: 22px; color: #cbd5e1; margin-top: 8px; font-weight: 500;}
   .hud-movil-tiempo { font-size: 24px; color: #fbbf24; font-weight: 700; margin-top: 12px; }
   .hud-personal-grid { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start;}
-  .hud-bombero { background: #334155; color: #f8fafc; padding: 12px 18px; border-radius: 6px; font-size: 20px; font-weight: 700; border: 1px solid #475569; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+  .hud-bombero { color: #f8fafc; padding: 12px 18px; border-radius: 6px; font-size: 20px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
   .hud-tarea-tag { background: #1e293b; border-left: 5px solid #d39e00; padding: 14px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 18px; font-weight: 600; color: #f8fafc; display: flex; flex-direction: column; gap: 6px; border: 1px solid #334155;}
   @media (max-width: 800px) { .hud-grid { grid-template-columns: 1fr; } }
 
@@ -209,6 +209,7 @@
   input, select, textarea { background: var(--input-bg); border: 1px solid #CBD5E1; border-radius: 4px; padding: 12px 14px; color: var(--texto); font-family: 'Barlow', sans-serif; font-size: 15px; outline: none; transition: border-color .2s, box-shadow .2s; width: 100%; }
   input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
   textarea { resize: vertical; min-height: 80px; }
+  textarea:disabled { background: #f1f5f9; cursor: not-allowed; }
 
   /* SELECCIÓN DE PERSONAL */
   .personal-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px; }
@@ -473,6 +474,10 @@
         <button class="btn-sm btn-verde" onclick="exportarExcelGeneral()">📊 Exportar a Excel</button>
       </div>
     </div>
+    
+    <div style="margin-bottom: 16px;">
+        <input type="text" id="historial-search" placeholder="🔍 Buscar por N° de intervención o domicilio..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--borde);" onkeyup="renderHistorial()">
+    </div>
     <div id="historial-lista"></div>
   </div>
 
@@ -539,7 +544,7 @@
     <div class="config-form">
       <div class="form-grupo" style="flex:2; margin-bottom:0">
         <label>Identificación del Móvil</label>
-        <input type="text" id="veh-nombre" placeholder="Ej: AU-10 — Autobomba Nueva">
+        <input type="text" id="veh-nombre" placeholder="Ej: AU-1 — Autobomba Nueva">
       </div>
       <div class="form-grupo" style="flex:1; margin-bottom:0">
         <label>KM Inicial</label>
@@ -586,6 +591,17 @@
       <div class="form-grupo" style="flex:1; margin-bottom:0">
         <label>DNI</label>
         <input type="text" id="conf-per-dni" placeholder="Sin puntos">
+      </div>
+      <div class="form-grupo" style="flex:1; margin-bottom:0">
+        <label>Casco (TV)</label>
+        <select id="conf-per-color">
+            <option value="blanco">Blanco</option>
+            <option value="amarillo">Amarillo</option>
+            <option value="rojo">Rojo</option>
+        </select>
+      </div>
+      <div class="form-grupo" style="flex:0; margin-bottom:0; justify-content:center; white-space:nowrap;">
+        <label><input type="checkbox" id="conf-per-chofer"> Es Chofer</label>
       </div>
       <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarPersonal()">Agregar</button>
     </div>
@@ -880,7 +896,7 @@
     <div class="modal-footer">
       <button class="btn-cancelar" onclick="cerrarModalFinalizar()">Cancelar</button>
       <button class="btn-cancelar" onclick="guardarFinalizacion(false)" style="background: #E2E8F0; color: #1E293B; font-weight: bold; border: 1px solid #CBD5E1;">Solo Finalizar</button>
-      <button class="btn-guardar btn-azul" onclick="guardarFinalizacion(true)">Finalizar y Descargar PDF</button>
+      <button class="btn-guardar btn-azul" id="btn-guardar-finalizar" onclick="guardarFinalizacion(true)">Finalizar y Descargar PDF</button>
     </div>
   </div>
 </div>
@@ -985,7 +1001,6 @@ dbRef.on('value', (snapshot) => {
     const dataNube = snapshot.val();
 
     if (dataNube) {
-        // Si hay datos en Firebase, los descargamos a la memoria
         credenciales = dataNube.credenciales || [];
         mensajes = dataNube.mensajes || [];
         rangos = dataNube.rangos || [];
@@ -996,12 +1011,10 @@ dbRef.on('value', (snapshot) => {
         intervenciones = dataNube.intervenciones || [];
         idCounter = dataNube.idCounter || 1;
     } else {
-        // Si la base está totalmente vacía (primera vez), cargamos la estructura base
         inicializarDatosPorDefecto();
         guardarDatos();
     }
 
-    // Refrescar automáticamente las pantallas si el usuario ya inició sesión o es el monitor
     const seccionVisible = document.querySelector('.seccion.visible');
     if (seccionVisible || document.body.classList.contains('modo-monitor')) {
         if (seccionVisible && seccionVisible.id === 'dashboard') renderDashboard();
@@ -1024,7 +1037,6 @@ dbRef.on('value', (snapshot) => {
     }
 });
 
-// Guardar datos ahora manda a la nube en lugar del disco local
 function guardarDatos() {
     dbRef.set({
         credenciales: credenciales,
@@ -1048,8 +1060,8 @@ function inicializarDatosPorDefecto() {
         { id:5, nombre: 'Aspirante', orden: 5 }
     ];
     personal = [
-        { id:1, nombre:'García, Roberto', rangoId:1, dni:'', ordenManual: 1, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [] },
-        { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [] }
+        { id:1, nombre:'García, Roberto', rangoId:1, dni:'', ordenManual: 1, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorCasco: 'blanco', esChofer: false },
+        { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorCasco: 'blanco', esChofer: false }
     ];
     moviles = [
         { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [], fichasMantenimiento: [] },
@@ -1069,7 +1081,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-screen').style.display = 'none';
     document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
     document.getElementById('hud-guardia').classList.add('visible');
-    // El render se encarga ahora el callback de Firebase cuando descargue la data.
   }
 });
 
@@ -1183,6 +1194,25 @@ function procesarIngreso() {
   if (primerBotonVisible) {
       primerBotonVisible.click();
   }
+}
+
+// Helper: Permiso para Informe
+function puedeEditarInforme(intervencion) {
+    if (!usuarioActual) return false;
+    if (usuarioActual.isMaster) return true;
+    
+    let puede = false;
+    intervencion.moviles.forEach(m => {
+        m.personal.forEach(p => {
+            if (p.id === usuarioActual.personalId) {
+                let r = p.rol.toLowerCase();
+                if (r === 'encargado' || r === 'chofer y encargado') {
+                    puede = true;
+                }
+            }
+        });
+    });
+    return puede;
 }
 
 // =====================
@@ -1456,6 +1486,7 @@ function renderHudGuardia() {
         movilesAfuera.push({
           movil: m.nombre,
           horaSalida: m.horaSalida,
+          horaLlegada: m.horaLlegada,
           siniestro: i.tipo,
           domicilio: i.esEmergencia ? i.domicilio : 'RUTINA',
           autorizador: m.autorizador || i.autorizador || 'N/A'
@@ -1474,7 +1505,10 @@ function renderHudGuardia() {
       <div class="hud-movil-item">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div class="hud-movil-nombre">🚒 ${m.movil}</div>
-          <div class="hud-movil-tiempo">SALIÓ: ${m.horaSalida}</div>
+          <div style="text-align:right;">
+             <div class="hud-movil-tiempo">SALIÓ: ${m.horaSalida}</div>
+             ${m.horaLlegada && m.horaLlegada !== '-' ? `<div class="hud-movil-tiempo" style="color:#10b981; margin-top:4px;">LLEGÓ: ${m.horaLlegada}</div>` : ''}
+          </div>
         </div>
         <div class="hud-movil-dest">📍 ${m.domicilio} <span style="color:#fbbf24; margin-left:8px;">[${m.siniestro}]</span></div>
         <div style="color:#94a3b8; font-size:16px; margin-top:8px; text-transform:uppercase; font-weight:600;">A cargo: ${m.autorizador}</div>
@@ -1489,7 +1523,15 @@ function renderHudGuardia() {
     const ordenados = [...personalPresente].sort((a, b) => getOrdenRango(a.rangoId) - getOrdenRango(b.rangoId));
     htmlPresentes = `
       <div class="hud-personal-grid">
-        ${ordenados.map(p => `<div class="hud-bombero">${p.nombre}</div>`).join('')}
+        ${ordenados.map(p => {
+            let colorBg = '#334155';
+            let colorText = '#f8fafc';
+            if (p.colorCasco === 'amarillo') { colorBg = '#eab308'; colorText = '#000'; }
+            if (p.colorCasco === 'rojo') { colorBg = '#ef4444'; colorText = '#fff'; }
+            if (p.colorCasco === 'blanco') { colorBg = '#f8fafc'; colorText = '#000'; }
+            let choferTag = p.esChofer ? ' (C)' : '';
+            return `<div class="hud-bombero" style="background:${colorBg}; color:${colorText}">${p.nombre}${choferTag}</div>`;
+        }).join('')}
       </div>
     `;
   }
@@ -1517,7 +1559,6 @@ function renderHudGuardia() {
      }
   }
 
-  // Mantenemos solo el HTML que cambia sin alterar el reloj central
   const pantallaContenedor = document.getElementById('hud-pantalla-render');
   if (pantallaContenedor) {
       pantallaContenedor.innerHTML = `
@@ -1652,6 +1693,7 @@ function renderDashboard() {
 
       let btnLlegada = (!m.horaLlegada || m.horaLlegada === '-') && !m.horaRegreso ? `<button class="btn-sm btn-azul" onclick="registrarLlegadaMovil(${i.id}, ${m.idMovil})">📍 Llegó al lugar</button>` : '';
       let btnRegreso = !m.horaRegreso ? `<button class="btn-sm btn-verde" onclick="registrarRegresoMovil(${i.id}, ${m.idMovil})">✓ Regresó a base</button>` : '';
+      let btnRedespacho = !m.horaRegreso ? `<button class="btn-sm btn-amarillo" onclick="iniciarRedespacho(${i.id}, ${m.idMovil})">🔄 Desviar a otro siniestro</button>` : '';
 
       return `
         <div class="unidad-item">
@@ -1665,6 +1707,7 @@ function renderDashboard() {
               ${tiemposHtml}
               ${btnLlegada}
               ${btnRegreso}
+              ${btnRedespacho}
             </div>
           </div>
         </div>
@@ -1723,7 +1766,19 @@ function renderDashboard() {
 // RENDER HISTORIAL Y BORRAR
 // =====================
 function renderHistorial() {
-  const cerradas = [...intervenciones].filter(i => i.estado === 'finalizada').reverse();
+  const searchTerm = (document.getElementById('historial-search')?.value || '').toLowerCase();
+  
+  let cerradas = [...intervenciones].filter(i => i.estado === 'finalizada');
+  
+  if (searchTerm) {
+    cerradas = cerradas.filter(i => 
+      i.id.toString().includes(searchTerm) || 
+      (i.domicilio && i.domicilio.toLowerCase().includes(searchTerm))
+    );
+  }
+  
+  cerradas = cerradas.reverse();
+
   const emergenciasCount = cerradas.filter(i => i.esEmergencia).length;
   const noEmergenciasCount = cerradas.filter(i => !i.esEmergencia).length;
   
@@ -1731,7 +1786,7 @@ function renderHistorial() {
 
   const lista = document.getElementById('historial-lista');
   if (cerradas.length === 0) {
-    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>Aún no hay salidas finalizadas.</div>`;
+    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>No se encontraron salidas en el historial.</div>`;
     return;
   }
   
@@ -2332,7 +2387,6 @@ function renderVehiculoSeleccionado() {
     `;
   }).join('');
 
-  // NUEVA FUNCIÓN: Generar HTML de la Ficha Diaria de Anotaciones
   const fichasHtml = (m.fichasMantenimiento || []).map(f => `
     <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
       <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
@@ -2363,7 +2417,6 @@ function renderVehiculoSeleccionado() {
         </div>
       </div>
 
-      <!-- NUEVA SECCIÓN: FICHA DE MANTENIMIENTO -->
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Ficha de Novedades y Mantenimiento</div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -2400,7 +2453,6 @@ function renderVehiculoSeleccionado() {
   `;
 }
 
-// NUEVA FUNCIÓN PARA GUARDAR ANOTACIONES
 function agregarAnotacionFicha(idMovil) {
   if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para que la anotación quede firmada a tu nombre.', 'warning');
 
@@ -2421,11 +2473,9 @@ function agregarAnotacionFicha(idMovil) {
     fecha: new Date().toLocaleString('es-AR')
   });
 
-  // Ordenamos para que la anotación más reciente quede siempre arriba
   m.fichasMantenimiento.sort((a, b) => b.id - a.id);
 
   guardarDatos(); 
-  
   mostrarToast('✓ Anotación guardada y firmada', 'success');
 }
 
@@ -2436,9 +2486,7 @@ function eliminarAnotacionFicha(idMovil, idFicha) {
     const m = moviles.find(x => x.id === idMovil);
     if (!m || !m.fichasMantenimiento) return;
 
-    // Filtramos para dejar todas las anotaciones menos la que coincide con el ID a borrar
     m.fichasMantenimiento = m.fichasMantenimiento.filter(f => f.id !== idFicha);
-    
     guardarDatos();
     mostrarToast('✓ Anotación eliminada correctamente', 'success');
   } else if (password !== null) {
@@ -2463,7 +2511,7 @@ function agregarMovil() {
 function eliminarMovil(index) {
   if(!confirm('¿Seguro que querés borrar este vehículo definitivamente?')) return;
   moviles.splice(index, 1);
-  document.getElementById('veh-selector').value = ''; // Resetear selector
+  document.getElementById('veh-selector').value = ''; 
   guardarDatos(); 
   mostrarToast('✓ Vehículo eliminado', 'success');
 }
@@ -2625,8 +2673,8 @@ function renderConfiguracion() {
   document.getElementById('lista-personal-config').innerHTML = personal.map((p, i) => `
     <div class="config-item ${p.activo === false ? 'baja' : ''}">
       <div class="config-item-info">
-        <span class="config-item-title">${p.nombre}</span>
-        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'}</span>
+        <span class="config-item-title">${p.nombre} ${p.esChofer ? '(C)' : ''}</span>
+        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'} | Color Monitor: ${p.colorCasco ? p.colorCasco.toUpperCase() : 'BLANCO'}</span>
       </div>
       <div style="display:flex; align-items:center; gap: 10px;">
         <div class="order-controls" style="margin-right:0;">
@@ -2634,6 +2682,7 @@ function renderConfiguracion() {
           <button class="btn-order" onclick="moverPersonal(${p.id}, 1)" ${i===personal.length-1?'disabled style="opacity:0.3"':''}>▼</button>
         </div>
         <button class="btn-sm btn-gris" onclick="editarDniPersonal(${p.id})">DNI</button>
+        <button class="btn-sm btn-gris" onclick="editarAtributosPersonal(${p.id})">Config Monitor</button>
         ${usuarioActual && usuarioActual.isMaster ? `<button class="btn-sm btn-amarillo" onclick="asignarCredencialPersonal(${p.id})" style="color:black; font-weight:800;">🔑 Accesos</button>` : ''}
         <button class="btn-sm btn-rojo" onclick="eliminarPersonalDefinitivo(${p.id})">Borrar</button>
       </div>
@@ -2651,6 +2700,16 @@ function renderConfiguracion() {
     <div class="config-item">
       <div class="config-item-info"><span class="config-item-title">${mot.nombre}</span></div>
       <button class="btn-sm btn-rojo" onclick="eliminarMotivo(${index})">Borrar</button>
+    </div>
+  `).join('');
+
+  document.getElementById('lista-credenciales-config').innerHTML = credenciales.map(c => `
+    <div class="config-item" style="border-left: 4px solid var(--amarillo);">
+      <div class="config-item-info">
+        <span class="config-item-title">${c.nombre}</span>
+        <span class="config-item-sub">Permisos: ${c.permisos.join(', ')}</span>
+      </div>
+      <button class="btn-sm btn-rojo" onclick="eliminarCredencial(${c.id})">Borrar</button>
     </div>
   `).join('');
 }
@@ -2688,15 +2747,36 @@ function agregarPersonal() {
   const nombre = document.getElementById('conf-per-nombre').value.trim();
   const rangoId = parseInt(document.getElementById('conf-per-rango').value);
   const dni = document.getElementById('conf-per-dni').value.trim().replace(/\./g, '');
+  const colorCasco = document.getElementById('conf-per-color').value;
+  const esChofer = document.getElementById('conf-per-chofer').checked;
+  
   if (!nombre || isNaN(rangoId)) return mostrarToast('⚠ Ingresá el nombre', 'warning');
   const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
   const nuevoOrden = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
-  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [] });
+  
+  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [], colorCasco, esChofer });
   guardarDatos();
   document.getElementById('conf-per-nombre').value = '';
   document.getElementById('conf-per-dni').value = '';
+  document.getElementById('conf-per-color').value = 'blanco';
+  document.getElementById('conf-per-chofer').checked = false;
   mostrarToast('✓ Personal agregado', 'success');
 }
+
+function editarAtributosPersonal(id) {
+    const p = personal.find(x => x.id === id);
+    if (!p) return;
+    const isChofer = confirm(`¿${p.nombre} está habilitado como Chofer?\nAceptar = Sí / Cancelar = No`);
+    const color = prompt(`Ingresá el color en el monitor de guardia para ${p.nombre} (opciones válidas: blanco, amarillo, rojo):`, p.colorCasco || 'blanco');
+    
+    if (color !== null) {
+        p.esChofer = isChofer;
+        p.colorCasco = color.toLowerCase().trim();
+        guardarDatos();
+        mostrarToast('✓ Atributos de monitor actualizados', 'success');
+    }
+}
+
 function moverPersonal(id, direccion) {
   const index = personal.findIndex(p => p.id === id);
   if (index < 0) return;
@@ -2765,7 +2845,7 @@ function eliminarMotivo(index) {
 }
 
 // =====================
-// BACKUP IMPORT / EXPORT (Ahora usando los datos en memoria en lugar de localStorage)
+// BACKUP IMPORT / EXPORT
 // =====================
 function exportarBackup() {
   const backup = {
@@ -2973,6 +3053,8 @@ function configurarModalBase() {
   document.getElementById('dni-identidad').textContent = '';
   document.getElementById('btn-guardar-movil').disabled = true; 
   if(document.getElementById('f-tipo-busqueda')) document.getElementById('f-tipo-busqueda').value = '';
+  document.getElementById('f-movil').style.pointerEvents = 'auto';
+  document.getElementById('f-movil').style.opacity = '1';
   
   if(document.getElementById('f-autoriza')) {
     const personalPresente = personal.filter(p => p.activo !== false && p.presente === true);
@@ -3048,13 +3130,63 @@ function abrirModalApoyo(idIntervencion) {
   document.getElementById('modal-movil').classList.add('visible');
 }
 
+function iniciarRedespacho(idInter, idMovilInstancia) {
+  const interVieja = intervenciones.find(x => x.id === idInter);
+  if (!interVieja) return;
+  const movilViejo = interVieja.moviles.find(m => m.idMovil === idMovilInstancia);
+  if (!movilViejo) return;
+
+  const movilGlobal = moviles.find(m => m.nombre === movilViejo.nombre);
+  let kmSugerido = movilGlobal ? movilGlobal.km : 0;
+
+  const inputKm = prompt(`Estás por desviar el móvil ${movilViejo.nombre} a un NUEVO siniestro.\nIngresá el kilometraje con el que cierra su primera salida para arrancar la nueva:`, kmSugerido);
+  if (inputKm === null) return;
+  
+  const nuevoKm = parseInt(inputKm);
+  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) {
+      alert('Ingresá un kilometraje válido (mayor o igual al de salida).');
+      return;
+  }
+
+  if (movilGlobal) movilGlobal.km = nuevoKm;
+  const ahora = new Date();
+  const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  movilViejo.horaRegreso = horaStr;
+  
+  guardarDatos(); // Guardamos el fin de esa unidad en la inter vieja
+
+  // Preparamos para el nuevo despacho
+  document.getElementById('f-modo').value = 'redespacho';
+  document.querySelector('.modal').classList.remove('modo-ne');
+  document.getElementById('modal-movil-titulo').innerText = '🔄 Nuevo Siniestro (Desvío de Unidad)';
+
+  document.getElementById('campo-dni').style.display = 'block';
+  document.getElementById('campos-emergencia').style.display = 'grid';
+  document.getElementById('campos-no-emergencia').style.display = 'none';
+  document.getElementById('campo-autoriza').style.display = 'block';
+  document.getElementById('campo-observaciones').style.display = 'block';
+  document.getElementById('separador-modal').style.display = 'block';
+
+  configurarModalBase();
+
+  const selMovil = document.getElementById('f-movil');
+  selMovil.value = movilViejo.nombre;
+  selMovil.style.pointerEvents = 'none';
+  selMovil.style.opacity = '0.7';
+
+  personalSeleccionadoTemp = JSON.parse(JSON.stringify(movilViejo.personal));
+  actualizarVistaPersonal();
+
+  document.getElementById('modal-movil').classList.add('visible');
+}
+
 function cerrarModalMovil() {
   document.getElementById('modal-movil').classList.remove('visible');
 }
 
 function guardarUnidad() {
   const modo = document.getElementById('f-modo').value;
-  const esEmergencia = (modo === 'nueva');
+  const esEmergencia = (modo === 'nueva' || modo === 'redespacho');
   const esRutina = (modo === 'no-emergencia');
   
   let confeccionadorNombre = '';
@@ -3269,7 +3401,22 @@ function abrirModalFinalizar(idInter) {
   }
 
   document.getElementById('fin-id-inter').value = idInter;
-  document.getElementById('fin-informe').value = inter.informe || '';
+  
+  const txtInforme = document.getElementById('fin-informe');
+  const btnGuardarFinalizar = document.getElementById('btn-guardar-finalizar');
+  
+  if (!puedeEditarInforme(inter)) {
+      txtInforme.disabled = true;
+      txtInforme.value = '';
+      txtInforme.placeholder = "Solo el Encargado de dotación o Chofer y encargado pueden redactar el informe.\nPodés 'Solo Finalizar' la salida para cerrarla administrativamente y que la completen luego desde el Historial.";
+      btnGuardarFinalizar.style.display = 'none'; 
+  } else {
+      txtInforme.disabled = false;
+      txtInforme.value = inter.informe || '';
+      txtInforme.placeholder = "Detalles de las tareas realizadas...";
+      btnGuardarFinalizar.style.display = 'inline-block';
+  }
+
   document.getElementById('modal-finalizar').classList.add('visible');
 }
 
@@ -3280,7 +3427,10 @@ function guardarFinalizacion(descargarPdf = true) {
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
 
-  inter.informe = document.getElementById('fin-informe').value.trim();
+  if (puedeEditarInforme(inter)) {
+      inter.informe = document.getElementById('fin-informe').value.trim();
+  }
+  
   inter.estado = 'finalizada';
   
   const ahora = new Date();
@@ -3306,6 +3456,12 @@ function guardarFinalizacion(descargarPdf = true) {
 function abrirModalEditarInforme(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
+
+  if (!puedeEditarInforme(inter)) {
+      mostrarToast('⚠ Solo el Encargado o Chofer y encargado pueden editar este informe.', 'warning');
+      return;
+  }
+
   document.getElementById('edit-id-inter').value = idInter;
   document.getElementById('edit-informe').value = inter.informe || '';
   document.getElementById('modal-editar-informe').classList.add('visible');
@@ -3612,124 +3768,4 @@ let autoLogoutTimer = null;
 function programarCierreSesion() {
   const mins = prompt("¿En cuántos minutos querés que se cierre la sesión automáticamente?");
   if (mins !== null && !isNaN(mins) && mins > 0) {
-    if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
-    autoLogoutTimer = setTimeout(cerrarSesion, mins * 60000);
-    mostrarToast(`✓ La sesión se cerrará sola en ${mins} minutos`, 'success');
-  }
-}
-
-function cerrarSesion() {
-  if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
-  usuarioActual = null;
-  document.getElementById('login-screen').classList.remove('oculto');
-  document.getElementById('login-dni').value = '';
-  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
-  mostrarToast('Sesión cerrada correctamente', 'success');
-}
-
-// =====================
-// INFORME DETALLADO DE VEHÍCULOS
-// =====================
-function descargarInformeVehiculo(id) {
-  const m = moviles.find(x => x.id === id);
-  if (!m) return;
-
-  mostrarToast('⌛ Generando informe del móvil...', 'warning');
-
-  const alarmasKmHtml = (m.alarmasKm || []).length > 0 
-    ? m.alarmasKm.map(a => `<li style="margin-bottom: 6px;"><b>A los ${a.limite} km:</b> ${a.desc}</li>`).join('') 
-    : '<li style="color:#64748B;">No hay alertas preventivas por kilometraje.</li>';
-    
-  const alarmasFechaHtml = (m.alarmasFecha || []).length > 0 
-    ? m.alarmasFecha.map(a => `<li style="margin-bottom: 6px;"><b>Vence el ${a.fecha.split('-').reverse().join('/')}:</b> ${a.desc}</li>`).join('') 
-    : '<li style="color:#64748B;">No hay alertas preventivas por fecha.</li>';
-
-  const historialHtml = m.historialMantenimiento && m.historialMantenimiento.length > 0
-    ? m.historialMantenimiento.map(h => `<li style="margin-bottom: 6px;"><b>${h.fecha.split('-').reverse().join('/')} (A los ${h.km} km):</b> ${h.detalle} ${h.costo ? `| ${h.costo}` : ''}</li>`).join('')
-    : '<li style="color:#64748B;">No hay historial de reparaciones registrado.</li>';
-
-  const fichasPdfHtml = (m.fichasMantenimiento || []).length > 0
-    ? m.fichasMantenimiento.map(f => `<li style="margin-bottom: 6px;"><b>${f.fecha} (${f.autor}):</b> ${f.texto}</li>`).join('')
-    : '<li style="color:#64748B;">No hay anotaciones registradas en la ficha.</li>';
-
-  const htmlContent = `
-    <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
-      
-      <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
-        <div>
-          <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; color: #CC2200; text-transform: uppercase; font-weight: 800; line-height: 1;">Bomberos Voluntarios Río Cuarto</h1>
-          <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px;">INFORME DE PARQUE AUTOMOTOR</div>
-        </div>
-        <div style="text-align: right;">
-          <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #CC2200; line-height: 1;">${m.nombre.split('—')[0].trim()}</div>
-          <div style="font-size: 11px; color: #64748B; font-weight: 600; margin-top: 6px;">Fecha: ${new Date().toLocaleDateString('es-AR')}</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Datos Generales de la Unidad</div>
-        <table style="width:100%; border-collapse:collapse; font-size:13px; border:1px solid #CBD5E1;">
-          <tr>
-            <td style="padding:8px; background:#F8FAFC; font-weight:700; width:30%; border:1px solid #CBD5E1;">IDENTIFICACIÓN:</td>
-            <td style="padding:8px; border:1px solid #CBD5E1; font-weight: 700; color: #1E293B;">${m.nombre}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">KILOMETRAJE ACTUAL:</td>
-            <td style="padding:8px; border:1px solid #CBD5E1;">${m.km} km</td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Características Técnicas / Equipamiento</div>
-        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; line-height:1.6; background:#FAFAFA; white-space:pre-wrap;">${m.caracteristicas || 'Sin características técnicas cargadas en el sistema.'}</div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Ficha Diaria de Novedades (Firmadas)</div>
-        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
-          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${fichasPdfHtml}</ul>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Alertas de Mantenimiento / Vencimientos</div>
-        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
-          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Mecánica (Por Kilometraje)</h4>
-          <ul style="margin-top:0; margin-bottom:20px; padding-left:25px;">${alarmasKmHtml}</ul>
-          
-          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Documentación y Seguros (Por Fecha)</h4>
-          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${alarmasFechaHtml}</ul>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Historial de Mantenimiento / Arreglos</div>
-        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
-          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${historialHtml}</ul>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('pdf-container').innerHTML = htmlContent;
-  const element = document.getElementById('pdf-vehiculo-content');
-
-  const opt = {
-    margin: [10, 10, 10, 10],
-    filename: `Informe_Movil_${m.nombre.split('—')[0].trim().replace(/\s+/g, '_')}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opt).from(element).save().then(() => {
-    document.getElementById('pdf-container').innerHTML = '';
-    mostrarToast('✓ Informe descargado exitosamente', 'success');
-  });
-}
-
-// Iniciar con la pantalla oculta esperando Login
-</script>
-</body>
-</html>
+    if (autoLogoutTimer
