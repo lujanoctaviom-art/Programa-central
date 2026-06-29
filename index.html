@@ -23,8 +23,6 @@
     --azul: #007BFF;
     --gris-salida: #64748B;
     --celeste: #0ea5e9;
-    
-    /* Paleta Clara */
     --fondo: #F4F6F9;
     --tarjeta-bg: #FFFFFF;
     --borde: #E2E8F0;
@@ -33,41 +31,26 @@
     --header-bg: #CC2200;
     --nav-bg: #FFFFFF;
     --input-bg: #FFFFFF;
+    --font-main: 'Barlow', sans-serif;
+    --font-cond: 'Barlow Condensed', sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: 'Barlow', sans-serif;
-    background: var(--fondo);
-    color: var(--texto);
-    min-height: 100vh;
-  }
+  body { font-family: var(--font-main); background: var(--fondo); color: var(--texto); min-height: 100vh; }
 
   /* HEADER */
-  header {
-    background: var(--header-bg);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
+  header { background: var(--header-bg); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   .logo { display: flex; align-items: center; gap: 14px; }
   .logo-icon { font-size: 28px; line-height: 1; }
-  .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; }
+  .logo-text { font-family: var(--font-cond); font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; }
   .logo-sub { font-size: 11px; font-weight: 500; color: #FFD6CC; letter-spacing: 2px; text-transform: uppercase; display: block; }
   .header-right { display: flex; align-items: center; gap: 16px; }
-  .reloj { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; color: #FFFFFF; letter-spacing: 2px; }
+  .reloj { font-family: var(--font-cond); font-size: 24px; font-weight: 700; color: #FFFFFF; letter-spacing: 2px; }
 
   /* NAVEGACIÓN */
   nav { background: var(--nav-bg); border-bottom: 1px solid var(--borde); display: flex; gap: 0; padding: 0 24px; overflow-x: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-  .nav-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 20px; background: none; border: none; color: var(--texto-secundario); cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s; white-space: nowrap; }
+  .nav-btn { font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 20px; background: none; border: none; color: var(--texto-secundario); cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s; white-space: nowrap; }
   .nav-btn:hover { color: var(--rojo); }
   .nav-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
 
@@ -79,7 +62,7 @@
   /* ALERTAS DE ESTADO */
   .estado-cuartel { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
   .stat-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .stat-card .num { font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 800; line-height: 1; color: var(--rojo-vivo); }
+  .stat-card .num { font-family: var(--font-cond); font-size: 42px; font-weight: 800; line-height: 1; color: var(--rojo-vivo); }
   .stat-card .num.verde { color: var(--verde); }
   .stat-card .num.amarillo { color: var(--amarillo); }
   .stat-card .num.azul { color: var(--azul); }
@@ -88,24 +71,24 @@
   /* ALERTA DE MANTENIMIENTO */
   .alerta-mantenimiento { background: var(--rojo-vivo); color: white; padding: 16px 20px; border-radius: 6px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(230,46,0,0.2); display: none; }
   .alerta-mantenimiento.visible { display: block; }
-  .alerta-mantenimiento h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .alerta-mantenimiento h3 { font-family: var(--font-cond); font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
   .alerta-mantenimiento ul { margin-left: 24px; font-size: 14px; font-weight: 500; line-height: 1.5; }
   .alerta-mantenimiento li { margin-bottom: 4px; }
 
   /* HUD DE GUARDIA (TV MODE) */
   .hud-pantalla { background: #0f172a; color: white; padding: 30px; border-radius: 12px; min-height: 75vh; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-  .hud-reloj { font-size: 80px; font-weight: 800; text-align: center; color: #e2e8f0; margin-bottom: 30px; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 4px; line-height: 1;}
+  .hud-reloj { font-size: 80px; font-weight: 800; text-align: center; color: #e2e8f0; margin-bottom: 30px; font-family: var(--font-cond); letter-spacing: 4px; line-height: 1;}
   .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
   .hud-card { background: #1e293b; border-left: 6px solid var(--azul); padding: 24px; border-radius: 10px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
   .hud-card.red { border-left-color: var(--rojo-vivo); }
   .hud-card.green { border-left-color: var(--verde); }
-  .hud-card-title { font-size: 26px; font-weight: 800; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; color: #94a3b8; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 20px; letter-spacing: 1px;}
+  .hud-card-title { font-size: 26px; font-weight: 800; font-family: var(--font-cond); text-transform: uppercase; color: #94a3b8; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 20px; letter-spacing: 1px;}
   .hud-movil-item { background: #0f172a; padding: 18px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #334155; border-left: 5px solid var(--rojo-vivo); }
-  .hud-movil-nombre { font-size: 32px; font-weight: 800; color: #f8fafc; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px;}
+  .hud-movil-nombre { font-size: 32px; font-weight: 800; color: #f8fafc; font-family: var(--font-cond); letter-spacing: 1px;}
   .hud-movil-dest { font-size: 22px; color: #cbd5e1; margin-top: 8px; font-weight: 500;}
-  .hud-movil-tiempo { font-size: 24px; color: #fbbf24; font-weight: 700; margin-top: 12px; }
+  .hud-movil-tiempo { font-size: 24px; color: #fbbf24; font-weight: 700; margin-top: 12px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;}
   .hud-personal-grid { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start;}
-  .hud-bombero { color: #f8fafc; padding: 12px 18px; border-radius: 6px; font-size: 20px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+  .hud-bombero { background: #334155; color: #f8fafc; padding: 12px 18px; border-radius: 6px; font-size: 20px; font-weight: 700; border: 1px solid #475569; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
   .hud-tarea-tag { background: #1e293b; border-left: 5px solid #d39e00; padding: 14px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 18px; font-weight: 600; color: #f8fafc; display: flex; flex-direction: column; gap: 6px; border: 1px solid #334155;}
   @media (max-width: 800px) { .hud-grid { grid-template-columns: 1fr; } }
 
@@ -116,13 +99,11 @@
 
   /* BOTONES SUPERIORES */
   .botones-accion { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-  .btn-nueva { display: flex; align-items: center; gap: 10px; background: var(--rojo); color: white; border: none; padding: 14px 28px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
+  .btn-nueva { display: flex; align-items: center; gap: 10px; background: var(--rojo); color: white; border: none; padding: 14px 28px; font-family: var(--font-cond); font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
   .btn-nueva:hover { background: var(--rojo-vivo); }
-  
   .btn-no-emergencia { background: #E2E8F0; color: var(--texto); border: 1px solid #CBD5E1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   .btn-no-emergencia:hover { background: #CBD5E1; }
-
-  .btn-sm { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; transition: opacity .2s; white-space: nowrap; text-align: center; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+  .btn-sm { font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; transition: opacity .2s; white-space: nowrap; text-align: center; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
   .btn-sm:hover { opacity: 0.85; }
   .btn-verde { background: var(--verde); color: white; }
   .btn-gris { background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1; }
@@ -131,61 +112,52 @@
   .btn-azul { background: var(--azul); color: white; }
 
   /* INTERVENCIONES */
-  .titulo-seccion { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--borde); }
+  .titulo-seccion { font-family: var(--font-cond); font-size: 15px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: flex-end;}
   .intervenciones-lista { display: flex; flex-direction: column; gap: 16px; }
   .intervencion-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-left: 5px solid var(--rojo-vivo); border-radius: 6px; padding: 20px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
   .intervencion-card.cerrada { border-left-color: #94A3B8; opacity: 0.8; }
   .intervencion-card.no-emergencia { border-left-color: var(--celeste); }
-  
-  .inter-tipo { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .inter-tipo { font-family: var(--font-cond); font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
   .badge-jurisdiccion { font-size: 12px; padding: 3px 8px; border-radius: 4px; color: white; letter-spacing: 1px; }
   .badge-local { background: var(--azul); }
   .badge-zonal { background: var(--rojo-vivo); }
-
   .inter-domicilio { font-size: 14px; font-weight: 500; color: var(--texto-secundario); margin: 6px 0 10px; }
   .inter-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--texto-secundario); margin-bottom: 8px;}
   .inter-meta span { display: flex; align-items: center; gap: 4px; background: #F1F5F9; padding: 4px 10px; border-radius: 4px; border: 1px solid #E2E8F0;}
-
-  /* UNIDADES DENTRO DE LA CARD */
   .unidades-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--borde); }
   .unidad-item { display: flex; flex-direction: column; gap: 10px; background: #F8FAFC; padding: 12px 16px; border-radius: 6px; border: 1px solid var(--borde); }
   .unidad-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: 10px; }
   .unidad-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .unidad-movil { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; color: var(--texto); }
+  .unidad-movil { font-family: var(--font-cond); font-size: 17px; font-weight: 800; color: var(--texto); display: flex; align-items: center; gap: 10px;}
   .unidad-personal { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .unidad-tiempos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  
   .badge-personal { display: inline-flex; align-items: center; gap: 4px; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: var(--texto); box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
   .badge-personal-rol { color: var(--rojo); font-weight: 700; font-size: 11px; letter-spacing: 0.5px; }
   .badge-clave11 { background: var(--amarillo-bg); border-color: #FDE68A; color: #92400E; }
-
   .inter-acciones-bottom { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
 
   /* GESTIÓN DE VEHÍCULOS */
   .vehiculos-grid { display: block; margin-top: 16px; }
   .vehiculo-card { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
   .vehiculo-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--borde); padding-bottom: 12px; margin-bottom: 12px; }
-  .vehiculo-nombre { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--texto); }
+  .vehiculo-nombre { font-family: var(--font-cond); font-size: 22px; font-weight: 800; color: var(--texto); }
   .vehiculo-km { font-size: 14px; font-weight: 600; color: var(--azul); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
   .vehiculo-desc { font-size: 13px; color: var(--texto-secundario); margin-bottom: 16px; line-height: 1.4; background: #F8FAFC; padding: 10px; border-radius: 4px; border: 1px solid #E2E8F0; }
-  
   .alarma-seccion { margin-top: 16px; }
   .alarma-titulo { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
   .alarma-lista { display: flex; flex-direction: column; gap: 6px; }
   .alarma-item { display: flex; justify-content: space-between; align-items: center; background: #F1F5F9; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; border: 1px solid #E2E8F0; }
   .alarma-vencida { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
 
-  /* TABLA ESTADÍSTICAS Y GRÁFICOS */
+  /* TABLAS Y GRÁFICOS */
   .tabla-est { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--tarjeta-bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--borde); box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
-  .tabla-est th { background: var(--rojo); color: white; padding: 10px 14px; text-align: left; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; }
+  .tabla-est th { background: var(--rojo); color: white; padding: 10px 14px; text-align: left; font-family: var(--font-cond); font-size: 15px; letter-spacing: 1px; text-transform: uppercase; }
   .tabla-est td { padding: 10px 14px; border-bottom: 1px solid var(--borde); font-size: 14px; color: var(--texto); }
   .tabla-est tr:last-child td { border-bottom: none; }
-  
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; margin-bottom: 30px; }
   .chart-box { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-  .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 16px; color: var(--texto); }
+  .chart-title { font-family: var(--font-cond); font-size: 16px; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 16px; color: var(--texto); }
   .canvas-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
-
   .mes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
   .mes-card { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px 16px; border-radius: 6px; text-align: center; }
   .mes-card .mes-nombre { font-size: 12px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 1px; }
@@ -197,54 +169,44 @@
   .modal { background: var(--tarjeta-bg); border: 1px solid var(--borde); border-top: 5px solid var(--rojo); border-radius: 8px; width: 100%; max-width: 680px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: border-color 0.3s;}
   .modal.modo-ne { border-top-color: var(--celeste); }
   .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; }
-  .modal-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); }
+  .modal-titulo { font-family: var(--font-cond); font-size: 22px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--texto); }
   .modal-cerrar { background: none; border: none; color: var(--texto-secundario); font-size: 24px; cursor: pointer; line-height: 1; transition: color .2s; }
   .modal-cerrar:hover { color: var(--rojo); }
   .modal-body { padding: 24px; }
-
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .form-grupo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .form-grupo.full { grid-column: 1 / -1; }
   label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--texto-secundario); }
-  input, select, textarea { background: var(--input-bg); border: 1px solid #CBD5E1; border-radius: 4px; padding: 12px 14px; color: var(--texto); font-family: 'Barlow', sans-serif; font-size: 15px; outline: none; transition: border-color .2s, box-shadow .2s; width: 100%; }
+  input, select, textarea { background: var(--input-bg); border: 1px solid #CBD5E1; border-radius: 4px; padding: 12px 14px; color: var(--texto); font-family: var(--font-main); font-size: 15px; outline: none; transition: border-color .2s, box-shadow .2s; width: 100%; }
   input:focus, select:focus, textarea:focus { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
   textarea { resize: vertical; min-height: 80px; }
-  textarea:disabled { background: #f1f5f9; cursor: not-allowed; }
 
-  /* SELECCIÓN DE PERSONAL */
+  /* SELECCIÓN PERSONAL Y LISTAS */
   .personal-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px; }
   .personal-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: #F8FAFC; border: 1px solid var(--borde); border-radius: 4px; transition: all .2s; flex-wrap: wrap; }
   .personal-item.seleccionado { background: #FEF2F2; border-color: #FCA5A5; }
   .personal-item.seleccionado-clave11 { background: var(--amarillo-bg); border-color: #FDE68A; cursor:pointer;}
   .personal-item.seleccionado-clave11 input[type=checkbox] { accent-color: #D97706; width: 18px; height: 18px; flex-shrink: 0; pointer-events: none;}
-  
   .personal-info-caja { flex: 1; min-width: 150px; }
   .personal-nombre { font-size: 15px; font-weight: 600; color: var(--texto); line-height: 1.2; }
   .personal-rango { font-size: 12px; color: var(--texto-secundario); margin-top: 2px; }
-
-  .rol-select { display: none; width: auto; min-width: 160px; padding: 6px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #CBD5E1; background: #FFFFFF; font-weight: 500; cursor: pointer; }
-  .rol-select:focus { border-color: var(--rojo); box-shadow: none; }
-
-  /* TIPO DE INTERVENCION MULTIPLE */
   .tipos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .tipo-item-chk { display: flex; align-items: center; gap: 8px; background: #F1F5F9; padding: 10px; border-radius: 4px; border: 1px solid #E2E8F0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--texto); transition: background 0.2s;}
   .tipo-item-chk:hover { background: #E2E8F0; }
   .tipo-item-chk input { width: 16px; height: 16px; accent-color: var(--azul); flex-shrink:0; cursor:pointer;}
-
   .sep { height: 1px; background: var(--borde); margin: 24px 0; }
   .modal-footer { padding: 16px 24px; background: #F8FAFC; border-top: 1px solid var(--borde); border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
-  .btn-cancelar { padding: 10px 20px; background: #FFFFFF; color: var(--texto); border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
+  
+  .btn-cancelar { padding: 10px 20px; background: #FFFFFF; color: var(--texto); border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; font-family: var(--font-cond); font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
   .btn-cancelar:hover { background: #F1F5F9; }
-  .btn-guardar { padding: 10px 24px; background: var(--rojo); color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
+  .btn-guardar { padding: 10px 24px; background: var(--rojo); color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-cond); font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; box-shadow: 0 2px 4px rgba(204,34,0,0.2); }
   .btn-guardar:hover { background: var(--rojo-vivo); }
   .btn-guardar-amarillo { background: #F59E0B; color: white; box-shadow: 0 2px 4px rgba(245,158,11,0.2); }
   .btn-guardar-amarillo:hover { background: #D97706; }
   .btn-guardar:disabled { background: #94A3B8; cursor: not-allowed; box-shadow: none; }
   .btn-azul { background: var(--azul); color: white; }
   .btn-azul:hover { background: #0056b3; }
-
-  /* BOTÓN PROXIMAMENTE DESTACAMENTO */
-  .btn-destacamento { padding: 10px 24px; background: #64748B; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
+  .btn-destacamento { padding: 10px 24px; background: #64748B; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-cond); font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: background .2s; }
   .btn-destacamento:hover { background: #475569; }
 
   /* PANEL PERSONAL Y CONFIGURACIÓN */
@@ -254,12 +216,10 @@
   .personal-card-info .nombre { font-weight: 700; font-size: 15px; color: var(--texto); transition: all 0.2s;}
   .personal-card.baja .nombre { text-decoration: line-through; color: var(--texto-secundario); }
   .personal-card-info .rango { font-size: 12px; color: var(--texto-secundario); margin-top: 4px; }
-  
   .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--verde); flex-shrink: 0; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5); }
   .dot.en-intervencion { background: var(--rojo); }
   .dot.no-presente { background: #F59E0B; } 
   .dot.inactivo { background: #94A3B8; }
-  
   .chk-baja-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--texto-secundario); cursor: pointer; letter-spacing: 0.5px; }
   .chk-baja { width: 14px; height: 14px; accent-color: var(--rojo); cursor: pointer; }
 
@@ -274,54 +234,25 @@
   .order-controls { display: flex; gap: 6px; margin-right: 16px; }
   .btn-order { background: #E2E8F0; color: #475569; border: 1px solid #CBD5E1; border-radius: 4px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all .2s; }
   .btn-order:hover:not([disabled]) { background: #CBD5E1; color: #1E293B; }
-
-  /* CHECKBOX HISTORIAL */
   .chk-historial { width: 20px; height: 20px; cursor: pointer; accent-color: var(--rojo); flex-shrink: 0; margin-right: 8px;}
 
-  /* VACÍO */
   .vacio { text-align: center; padding: 60px 24px; color: var(--texto-secundario); font-size: 15px; font-weight: 500; background: var(--tarjeta-bg); border: 1px dashed #CBD5E1; border-radius: 8px; }
   .vacio-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
 
   /* TOAST */
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--texto); color: #FFFFFF; padding: 14px 24px; border-radius: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--texto); color: #FFFFFF; padding: 14px 24px; border-radius: 6px; font-family: var(--font-cond); font-size: 16px; font-weight: 700; letter-spacing: 1px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
   .toast.visible { transform: translateY(0); opacity: 1; }
   .toast.success { border-left: 4px solid var(--verde); }
   .toast.warning { border-left: 4px solid var(--amarillo); }
 
-  /* ESTILOS PARA EL PDF PROFESIONAL */
+  /* PDF CONTAINER Y LOGIN */
   #pdf-container { position: fixed; top: -9999px; left: -9999px; } 
-  .planilla-preview { width: 800px; background: white; color: #000; padding: 40px; font-family: 'Barlow', sans-serif; box-sizing: border-box; }
-  
-  .pdf-header { border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: nowrap; gap: 20px; }
-  .pdf-titulo-institucion { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; color: #CC2200; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
-  .pdf-domicilio { font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px; }
-  .pdf-tipo-planilla { font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px; letter-spacing: 0.5px; }
-  .pdf-num-planilla { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: #CC2200; line-height: 1; white-space: nowrap; text-align: right; }
-  .pdf-fecha { font-size: 12px; color: #64748B; font-weight: 600; margin-top: 4px; text-align: right; }
-  
-  .pdf-seccion { margin-bottom: 20px; }
-  .pdf-seccion-titulo { background-color: #F1F5F9; border-left: 4px solid #CC2200; padding: 6px 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1E293B; margin-bottom: 10px; }
-  
-  .pdf-tabla-datos { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1; }
-  .pdf-tabla-datos td { padding: 8px 10px; border: 1px solid #CBD5E1; vertical-align: middle; }
-  .pdf-tabla-datos td.lbl { background-color: #F8FAFC; font-weight: 700; color: #475569; width: 20%; font-size: 12px; text-transform: uppercase; }
-  
-  .pdf-tabla-unidades { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1; text-align: left;}
-  .pdf-tabla-unidades th { background-color: #E2E8F0; color: #1E293B; padding: 8px 10px; font-weight: 700; border: 1px solid #CBD5E1; text-transform: uppercase; font-size: 12px;}
-  .pdf-tabla-unidades td { padding: 8px 10px; border: 1px solid #CBD5E1; vertical-align: top; }
-  
-  .pdf-informe-box { border: 1px solid #CBD5E1; padding: 15px; font-size: 13px; line-height: 1.5; color: #1E293B; background-color: #FAFAFA; white-space: pre-wrap; min-height: 80px;}
-  
-  .pdf-firmas { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; text-align: center; }
-  .pdf-firma-linea { border-top: 1px solid #000; padding-top: 8px; font-size: 13px; font-weight: 600; color: #1E293B; }
-
-  /* PANTALLA DE LOGIN */
   .login-overlay { position: fixed; inset: 0; background: var(--fondo); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s; }
   .login-overlay.oculto { opacity: 0; pointer-events: none; }
   .login-box { background: var(--tarjeta-bg); padding: 40px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 5px solid var(--rojo); }
-  .login-box h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: var(--texto); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .login-box h2 { font-family: var(--font-cond); font-size: 28px; font-weight: 800; color: var(--texto); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
   .login-box input { width: 100%; padding: 14px; font-size: 16px; margin-bottom: 16px; border: 1px solid var(--borde); border-radius: 4px; text-align: center; font-weight: 600; letter-spacing: 2px;}
-  .login-box button { width: 100%; background: var(--rojo); color: white; padding: 14px; font-size: 18px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(204,34,0,0.2); }
+  .login-box button { width: 100%; background: var(--rojo); color: white; padding: 14px; font-size: 18px; font-weight: 700; font-family: var(--font-cond); border: none; border-radius: 4px; cursor: pointer; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(204,34,0,0.2); }
   .login-error { color: var(--rojo-vivo); font-size: 14px; margin-top: 12px; font-weight: 700; min-height: 20px;}
 
   @media (max-width: 600px) {
@@ -340,13 +271,11 @@
   }
 
   /* =========================================
-     MODO PANTALLA COMPLETA (TV 16:9) - VÍA CSS CLASS (PESTAÑA NUEVA)
+     MODO PANTALLA COMPLETA (TV 16:9)
      ========================================= */
   body.modo-monitor header, body.modo-monitor nav, body.modo-monitor .btn-salir-fs { display: none !important; }
   body.modo-monitor main { padding: 0; max-width: none; }
-  body.modo-monitor #hud-guardia {
-    background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
-  }
+  body.modo-monitor #hud-guardia { background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
   body.modo-monitor #hud-guardia > div:not(.hud-pantalla) { display: none !important; }
   body.modo-monitor .hud-pantalla { background: transparent; box-shadow: none; padding: 0; flex: 1; display: flex; flex-direction: column; }
   body.modo-monitor .hud-reloj { font-size: 10vh; margin-bottom: 3vh; }
@@ -359,10 +288,7 @@
   body.modo-monitor .hud-bombero { font-size: 2.8vh; padding: 1.2vh 2vh; }
   body.modo-monitor .hud-tarea-tag { font-size: 2.5vh; padding: 1.5vh 2vh; margin-bottom: 1.5vh; }
 
-  /* MODO PANTALLA COMPLETA NATIVO (F11 fallback) */
-  #hud-guardia:fullscreen {
-    background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden;
-  }
+  #hud-guardia:fullscreen { background-color: #0f172a; padding: 3vh 3vw; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
   #hud-guardia:fullscreen > div:not(.hud-pantalla):not(.btn-salir-fs) { display: none !important; }
   #hud-guardia:fullscreen .hud-pantalla { background: transparent; box-shadow: none; padding: 0; flex: 1; display: flex; flex-direction: column; }
   #hud-guardia:fullscreen .hud-reloj { font-size: 10vh; margin-bottom: 3vh; }
@@ -374,10 +300,9 @@
   #hud-guardia:fullscreen .hud-movil-tiempo { font-size: 3vh; margin-top: 1.5vh; color: #fbbf24; }
   #hud-guardia:fullscreen .hud-bombero { font-size: 2.8vh; padding: 1.2vh 2vh; }
   #hud-guardia:fullscreen .hud-tarea-tag { font-size: 2.5vh; padding: 1.5vh 2vh; margin-bottom: 1.5vh; }
+  
   .btn-salir-fs { display: none; }
-  #hud-guardia:fullscreen .btn-salir-fs {
-    display: flex; align-items: center; gap: 8px; position: absolute; top: 3vh; right: 3vw; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.2); padding: 1vh 1.5vw; font-family: 'Barlow Condensed', sans-serif; font-size: 2.5vh; font-weight: 700; text-transform: uppercase; border-radius: 6px; cursor: pointer; z-index: 100; transition: all 0.2s;
-  }
+  #hud-guardia:fullscreen .btn-salir-fs { display: flex; align-items: center; gap: 8px; position: absolute; top: 3vh; right: 3vw; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.2); padding: 1vh 1.5vw; font-family: var(--font-cond); font-size: 2.5vh; font-weight: 700; text-transform: uppercase; border-radius: 6px; cursor: pointer; z-index: 100; transition: all 0.2s; }
   #hud-guardia:fullscreen .btn-salir-fs:hover { background: var(--rojo-vivo); color: white; border-color: var(--rojo-vivo); }
 </style>
 </head>
@@ -420,7 +345,6 @@
 </nav>
 
 <main>
-
   <div id="dashboard" class="seccion visible">
     <div id="alertas-dashboard"></div>
 
@@ -467,15 +391,12 @@
   <div id="historial" class="seccion">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--borde); padding-bottom: 8px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
       <div class="titulo-seccion" id="historial-titulo-texto" style="border:none; margin:0; padding:0;">Historial de Salidas</div>
-      <div style="display:flex; gap:10px; flex-wrap: wrap;">
+      <div style="display:flex; gap:10px; flex-wrap: wrap; align-items: center;">
+        <input type="text" id="buscador-historial" placeholder="🔍 Buscar por N° o Domicilio..." oninput="renderHistorial()" style="padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #CBD5E1; font-family: var(--font-main);">
         <button class="btn-sm btn-rojo" onclick="borrarSeleccionadosHistorial()">🗑 Borrar Seleccionados</button>
         <button class="btn-sm btn-gris" onclick="generarBackupPDF()">💾 Guardar Backup (PDF)</button>
         <button class="btn-sm btn-verde" onclick="exportarExcelGeneral()">📊 Exportar a Excel</button>
       </div>
-    </div>
-    
-    <div style="margin-bottom: 16px;">
-        <input type="text" id="historial-search" placeholder="🔍 Buscar por N° de intervención o domicilio..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--borde);" onkeyup="renderHistorial()">
     </div>
     <div id="historial-lista"></div>
   </div>
@@ -496,20 +417,11 @@
       </div>
 
       <div id="vest-panel-carga" style="display:none; background:#F8FAFC; padding:20px; border:1px solid var(--borde); border-radius:6px; margin-bottom:24px;">
-          <h4 style="margin-bottom:12px; color:var(--texto); font-family:'Barlow Condensed', sans-serif; font-size:18px;">Cargar Nueva Prenda</h4>
+          <h4 style="margin-bottom:12px; color:var(--texto); font-family:var(--font-cond); font-size:18px;">Cargar Nueva Prenda</h4>
           <div class="form-grid">
-              <div class="form-grupo">
-                  <label>Prenda / Indumentaria</label>
-                  <input type="text" id="vest-prenda" placeholder="Ej: Chaqueta Estructural, Casco">
-              </div>
-              <div class="form-grupo">
-                  <label>Talle</label>
-                  <input type="text" id="vest-talle" placeholder="Ej: L, 42, Único">
-              </div>
-              <div class="form-grupo">
-                  <label>Marca</label>
-                  <input type="text" id="vest-marca" placeholder="Ej: Rosenbauer">
-              </div>
+              <div class="form-grupo"><label>Prenda / Indumentaria</label><input type="text" id="vest-prenda" placeholder="Ej: Chaqueta Estructural, Casco"></div>
+              <div class="form-grupo"><label>Talle</label><input type="text" id="vest-talle" placeholder="Ej: L, 42, Único"></div>
+              <div class="form-grupo"><label>Marca</label><input type="text" id="vest-marca" placeholder="Ej: Rosenbauer"></div>
               <div class="form-grupo">
                   <label>Estado Inicial</label>
                   <select id="vest-estado">
@@ -543,7 +455,7 @@
     <div class="config-form">
       <div class="form-grupo" style="flex:2; margin-bottom:0">
         <label>Identificación del Móvil</label>
-        <input type="text" id="veh-nombre" placeholder="Ej: AU-1 — Autobomba Nueva">
+        <input type="text" id="veh-nombre" placeholder="Ej: AU-10 — Autobomba Nueva">
       </div>
       <div class="form-grupo" style="flex:1; margin-bottom:0">
         <label>KM Inicial</label>
@@ -575,9 +487,10 @@
     </div>
     <div class="config-list" id="lista-rangos-config" style="margin-bottom: 40px;"></div>
 
+
     <div class="titulo-seccion">Administrar Personal</div>
     <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Ordená a los bomberos usando las flechas o asignales el DNI correspondiente. También podés borrarlos definitivamente si fueron cargados por error.</p>
-    <div class="config-form">
+    <div class="config-form" style="align-items: flex-end;">
       <div class="form-grupo" style="flex:1; margin-bottom:0">
         <label>Apellido y Nombre</label>
         <input type="text" id="conf-per-nombre" placeholder="Ej: Pérez, Juan">
@@ -591,15 +504,15 @@
         <input type="text" id="conf-per-dni" placeholder="Sin puntos">
       </div>
       <div class="form-grupo" style="flex:1; margin-bottom:0">
-        <label>Casco (TV)</label>
+        <label>Color Monitor</label>
         <select id="conf-per-color">
-            <option value="blanco">Blanco</option>
-            <option value="amarillo">Amarillo</option>
-            <option value="rojo">Rojo</option>
+          <option value="#f8fafc">Blanco</option>
+          <option value="#fbbf24">Amarillo</option>
+          <option value="#ef4444">Rojo</option>
         </select>
       </div>
-      <div class="form-grupo" style="flex:0; margin-bottom:0; justify-content:center; white-space:nowrap;">
-        <label><input type="checkbox" id="conf-per-chofer"> Es Chofer</label>
+      <div class="form-grupo" style="margin-bottom:0; padding-bottom: 12px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="conf-per-chofer" style="width:16px; height:16px;"> Es Chofer</label>
       </div>
       <button class="btn-sm btn-verde" style="padding:12px 20px;" onclick="agregarPersonal()">Agregar</button>
     </div>
@@ -662,8 +575,42 @@
     </div>
 
   </div>
-
 </main>
+
+<div class="modal-overlay" id="modal-redirigir">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" style="color:var(--amarillo)">🔄 Redirigir a otro Siniestro</span>
+      <button class="modal-cerrar" onclick="cerrarModalRedirigir()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="red-id-inter">
+      <input type="hidden" id="red-id-movil">
+      <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px;">El móvil finalizará su labor en la intervención actual (marcando la hora y KM) e iniciará una nueva salida automáticamente desde ese lugar.</p>
+      <div class="form-grupo full">
+        <label>Kilometraje de Cierre y Apertura (Actual del móvil)</label>
+        <input type="number" id="red-km">
+      </div>
+      <div class="form-grupo full">
+        <label>Nuevo Tipo de Siniestro</label>
+        <input type="text" id="red-tipo" list="dl-tipos-red" autocomplete="off" placeholder="Ej: Incendio Estructural">
+        <datalist id="dl-tipos-red"></datalist>
+      </div>
+      <div class="form-grupo full">
+        <label>Nuevo Domicilio a dirigirse</label>
+        <input type="text" id="red-domicilio" placeholder="Ej: San Martín y Belgrano">
+      </div>
+      <div class="form-grupo full" style="background:#FFF3CD; padding:12px; border:1px solid #FDE68A; border-radius:4px; margin-top:10px;">
+        <label style="color:#92400E">Tu DNI (Para autorizar esta redirección)</label>
+        <input type="text" id="red-dni" placeholder="Sin puntos">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModalRedirigir()">Cancelar</button>
+      <button class="btn-guardar btn-guardar-amarillo" onclick="guardarRedireccion()">Confirmar Redirección</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-notificacion">
   <div class="modal">
@@ -894,7 +841,7 @@
     <div class="modal-footer">
       <button class="btn-cancelar" onclick="cerrarModalFinalizar()">Cancelar</button>
       <button class="btn-cancelar" onclick="guardarFinalizacion(false)" style="background: #E2E8F0; color: #1E293B; font-weight: bold; border: 1px solid #CBD5E1;">Solo Finalizar</button>
-      <button class="btn-guardar btn-azul" id="btn-guardar-finalizar" onclick="guardarFinalizacion(true)">Finalizar y Descargar PDF</button>
+      <button class="btn-guardar btn-azul" onclick="guardarFinalizacion(true)">Finalizar y Descargar PDF</button>
     </div>
   </div>
 </div>
@@ -971,10 +918,14 @@ const firebaseConfig = {
     measurementId: "G-ZD4WB2D28D"
 };
 
+// Inicializar la aplicación de Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const dbRef = db.ref('sistema_bvrc_data');
 
+// =====================
+// VARIABLES GLOBALES (Ahora sincronizadas con la nube)
+// =====================
 let credenciales = [];
 let mensajes = [];
 let rangos = [];
@@ -988,9 +939,14 @@ let idCounter = 1;
 let usuarioActual = null;
 const DNI_MAESTRO = '41483152';
 
+// =====================
+// ESCUCHADOR EN TIEMPO REAL (El corazón del sistema)
+// =====================
 dbRef.on('value', (snapshot) => {
     const dataNube = snapshot.val();
+
     if (dataNube) {
+        // Si hay datos en Firebase, los descargamos a la memoria
         credenciales = dataNube.credenciales || [];
         mensajes = dataNube.mensajes || [];
         rangos = dataNube.rangos || [];
@@ -1001,10 +957,12 @@ dbRef.on('value', (snapshot) => {
         intervenciones = dataNube.intervenciones || [];
         idCounter = dataNube.idCounter || 1;
     } else {
+        // Si la base está totalmente vacía (primera vez), cargamos la estructura base
         inicializarDatosPorDefecto();
         guardarDatos();
     }
 
+    // Refrescar automáticamente las pantallas si el usuario ya inició sesión o es el monitor
     const seccionVisible = document.querySelector('.seccion.visible');
     if (seccionVisible || document.body.classList.contains('modo-monitor')) {
         if (seccionVisible && seccionVisible.id === 'dashboard') renderDashboard();
@@ -1017,14 +975,17 @@ dbRef.on('value', (snapshot) => {
         if (seccionVisible && seccionVisible.id === 'vehiculos') renderVehiculos();
         if (seccionVisible && seccionVisible.id === 'configuracion') renderConfiguracion();
 
+        // Modo monitor TV
         if (document.body.classList.contains('modo-monitor')) renderHudGuardia();
         
+        // Actualizar datos dentro del modal de despacho si está abierto
         if (document.getElementById('modal-movil').classList.contains('visible')) {
             actualizarVistaPersonal();
         }
     }
 });
 
+// Guardar datos ahora manda a la nube en lugar del disco local
 function guardarDatos() {
     dbRef.set({
         credenciales: credenciales,
@@ -1048,8 +1009,8 @@ function inicializarDatosPorDefecto() {
         { id:5, nombre: 'Aspirante', orden: 5 }
     ];
     personal = [
-        { id:1, nombre:'García, Roberto', rangoId:1, dni:'', ordenManual: 1, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorCasco: 'blanco', esChofer: false },
-        { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorCasco: 'blanco', esChofer: false }
+        { id:1, nombre:'García, Roberto', rangoId:1, dni:'', ordenManual: 1, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorMonitor: '#f8fafc', esChofer: false },
+        { id:2, nombre:'López, Sergio', rangoId:2, dni:'', ordenManual: 2, activo: true, presente: false, asistencia: [], vestuario: [], credencialesIds: [], colorMonitor: '#f8fafc', esChofer: false }
     ];
     moviles = [
         { id: 1, nombre: 'AU-1 — Autobomba 1', km: 12500, caracteristicas: '', alarmasKm: [], alarmasFecha: [], historialMantenimiento: [], fichasMantenimiento: [] },
@@ -1059,6 +1020,9 @@ function inicializarDatosPorDefecto() {
     motivosNoEmerg = [{ id: 1, nombre: 'Carga de combustible' }, { id: 2, nombre: 'Taller mecánico' }, { id: 3, nombre: 'Capacitación' }];
 }
 
+// =====================
+// FUNCIONALIDAD PESTAÑA MONITOR (TV MODE)
+// =====================
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('monitor') === 'true') {
@@ -1069,17 +1033,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function abrirMonitorNuevaPestana() { window.open(window.location.pathname + '?monitor=true', '_blank'); }
-
-function activarPantallaTV() {
-  const monitor = document.getElementById('hud-guardia');
-  if (!document.fullscreenElement) {
-    if (monitor.requestFullscreen) monitor.requestFullscreen();
-    else if (monitor.webkitRequestFullscreen) monitor.webkitRequestFullscreen();
-    else if (monitor.msRequestFullscreen) monitor.msRequestFullscreen();
-  }
+function abrirMonitorNuevaPestana() {
+  window.open(window.location.pathname + '?monitor=true', '_blank');
 }
 
+// Reloj interno solo visual
 setInterval(() => {
   if(document.getElementById('hud-guardia') && document.getElementById('hud-guardia').classList.contains('visible')) {
       const ahora = new Date();
@@ -1098,6 +1056,9 @@ function getOrdenRango(rangoId) {
   return r ? r.orden : 999;
 }
 
+// =====================
+// SISTEMA DE SESIONES
+// =====================
 function iniciarSesion() {
   const dni = document.getElementById('login-dni').value.trim().replace(/\./g, '');
   const errorDiv = document.getElementById('login-error');
@@ -1105,7 +1066,12 @@ function iniciarSesion() {
   if (!dni) return errorDiv.textContent = 'Por favor, ingrese un DNI.';
 
   if (dni === DNI_MAESTRO) {
-    usuarioActual = { nombre: 'USUARIO MAESTRO', isMaster: true, permisos: ['dashboard', 'hud-guardia', 'historial', 'personal-sec', 'vestuario-sec', 'estadisticas', 'vehiculos', 'mensajes-sec', 'configuracion'], dni: DNI_MAESTRO };
+    usuarioActual = { 
+      nombre: 'USUARIO MAESTRO', 
+      isMaster: true, 
+      permisos: ['dashboard', 'hud-guardia', 'historial', 'personal-sec', 'vestuario-sec', 'estadisticas', 'vehiculos', 'mensajes-sec', 'configuracion'], 
+      dni: DNI_MAESTRO 
+    };
     procesarIngreso();
     return;
   }
@@ -1124,7 +1090,14 @@ function iniciarSesion() {
   if(!permisosUsuario.includes('mensajes-sec')) permisosUsuario.push('mensajes-sec');
   if(!permisosUsuario.includes('hud-guardia')) permisosUsuario.push('hud-guardia');
 
-  usuarioActual = { nombre: p.nombre, isMaster: false, permisos: permisosUsuario, personalId: p.id, dni: p.dni, credencialesIds: p.credencialesIds };
+  usuarioActual = { 
+    nombre: p.nombre, 
+    isMaster: false, 
+    permisos: permisosUsuario, 
+    personalId: p.id, 
+    dni: p.dni, 
+    credencialesIds: p.credencialesIds 
+  };
   procesarIngreso();
 }
 
@@ -1165,24 +1138,14 @@ function procesarIngreso() {
   `;
 
   const primerBotonVisible = Array.from(navBtns).find(b => b.style.display !== 'none');
-  if (primerBotonVisible) primerBotonVisible.click();
+  if (primerBotonVisible) {
+      primerBotonVisible.click();
+  }
 }
 
-function puedeEditarInforme(intervencion) {
-    if (!usuarioActual) return false;
-    if (usuarioActual.isMaster) return true;
-    let puede = false;
-    intervencion.moviles.forEach(m => {
-        m.personal.forEach(p => {
-            if (p.id === usuarioActual.personalId) {
-                let r = p.rol.toLowerCase();
-                if (r === 'encargado' || r === 'chofer y encargado') puede = true;
-            }
-        });
-    });
-    return puede;
-}
-
+// =====================
+// FUNCIONES MAESTRAS (CREDENCIALES)
+// =====================
 function agregarCredencial() {
   const nombre = document.getElementById('conf-cred-nombre').value.trim();
   const checkboxes = document.querySelectorAll('#conf-cred-permisos input:checked');
@@ -1225,13 +1188,19 @@ function asignarCredencialPersonal(idPersonal) {
   
   if (respuesta !== null) {
     const valores = respuesta.split(',').map(x => parseInt(x.trim()));
-    if (valores.includes(0)) p.credencialesIds = [];
-    else p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
+    if (valores.includes(0)) {
+       p.credencialesIds = [];
+    } else {
+       p.credencialesIds = valores.filter(v => credenciales.some(c => c.id === v));
+    }
     guardarDatos();
     mostrarToast('✓ Accesos actualizados', 'success');
   }
 }
 
+// =====================
+// TASKLIST Y MENSAJERÍA
+// =====================
 function toggleNotifDest() {
   const tipo = document.getElementById('notif-tipo-dest').value;
   document.getElementById('div-notif-grupo').style.display = tipo === 'grupo' ? 'flex' : 'none';
@@ -1255,10 +1224,13 @@ function abrirModalNotificacion() {
   document.getElementById('notif-texto').value = '';
   document.getElementById('notif-tipo-dest').value = 'grupo';
   toggleNotifDest();
+  
   document.getElementById('modal-notificacion').classList.add('visible');
 }
 
-function cerrarModalNotificacion() { document.getElementById('modal-notificacion').classList.remove('visible'); }
+function cerrarModalNotificacion() {
+  document.getElementById('modal-notificacion').classList.remove('visible');
+}
 
 function enviarNotificacion() {
   const tipo = document.getElementById('notif-tipo-dest').value;
@@ -1278,10 +1250,16 @@ function enviarNotificacion() {
   }
   
   const nuevoMensaje = {
-    id: Date.now(), remitente: usuarioActual.nombre, remitenteDni: usuarioActual.dni,
-    credencialDestinoId: credId ? parseInt(credId) : null, destinatariosIds: destinatariosIds,
-    texto: texto, fechaEnvio: new Date().toLocaleString('es-AR'), estado: 'pendiente', 
-    fechaProgramada: '', realizadoPor: null
+    id: Date.now(),
+    remitente: usuarioActual.nombre,
+    remitenteDni: usuarioActual.dni,
+    credencialDestinoId: credId ? parseInt(credId) : null,
+    destinatariosIds: destinatariosIds,
+    texto: texto,
+    fechaEnvio: new Date().toLocaleString('es-AR'),
+    estado: 'pendiente', 
+    fechaProgramada: '', 
+    realizadoPor: null
   };
 
   mensajes.push(nuevoMensaje);
@@ -1295,6 +1273,7 @@ function renderNotificaciones() {
     document.getElementById('panel-notificaciones').style.display = 'none';
     return;
   }
+  
   const panel = document.getElementById('panel-notificaciones');
   const lista = document.getElementById('lista-notificaciones');
   
@@ -1314,7 +1293,9 @@ function renderNotificaciones() {
     let isRealizada = m.estado === 'realizada';
     let bg = isRealizada ? '#F1F5F9' : '#FFFFFF';
     let border = isRealizada ? 'var(--borde)' : 'var(--amarillo)';
-    let tagDestino = m.destinatariosIds && m.destinatariosIds.length > 0 ? `<span style="background:var(--rojo-vivo); color:white; padding:2px 6px; border-radius:4px; font-size:10px;">MENSAJE DIRECTO</span>` : '';
+    
+    let tagDestino = m.destinatariosIds && m.destinatariosIds.length > 0 ? 
+      `<span style="background:var(--rojo-vivo); color:white; padding:2px 6px; border-radius:4px; font-size:10px;">MENSAJE DIRECTO</span>` : '';
 
     return `
     <div class="notif-card" style="background: ${bg}; border-left-color: ${border}; opacity: ${isRealizada ? '0.7' : '1'}">
@@ -1323,6 +1304,7 @@ function renderNotificaciones() {
         <span>Enviado el ${m.fechaEnvio}</span>
       </div>
       <div class="notif-texto">${m.texto}</div>
+      
       <div class="notif-actions" style="background:#F8FAFC; padding:10px; border-radius:4px; border:1px solid #E2E8F0; margin-top:10px;">
         ${!isRealizada ? `
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%;">
@@ -1360,15 +1342,19 @@ function marcarTareaRealizada(id) {
     m.estado = 'realizada';
     m.realizadoPor = usuarioActual.nombre;
     guardarDatos();
-    mostrarToast('✓ Tarea completada', 'success');
+    mostrarToast('✓ Tarea marcada como completada', 'success');
   }
 }
 
 function renderMensajesEnviados() {
   if(!usuarioActual) return;
   const lista = document.getElementById('lista-mensajes-enviados');
+  
   let misEnviados = mensajes.filter(m => m.remitenteDni === usuarioActual.dni).reverse();
-  if(usuarioActual.isMaster) misEnviados = [...mensajes].reverse();
+  
+  if(usuarioActual.isMaster) {
+     misEnviados = [...mensajes].reverse();
+  }
 
   if(misEnviados.length === 0) {
     lista.innerHTML = '<div class="vacio"><div class="vacio-icon">📭</div>No enviaste ninguna tarea a los grupos todavía.</div>';
@@ -1377,15 +1363,19 @@ function renderMensajesEnviados() {
 
   lista.innerHTML = misEnviados.map(m => {
     let destText = '';
-    if (m.destinatariosIds && m.destinatariosIds.length > 0) destText = `Personal: ${m.destinatariosIds.length} seleccionado/s`;
-    else {
+    if (m.destinatariosIds && m.destinatariosIds.length > 0) {
+      destText = `Personal: ${m.destinatariosIds.length} seleccionado/s`;
+    } else {
       const cred = credenciales.find(c => c.id === parseInt(m.credencialDestinoId));
       destText = cred ? `Grupo: ${cred.nombre}` : 'Grupo Eliminado';
     }
     
     let estadoBadge = '';
     if(m.estado === 'pendiente') estadoBadge = `<span style="background:var(--amarillo); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PENDIENTE</span>`;
-    else if(m.estado === 'programada') estadoBadge = `<span style="background:var(--azul); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PROGRAMADA: ${m.fechaProgramada.replace('T', ' ')}</span>`;
+    else if(m.estado === 'programada') {
+        let fp = m.fechaProgramada.replace('T', ' ');
+        estadoBadge = `<span style="background:var(--azul); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">PROGRAMADA: ${fp}</span>`;
+    }
     else if(m.estado === 'realizada') estadoBadge = `<span style="background:var(--verde); color:#FFF; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">REALIZADA por ${m.realizadoPor}</span>`;
 
     return `
@@ -1409,6 +1399,9 @@ function borrarMensajeEnviado(id) {
    guardarDatos();
 }
 
+// =====================
+// RENDER HUD DE GUARDIA (TV MODE)
+// =====================
 function renderHudGuardia() {
   const activas = intervenciones.filter(i => i.estado !== 'finalizada');
   let movilesAfuera = [];
@@ -1436,19 +1429,19 @@ function renderHudGuardia() {
   if(movilesAfuera.length === 0) {
     htmlMoviles = '<div style="color:#64748b; font-size:20px; font-style:italic; padding: 20px;">Todos los móviles en base. Ninguna salida activa.</div>';
   } else {
-    htmlMoviles = movilesAfuera.map(m => `
-      <div class="hud-movil-item">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="hud-movil-nombre">🚒 ${m.movil}</div>
-          <div style="text-align:right;">
-             <div class="hud-movil-tiempo">SALIÓ: ${m.horaSalida}</div>
-             ${m.horaLlegada && m.horaLlegada !== '-' ? `<div class="hud-movil-tiempo" style="color:#10b981; margin-top:4px;">LLEGÓ: ${m.horaLlegada}</div>` : ''}
+    htmlMoviles = movilesAfuera.map(m => {
+      let llegadaTag = (m.horaLlegada && m.horaLlegada !== '-') ? `<span style="color:#38bdf8; margin-left:16px;">📍 LLEGÓ: ${m.horaLlegada}</span>` : '';
+      return `
+        <div class="hud-movil-item">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="hud-movil-nombre">🚒 ${m.movil}</div>
+            <div class="hud-movil-tiempo">SALIÓ: ${m.horaSalida} ${llegadaTag}</div>
           </div>
+          <div class="hud-movil-dest">📍 ${m.domicilio} <span style="color:#fbbf24; margin-left:8px;">[${m.siniestro}]</span></div>
+          <div style="color:#94a3b8; font-size:16px; margin-top:8px; text-transform:uppercase; font-weight:600;">A cargo: ${m.autorizador}</div>
         </div>
-        <div class="hud-movil-dest">📍 ${m.domicilio} <span style="color:#fbbf24; margin-left:8px;">[${m.siniestro}]</span></div>
-        <div style="color:#94a3b8; font-size:16px; margin-top:8px; text-transform:uppercase; font-weight:600;">A cargo: ${m.autorizador}</div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   let htmlPresentes = '';
@@ -1459,13 +1452,9 @@ function renderHudGuardia() {
     htmlPresentes = `
       <div class="hud-personal-grid">
         ${ordenados.map(p => {
-            let colorBg = '#334155';
-            let colorText = '#f8fafc';
-            if (p.colorCasco === 'amarillo') { colorBg = '#eab308'; colorText = '#000'; }
-            if (p.colorCasco === 'rojo') { colorBg = '#ef4444'; colorText = '#fff'; }
-            if (p.colorCasco === 'blanco') { colorBg = '#f8fafc'; colorText = '#000'; }
-            let choferTag = p.esChofer ? ' (C)' : '';
-            return `<div class="hud-bombero" style="background:${colorBg}; color:${colorText}">${p.nombre}${choferTag}</div>`;
+          const color = p.colorMonitor || '#f8fafc';
+          const choferTag = p.esChofer ? ' <strong style="color:var(--rojo-vivo); font-weight:800;">(C)</strong>' : '';
+          return `<div class="hud-bombero" style="color:${color}; border-color:${color};">${p.nombre}${choferTag}</div>`;
         }).join('')}
       </div>
     `;
@@ -1513,14 +1502,25 @@ function renderHudGuardia() {
   }
 }
 
+// =====================
+// RELOJ
+// =====================
 function actualizarReloj() {
   const ahora = new Date();
-  const horaTexto = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
-  if(document.getElementById('reloj')) document.getElementById('reloj').textContent = horaTexto;
+  const horaTexto = String(ahora.getHours()).padStart(2,'0') + ':' +
+                    String(ahora.getMinutes()).padStart(2,'0') + ':' +
+                    String(ahora.getSeconds()).padStart(2,'0');
+  
+  if(document.getElementById('reloj')) {
+    document.getElementById('reloj').textContent = horaTexto;
+  }
 }
 setInterval(actualizarReloj, 1000);
 actualizarReloj();
 
+// =====================
+// NAVEGACIÓN
+// =====================
 function mostrarSeccion(id, btn) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('visible'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('activo'));
@@ -1538,6 +1538,9 @@ function mostrarSeccion(id, btn) {
   if (id === 'configuracion') renderConfiguracion();
 }
 
+// =====================
+// RENDER DASHBOARD & ALERTAS
+// =====================
 function renderDashboard() {
   renderNotificaciones(); 
 
@@ -1565,7 +1568,9 @@ function renderDashboard() {
 
   moviles.forEach(m => {
     m.alarmasKm?.forEach(a => {
-      if (m.km >= a.limite) alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
+      if (m.km >= a.limite) {
+        alertasVencidas.push(`⚠️ <strong>${m.nombre}</strong>: ${a.desc} (Límite: ${a.limite} km — Actual: ${m.km} km)`);
+      }
     });
     m.alarmasFecha?.forEach(a => {
       if (hoyStr >= a.fecha) {
@@ -1577,7 +1582,10 @@ function renderDashboard() {
 
   const bannerAlertas = document.getElementById('alertas-dashboard');
   if (alertasVencidas.length > 0) {
-    bannerAlertas.innerHTML = `<h3>🚨 ATENCIÓN: ALERTAS DE MANTENIMIENTO</h3><ul>${alertasVencidas.map(al => `<li>${al}</li>`).join('')}</ul>`;
+    bannerAlertas.innerHTML = `
+      <h3>🚨 ATENCIÓN: ALERTAS DE MANTENIMIENTO</h3>
+      <ul>${alertasVencidas.map(al => `<li>${al}</li>`).join('')}</ul>
+    `;
     bannerAlertas.classList.add('visible');
   } else {
     bannerAlertas.classList.remove('visible');
@@ -1608,7 +1616,7 @@ function renderDashboard() {
 
       let btnLlegada = (!m.horaLlegada || m.horaLlegada === '-') && !m.horaRegreso ? `<button class="btn-sm btn-azul" onclick="registrarLlegadaMovil(${i.id}, ${m.idMovil})">📍 Llegó al lugar</button>` : '';
       let btnRegreso = !m.horaRegreso ? `<button class="btn-sm btn-verde" onclick="registrarRegresoMovil(${i.id}, ${m.idMovil})">✓ Regresó a base</button>` : '';
-      let btnRedespacho = !m.horaRegreso ? `<button class="btn-sm btn-amarillo" onclick="iniciarRedespacho(${i.id}, ${m.idMovil})">🔄 Desviar a otro siniestro</button>` : '';
+      let btnRedirigir = !m.horaRegreso ? `<button class="btn-sm btn-amarillo" onclick="abrirModalRedirigir(${i.id}, ${m.idMovil})">🔄 Redirigir a otro siniestro</button>` : '';
 
       return `
         <div class="unidad-item">
@@ -1621,8 +1629,8 @@ function renderDashboard() {
             <div class="unidad-tiempos">
               ${tiemposHtml}
               ${btnLlegada}
+              ${btnRedirigir}
               ${btnRegreso}
-              ${btnRedespacho}
             </div>
           </div>
         </div>
@@ -1660,8 +1668,11 @@ function renderDashboard() {
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             ${infoPrincipalHtml}
           </div>
+          
           <div class="unidades-lista">${movilesHtml}</div>
+          
           ${i.clave11 && i.clave11.length > 0 ? `<div style="margin-top:16px; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--amarillo)">PERSONAL CLAVE 11:</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${pClave11}</div>` : ''}
+          
           <div class="inter-acciones-bottom">
             ${i.esEmergencia ? `<button class="btn-sm btn-rojo" onclick="abrirModalApoyo(${i.id})">＋ Sumar Unidad de Apoyo</button>
                                 <button class="btn-sm btn-amarillo" onclick="abrirModalClave11(${i.id})">🔔 Cargar Clave 11</button>` : ''}
@@ -1674,19 +1685,17 @@ function renderDashboard() {
   }).join('');
 }
 
+// =====================
+// RENDER HISTORIAL Y BORRAR
+// =====================
 function renderHistorial() {
-  const searchTerm = (document.getElementById('historial-search')?.value || '').toLowerCase();
+  const searchVal = (document.getElementById('buscador-historial')?.value || '').toLowerCase();
+  let cerradas = [...intervenciones].filter(i => i.estado === 'finalizada').reverse();
   
-  let cerradas = [...intervenciones].filter(i => i.estado === 'finalizada');
-  
-  if (searchTerm) {
-    cerradas = cerradas.filter(i => 
-      i.id.toString().includes(searchTerm) || 
-      (i.domicilio && i.domicilio.toLowerCase().includes(searchTerm))
-    );
+  if (searchVal) {
+    cerradas = cerradas.filter(i => String(i.id).includes(searchVal) || (i.domicilio && i.domicilio.toLowerCase().includes(searchVal)));
   }
-  
-  cerradas = cerradas.reverse();
+
   const emergenciasCount = cerradas.filter(i => i.esEmergencia).length;
   const noEmergenciasCount = cerradas.filter(i => !i.esEmergencia).length;
   
@@ -1694,7 +1703,7 @@ function renderHistorial() {
 
   const lista = document.getElementById('historial-lista');
   if (cerradas.length === 0) {
-    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>No se encontraron salidas en el historial.</div>`;
+    lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📋</div>No hay salidas finalizadas que coincidan con la búsqueda.</div>`;
     return;
   }
   
@@ -1737,7 +1746,9 @@ function borrarSeleccionadosHistorial() {
     intervenciones = intervenciones.filter(i => !seleccionados.includes(i.id));
     
     intervenciones.sort((a,b) => new Date(a.horaAlarma) - new Date(b.horaAlarma)); 
-    intervenciones.forEach((inter, index) => inter.id = index + 1);
+    intervenciones.forEach((inter, index) => {
+      inter.id = index + 1;
+    });
     idCounter = intervenciones.length + 1;
 
     guardarDatos();
@@ -1747,6 +1758,9 @@ function borrarSeleccionadosHistorial() {
   }
 }
 
+// =====================
+// GESTIÓN DE VESTUARIO
+// =====================
 function renderVestuario() {
   const sel = document.getElementById('vest-bombero');
   sel.innerHTML = '<option value="">Elegí un bombero...</option>';
@@ -1839,11 +1853,20 @@ function agregarPrenda() {
 
   if (!p.vestuario) p.vestuario = [];
   
-  const nuevaPrenda = { id: Date.now(), prenda, talle, marca, estado, prestamoDetalle: null };
+  const nuevaPrenda = {
+      id: Date.now(),
+      prenda, talle, marca, estado,
+      prestamoDetalle: null
+  };
 
   if (estado === 'prestado') {
       if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para autorizar un préstamo', 'warning');
-      nuevaPrenda.prestamoDetalle = { fechaPrestamo: new Date().toLocaleString('es-AR'), autorizaPrestamo: usuarioActual.nombre, fechaDevolucion: null, autorizaDevolucion: null };
+      nuevaPrenda.prestamoDetalle = {
+          fechaPrestamo: new Date().toLocaleString('es-AR'),
+          autorizaPrestamo: usuarioActual.nombre,
+          fechaDevolucion: null,
+          autorizaDevolucion: null
+      };
   }
 
   p.vestuario.push(nuevaPrenda);
@@ -1853,6 +1876,7 @@ function agregarPrenda() {
   document.getElementById('vest-talle').value = '';
   document.getElementById('vest-marca').value = '';
   document.getElementById('vest-estado').value = 'en posesión';
+  
   mostrarToast('✓ Prenda y talle guardados', 'success');
 }
 
@@ -1865,17 +1889,26 @@ function cambiarEstadoPrenda(idPersonal, idPrenda, nuevoEstado) {
   if (nuevoEstado === 'prestado') {
       if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para autorizar un préstamo', 'warning');
       v.estado = 'prestado';
-      v.prestamoDetalle = { fechaPrestamo: new Date().toLocaleString('es-AR'), autorizaPrestamo: usuarioActual.nombre, fechaDevolucion: null, autorizaDevolucion: null };
+      v.prestamoDetalle = {
+          fechaPrestamo: new Date().toLocaleString('es-AR'),
+          autorizaPrestamo: usuarioActual.nombre,
+          fechaDevolucion: null,
+          autorizaDevolucion: null
+      };
   } else {
       v.estado = nuevoEstado;
-      if (v.prestamoDetalle && nuevoEstado === 'en posesión') v.prestamoDetalle = null;
+      if (v.prestamoDetalle && nuevoEstado === 'en posesión') {
+          v.prestamoDetalle = null;
+      }
   }
+
   guardarDatos();
   mostrarToast('✓ Estado de la prenda actualizado', 'success');
 }
 
 function devolverPrenda(idPersonal, idPrenda) {
   if (!usuarioActual) return mostrarToast('⚠ Tenés que haber iniciado sesión para firmar la devolución', 'warning');
+  
   const p = personal.find(x => x.id === idPersonal);
   if (!p) return;
   const v = p.vestuario.find(x => x.id === idPrenda);
@@ -1884,6 +1917,7 @@ function devolverPrenda(idPersonal, idPrenda) {
   if (confirm(`¿Confirmás que recibís la prenda de vuelta? Va a quedar registrado tu nombre (${usuarioActual.nombre}) como receptor en el historial.`)) {
       v.estado = 'en posesión';
       v.prestamoDetalle = null; 
+      
       guardarDatos();
       mostrarToast('✓ Devolución registrada correctamente', 'success');
   }
@@ -1893,22 +1927,29 @@ function borrarPrenda(idPersonal, idPrenda) {
   if (!confirm('¿Seguro que querés borrar este ítem del vestuario de este bombero?')) return;
   const p = personal.find(x => x.id === idPersonal);
   if (!p) return;
+  
   p.vestuario = p.vestuario.filter(x => x.id !== idPrenda);
   guardarDatos();
   mostrarToast('✓ Prenda borrada', 'success');
 }
 
+// =====================
+// RENDER ESTADÍSTICAS BOMBERO
+// =====================
 let chartPartInstance = null;
 let chartRolesInstance = null;
 
 function renderSelectorEstadisticas() {
   const sel = document.getElementById('est-bombero');
   sel.innerHTML = '<option value="">Elegí un bombero...</option>';
+  
   const personalOrdenado = [...personal].sort((a, b) => {
-    let oA = getOrdenRango(a.rangoId); let oB = getOrdenRango(b.rangoId);
+    let oA = getOrdenRango(a.rangoId);
+    let oB = getOrdenRango(b.rangoId);
     if (oA === oB) return a.nombre.localeCompare(b.nombre);
     return oA - oB;
   });
+
   personalOrdenado.forEach(p => {
     sel.appendChild(new Option(`${p.nombre} (${getNombreRango(p.rangoId)})`, p.id));
   });
@@ -1923,7 +1964,11 @@ function formatearMilisegundosAHom(totalMs) {
 function renderEstadisticasBombero() {
   const idBombero = parseInt(document.getElementById('est-bombero').value);
   const resultados = document.getElementById('est-resultados');
-  if (!idBombero || isNaN(idBombero)) { resultados.innerHTML = ''; return; }
+  
+  if (!idBombero || isNaN(idBombero)) {
+    resultados.innerHTML = '';
+    return;
+  }
 
   const p = personal.find(x => x.id === idBombero);
   if (!p) return;
@@ -1947,30 +1992,51 @@ function renderEstadisticasBombero() {
     }
   });
 
-  let htmlMeses = Object.keys(horasPorMes).map(mes => `<div class="mes-card"><div class="mes-nombre">${mes}</div><div class="mes-horas">${formatearMilisegundosAHom(horasPorMes[mes])}</div></div>`).join('');
+  let htmlMeses = Object.keys(horasPorMes).map(mes => {
+    return `<div class="mes-card">
+              <div class="mes-nombre">${mes}</div>
+              <div class="mes-horas">${formatearMilisegundosAHom(horasPorMes[mes])}</div>
+            </div>`;
+  }).join('');
+  
   if(htmlMeses === '') htmlMeses = `<div style="font-size:13px; color:var(--texto-secundario); grid-column: 1/-1;">Sin registros de guardia aún.</div>`;
 
   let totalSalidasCuartel = intervenciones.length;
-  let cantSalio = 0, cantEnCuartel = 0, cantAusente = 0;
+  let cantSalio = 0;
+  let cantEnCuartel = 0;
+  let cantAusente = 0;
+
   let rolesCount = {};
   let salidasParticipo = [];
 
   intervenciones.forEach(inter => {
-    let rolBase = null, rolDesc = null;
+    let rolBase = null;
+    let rolDesc = null;
+    
     inter.moviles.forEach(m => {
       const pObj = m.personal.find(bp => bp.id === idBombero);
-      if (pObj) { rolBase = pObj.rol; rolDesc = `${pObj.rol} en ${m.nombre.split('—')[0].trim()}`; }
+      if (pObj) {
+        rolBase = pObj.rol;
+        rolDesc = `${pObj.rol} en ${m.nombre.split('—')[0].trim()}`;
+      }
     });
     
     if (!rolBase && inter.clave11 && inter.clave11.includes(idBombero)) {
-      rolBase = 'Clave 11'; rolDesc = 'Clave 11';
+      rolBase = 'Clave 11';
+      rolDesc = 'Clave 11';
     }
 
     if (rolBase) {
       cantSalio++;
       rolesCount[rolBase] = (rolesCount[rolBase] || 0) + 1;
+      
       let fechaFormat = inter.fecha || inter.horaAlarma.split(' ')[0];
-      salidasParticipo.push({ id: inter.id, fecha: fechaFormat, tipo: inter.tipo, rol: rolDesc });
+      salidasParticipo.push({
+        id: inter.id,
+        fecha: fechaFormat,
+        tipo: inter.tipo,
+        rol: rolDesc
+      });
     } else if (inter.personalPresenteSnapshot && inter.personalPresenteSnapshot.includes(idBombero)) {
       cantEnCuartel++;
     } else {
@@ -1978,8 +2044,18 @@ function renderEstadisticasBombero() {
     }
   });
 
-  let filasHtml = salidasParticipo.map(s => `<tr><td>${s.id}</td><td>${s.fecha}</td><td>${s.tipo}</td><td><strong>${s.rol}</strong></td></tr>`).join('');
-  if (salidasParticipo.length === 0) filasHtml = `<tr><td colspan="4" style="text-align:center; color:var(--texto-secundario); padding:20px;">No participó en ninguna salida.</td></tr>`;
+  let filasHtml = salidasParticipo.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.fecha}</td>
+      <td>${s.tipo}</td>
+      <td><strong>${s.rol}</strong></td>
+    </tr>
+  `).join('');
+
+  if (salidasParticipo.length === 0) {
+    filasHtml = `<tr><td colspan="4" style="text-align:center; color:var(--texto-secundario); padding:20px;">No participó en ninguna salida.</td></tr>`;
+  }
 
   resultados.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
@@ -1987,6 +2063,7 @@ function renderEstadisticasBombero() {
       <div style="font-size:14px; font-weight:700; color:var(--texto);">Total Histórico: <span style="color:var(--verde);">${formatearMilisegundosAHom(totalMsGeneral)}</span></div>
     </div>
     <div class="mes-grid">${htmlMeses}</div>
+
     <div class="charts-grid">
       <div class="chart-box">
         <div class="chart-title">Nivel de Participación</div>
@@ -1999,10 +2076,15 @@ function renderEstadisticasBombero() {
         <p style="text-align:center; font-size:12px; color:#666; margin-top:10px;">Sobre las ${cantSalio} salidas a las que asistió.</p>
       </div>
     </div>
+    
     <div class="titulo-seccion">Detalle de Salidas Asistidas</div>
     <table class="tabla-est">
-      <thead><tr><th>N°</th><th>Fecha</th><th>Siniestro / Motivo</th><th>Rol Asignado</th></tr></thead>
-      <tbody>${filasHtml}</tbody>
+      <thead>
+        <tr><th>N°</th><th>Fecha</th><th>Siniestro / Motivo</th><th>Rol Asignado</th></tr>
+      </thead>
+      <tbody>
+        ${filasHtml}
+      </tbody>
     </table>
   `;
 
@@ -2013,23 +2095,44 @@ function renderEstadisticasBombero() {
     const ctxPart = document.getElementById('chartPart').getContext('2d');
     chartPartInstance = new Chart(ctxPart, {
       type: 'pie',
-      data: { labels: ['Asistió al Siniestro', 'Se quedó en Cuartel', 'Ausente'], datasets: [{ data: [cantSalio, cantEnCuartel, cantAusente], backgroundColor: ['#CC2200', '#007BFF', '#E2E8F0'], borderWidth: 1 }] },
+      data: {
+        labels: ['Asistió al Siniestro', 'Se quedó en Cuartel', 'Ausente'],
+        datasets: [{
+          data: [cantSalio, cantEnCuartel, cantAusente],
+          backgroundColor: ['#CC2200', '#007BFF', '#E2E8F0'],
+          borderWidth: 1
+        }]
+      },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 
     const ctxRoles = document.getElementById('chartRoles').getContext('2d');
     const labelsRoles = Object.keys(rolesCount);
     const dataRoles = Object.values(rolesCount);
-    if(labelsRoles.length === 0) { labelsRoles.push('Sin salidas'); dataRoles.push(1); }
+    
+    if(labelsRoles.length === 0) {
+      labelsRoles.push('Sin salidas');
+      dataRoles.push(1);
+    }
 
     chartRolesInstance = new Chart(ctxRoles, {
       type: 'pie',
-      data: { labels: labelsRoles, datasets: [{ data: dataRoles, backgroundColor: ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#F43F5E', '#06B6D4'], borderWidth: 1 }] },
+      data: {
+        labels: labelsRoles,
+        datasets: [{
+          data: dataRoles,
+          backgroundColor: ['#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#F43F5E', '#06B6D4'],
+          borderWidth: 1
+        }]
+      },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
   }, 50);
 }
 
+// =====================
+// RENDER PERSONAL PANEL E INTERACCIÓN
+// =====================
 function toggleBajaPersonal(id, darBaja) {
   const p = personal.find(x => x.id === id);
   if(p) {
@@ -2044,13 +2147,18 @@ function togglePresenciaPersonal(id, isPresente) {
   const p = personal.find(x => x.id === id);
   if (p) {
     p.presente = isPresente;
+    
     const ahora = new Date().getTime();
     if (!p.asistencia) p.asistencia = [];
 
-    if (isPresente) p.asistencia.push({ ingreso: ahora, egreso: null });
-    else {
+    if (isPresente) {
+      p.asistencia.push({ ingreso: ahora, egreso: null });
+    } else {
       for (let i = p.asistencia.length - 1; i >= 0; i--) {
-        if (p.asistencia[i].egreso === null) { p.asistencia[i].egreso = ahora; break; }
+        if (p.asistencia[i].egreso === null) {
+          p.asistencia[i].egreso = ahora;
+          break;
+        }
       }
     }
     guardarDatos();
@@ -2061,11 +2169,14 @@ function renderPersonalPanel() {
   const activas = intervenciones.filter(i => i.estado !== 'finalizada');
   const personalFuera = new Set();
   activas.forEach(i => {
-    i.moviles.forEach(m => { if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id)); });
+    i.moviles.forEach(m => {
+      if (!m.horaRegreso) m.personal.forEach(pObj => personalFuera.add(pObj.id));
+    });
   });
 
   const personalOrdenado = [...personal].sort((a, b) => {
-    let oA = getOrdenRango(a.rangoId); let oB = getOrdenRango(b.rangoId);
+    let oA = getOrdenRango(a.rangoId);
+    let oB = getOrdenRango(b.rangoId);
     if (oA === oB) return a.nombre.localeCompare(b.nombre);
     return oA - oB;
   });
@@ -2076,40 +2187,73 @@ function renderPersonalPanel() {
     const inactivo = p.activo === false;
     const presente = p.presente === true;
     
-    let estadoTxt = '', colorClase = '', dotClase = '';
-    if (inactivo) { estadoTxt = '● INACTIVO / BAJA'; colorClase = 'var(--texto-secundario)'; dotClase = 'inactivo'; }
-    else if (fuera) { estadoTxt = '● EN INTERVENCIÓN'; colorClase = 'var(--rojo-vivo)'; dotClase = 'en-intervencion'; }
-    else if (presente) { estadoTxt = '● PRESENTE EN CUARTEL'; colorClase = 'var(--verde)'; dotClase = ''; }
-    else { estadoTxt = '● AUSENTE'; colorClase = 'var(--amarillo)'; dotClase = 'no-presente'; }
+    let estadoTxt = '';
+    let colorClase = '';
+    let dotClase = '';
+    
+    if (inactivo) {
+      estadoTxt = '● INACTIVO / BAJA';
+      colorClase = 'var(--texto-secundario)';
+      dotClase = 'inactivo';
+    } else if (fuera) {
+      estadoTxt = '● EN INTERVENCIÓN';
+      colorClase = 'var(--rojo-vivo)';
+      dotClase = 'en-intervencion';
+    } else if (presente) {
+      estadoTxt = '● PRESENTE EN CUARTEL';
+      colorClase = 'var(--verde)';
+      dotClase = '';
+    } else {
+      estadoTxt = '● AUSENTE';
+      colorClase = 'var(--amarillo)';
+      dotClase = 'no-presente';
+    }
 
     return `
       <div class="personal-card ${inactivo ? 'baja' : ''}">
         <div class="personal-card-info">
           <div class="nombre">${p.nombre}</div>
           <div class="rango">${getNombreRango(p.rangoId)}</div>
-          <div style="font-size:12px; font-weight:600; margin-top:6px; color:${colorClase}">${estadoTxt}</div>
+          <div style="font-size:12px; font-weight:600; margin-top:6px; color:${colorClase}">
+            ${estadoTxt}
+          </div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <div class="dot ${dotClase}"></div>
-          ${!inactivo && !fuera ? `<label class="chk-baja-label"><input type="checkbox" class="chk-baja" onchange="togglePresenciaPersonal(${p.id}, this.checked)" ${presente ? 'checked' : ''}>PRESENTE</label>` : ''}
-          <label class="chk-baja-label" style="margin-top:${(!inactivo && !fuera) ? '4px' : '20px'};"><input type="checkbox" class="chk-baja" onchange="toggleBajaPersonal(${p.id}, this.checked)" ${inactivo ? 'checked' : ''}>BAJA</label>
+          ${!inactivo && !fuera ? `
+            <label class="chk-baja-label">
+              <input type="checkbox" class="chk-baja" onchange="togglePresenciaPersonal(${p.id}, this.checked)" ${presente ? 'checked' : ''}>
+              PRESENTE
+            </label>
+          ` : ''}
+          <label class="chk-baja-label" style="margin-top:${(!inactivo && !fuera) ? '4px' : '20px'};">
+            <input type="checkbox" class="chk-baja" onchange="toggleBajaPersonal(${p.id}, this.checked)" ${inactivo ? 'checked' : ''}>
+            BAJA
+          </label>
         </div>
       </div>
     `;
   }).join('');
 }
 
+// =====================
+// RENDER VEHÍCULOS Y MANTENIMIENTO
+// =====================
 function renderVehiculos() {
   const sel = document.getElementById('veh-selector');
   if (!sel) return;
+
   const idSeleccionado = sel.value;
 
   sel.innerHTML = '<option value="">Elegí un vehículo...</option>';
   moviles.forEach(m => {
     const opt = new Option(`${m.nombre} (KM: ${m.km})`, m.id);
-    if (m.id.toString() === idSeleccionado) opt.selected = true;
+    if (m.id.toString() === idSeleccionado) {
+      opt.selected = true;
+    }
     sel.appendChild(opt);
   });
+
   renderVehiculoSeleccionado();
 }
 
@@ -2132,7 +2276,8 @@ function renderVehiculoSeleccionado() {
       <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
         <span>⚙️ ${a.desc} <br><small style="color:var(--texto-secundario)">Avisar a los: ${a.limite} km</small></span>
         <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'km', ${aIndex})">✕</button>
-      </div>`;
+      </div>
+    `;
   }).join('');
 
   const alarmasFechaHtml = (m.alarmasFecha || []).map((a, aIndex) => {
@@ -2143,7 +2288,8 @@ function renderVehiculoSeleccionado() {
       <div class="alarma-item ${vencida ? 'alarma-vencida' : ''}">
         <span>📅 ${a.desc} <br><small style="color:var(--texto-secundario)">Vence: ${fechaFormat}</small></span>
         <button class="btn-order" onclick="eliminarAlarmaMovil(${m.id}, 'fecha', ${aIndex})">✕</button>
-      </div>`;
+      </div>
+    `;
   }).join('');
 
   const historialMantHtml = (m.historialMantenimiento || []).map((h, hIndex) => {
@@ -2152,7 +2298,8 @@ function renderVehiculoSeleccionado() {
       <div class="alarma-item" style="background: #F8FAFC; border-color: #CBD5E1;">
         <span>🛠 <strong>${fFormat}</strong> (A los ${h.km} km)<br><small style="color:var(--texto-secundario)">${h.detalle} ${h.costo ? `| 💰 ${h.costo}` : ''}</small></span>
         <button class="btn-order" onclick="eliminarMantenimiento(${m.id}, ${hIndex})">✕</button>
-      </div>`;
+      </div>
+    `;
   }).join('');
 
   const fichasHtml = (m.fichasMantenimiento || []).map(f => `
@@ -2174,6 +2321,7 @@ function renderVehiculoSeleccionado() {
         </div>
         <button class="btn-sm btn-rojo" onclick="eliminarMovil(${mIndex})">Borrar Móvil</button>
       </div>
+      
       <div class="vehiculo-desc">
         <strong>Características Técnicas:</strong><br>
         ${m.caracteristicas ? m.caracteristicas.replace(/\n/g, '<br>') : '<i style="color:#94A3B8">Sin características cargadas...</i>'}
@@ -2182,6 +2330,7 @@ function renderVehiculoSeleccionado() {
            <button class="btn-sm btn-gris" onclick="editarCaracteristicasMovil(${m.id})">Editar Info</button>
         </div>
       </div>
+
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Ficha de Novedades y Mantenimiento</div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -2192,51 +2341,68 @@ function renderVehiculoSeleccionado() {
           ${fichasHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay anotaciones registradas en la ficha.</div>'}
         </div>
       </div>
+
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Alarmas por Kilometraje (Mecánica) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'km')">＋ Nueva</button></div>
         <div class="alarma-lista">
           ${alarmasKmHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de km configuradas.</div>'}
         </div>
       </div>
+
       <div class="alarma-seccion" style="margin-top:20px;">
         <div class="alarma-titulo">Alarmas por Fecha (Vencimientos) <button class="btn-sm btn-verde" style="padding:4px 8px; font-size:10px;" onclick="abrirModalAlarma(${m.id}, 'fecha')">＋ Nueva</button></div>
         <div class="alarma-lista">
           ${alarmasFechaHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay alertas de fecha configuradas.</div>'}
         </div>
       </div>
+
       <div class="alarma-seccion" style="margin-top:20px; border-top: 1px solid var(--borde); padding-top: 16px;">
         <div class="alarma-titulo">Historial de Reparaciones Mayores <button class="btn-sm btn-azul" style="padding:4px 8px; font-size:10px;" onclick="abrirModalMantenimiento(${m.id}, ${m.km})">＋ Cargar Arreglo</button></div>
         <div class="alarma-lista" style="max-height: 200px; overflow-y: auto;">
           ${historialMantHtml || '<div style="font-size:12px; color:var(--texto-secundario); font-style:italic;">No hay arreglos registrados en esta unidad.</div>'}
         </div>
       </div>
+
     </div>
   `;
 }
 
 function agregarAnotacionFicha(idMovil) {
   if (!usuarioActual) return mostrarToast('⚠ Tenés que iniciar sesión para que la anotación quede firmada a tu nombre.', 'warning');
+
   const input = document.getElementById(`ficha-texto-${idMovil}`);
   const texto = input.value.trim();
+
   if (!texto) return mostrarToast('⚠ Escribí la anotación antes de guardar.', 'warning');
 
   const m = moviles.find(x => x.id === idMovil);
   if (!m) return;
+
   if (!m.fichasMantenimiento) m.fichasMantenimiento = [];
 
-  m.fichasMantenimiento.push({ id: Date.now(), texto: texto, autor: usuarioActual.nombre, fecha: new Date().toLocaleString('es-AR') });
+  m.fichasMantenimiento.push({
+    id: Date.now(),
+    texto: texto,
+    autor: usuarioActual.nombre,
+    fecha: new Date().toLocaleString('es-AR')
+  });
+
   m.fichasMantenimiento.sort((a, b) => b.id - a.id);
 
   guardarDatos(); 
+  
   mostrarToast('✓ Anotación guardada y firmada', 'success');
 }
 
 function eliminarAnotacionFicha(idMovil, idFicha) {
   const password = prompt('Para eliminar esta anotación del registro, ingresá la palabra BORRAR en mayúsculas:');
+  
   if (password === 'BORRAR') {
     const m = moviles.find(x => x.id === idMovil);
     if (!m || !m.fichasMantenimiento) return;
+
     m.fichasMantenimiento = m.fichasMantenimiento.filter(f => f.id !== idFicha);
+    
     guardarDatos();
     mostrarToast('✓ Anotación eliminada correctamente', 'success');
   } else if (password !== null) {
@@ -2287,6 +2453,7 @@ function editarCaracteristicasMovil(id) {
   }
 }
 
+// LOGICA MODAL ALARMAS
 function abrirModalAlarma(idMovil, tipoPorDefecto) {
   document.getElementById('al-id-movil').value = idMovil;
   document.getElementById('al-tipo').value = tipoPorDefecto;
@@ -2297,7 +2464,9 @@ function abrirModalAlarma(idMovil, tipoPorDefecto) {
   document.getElementById('modal-alarma').classList.add('visible');
 }
 
-function cerrarModalAlarma() { document.getElementById('modal-alarma').classList.remove('visible'); }
+function cerrarModalAlarma() {
+  document.getElementById('modal-alarma').classList.remove('visible');
+}
 
 function cambiarTipoAlarma() {
   const tipo = document.getElementById('al-tipo').value;
@@ -2346,9 +2515,11 @@ function eliminarAlarmaMovil(idMovil, tipo, indexAlarma) {
   
   if (tipo === 'km') m.alarmasKm.splice(indexAlarma, 1);
   else m.alarmasFecha.splice(indexAlarma, 1);
+
   guardarDatos();
 }
 
+// LOGICA HISTORIAL MANTENIMIENTO
 function abrirModalMantenimiento(idMovil, kmActual) {
   document.getElementById('mant-id-movil').value = idMovil;
   document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
@@ -2358,7 +2529,9 @@ function abrirModalMantenimiento(idMovil, kmActual) {
   document.getElementById('modal-mantenimiento').classList.add('visible');
 }
 
-function cerrarModalMantenimiento() { document.getElementById('modal-mantenimiento').classList.remove('visible'); }
+function cerrarModalMantenimiento() {
+  document.getElementById('modal-mantenimiento').classList.remove('visible');
+}
 
 function guardarMantenimiento() {
   const idMovil = parseInt(document.getElementById('mant-id-movil').value);
@@ -2385,8 +2558,22 @@ function eliminarMantenimiento(idMovil, index) {
   if(!confirm('¿Seguro que querés borrar este registro de mantenimiento?')) return;
   const m = moviles.find(x => x.id === idMovil);
   if(!m || !m.historialMantenimiento) return;
+
   m.historialMantenimiento.splice(index, 1);
   guardarDatos();
+}
+
+// =====================
+// RENDER CONFIGURACIÓN GRAL
+// =====================
+function toggleChoferPersonal(id) {
+  const p = personal.find(x => x.id === id);
+  if(p) { p.esChofer = !p.esChofer; guardarDatos(); renderConfiguracion(); }
+}
+
+function cambiarColorPersonal(id, color) {
+  const p = personal.find(x => x.id === id);
+  if(p) { p.colorMonitor = color; guardarDatos(); renderConfiguracion(); }
 }
 
 function renderConfiguracion() {
@@ -2412,10 +2599,18 @@ function renderConfiguracion() {
   document.getElementById('lista-personal-config').innerHTML = personal.map((p, i) => `
     <div class="config-item ${p.activo === false ? 'baja' : ''}">
       <div class="config-item-info">
-        <span class="config-item-title">${p.nombre} ${p.esChofer ? '(C)' : ''}</span>
-        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'} | Casco Monitor: ${p.colorCasco ? p.colorCasco.toUpperCase() : 'BLANCO'}</span>
+        <span class="config-item-title">${p.nombre}</span>
+        <span class="config-item-sub">${getNombreRango(p.rangoId)} ${p.activo === false ? '(BAJA)' : ''} | DNI: ${p.dni || 'Sin cargar'}</span>
       </div>
-      <div style="display:flex; align-items:center; gap: 10px;">
+      <div style="display:flex; align-items:center; flex-wrap:wrap; gap: 10px;">
+        <div style="display:flex; align-items:center; gap: 8px; margin-right: 12px;">
+           <select class="btn-sm btn-gris" onchange="cambiarColorPersonal(${p.id}, this.value)" style="padding:4px; height:26px;">
+             <option value="#f8fafc" ${p.colorMonitor==='#f8fafc'||!p.colorMonitor?'selected':''}>Blanco</option>
+             <option value="#fbbf24" ${p.colorMonitor==='#fbbf24'?'selected':''}>Amarillo</option>
+             <option value="#ef4444" ${p.colorMonitor==='#ef4444'?'selected':''}>Rojo</option>
+           </select>
+           <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" onchange="toggleChoferPersonal(${p.id})" ${p.esChofer?'checked':''}> (C)</label>
+        </div>
         <div class="order-controls" style="margin-right:0;">
           <button class="btn-order" onclick="moverPersonal(${p.id}, -1)" ${i===0?'disabled style="opacity:0.3"':''}>▲</button>
           <button class="btn-order" onclick="moverPersonal(${p.id}, 1)" ${i===personal.length-1?'disabled style="opacity:0.3"':''}>▼</button>
@@ -2440,18 +2635,21 @@ function renderConfiguracion() {
       <button class="btn-sm btn-rojo" onclick="eliminarMotivo(${index})">Borrar</button>
     </div>
   `).join('');
-  
-  document.getElementById('lista-credenciales-config').innerHTML = credenciales.map(c => `
-    <div class="config-item" style="border-left: 4px solid var(--amarillo);">
-      <div class="config-item-info">
-        <span class="config-item-title">${c.nombre}</span>
-        <span class="config-item-sub">Permisos: ${c.permisos.join(', ')}</span>
+
+  if (document.getElementById('lista-credenciales-config')) {
+    document.getElementById('lista-credenciales-config').innerHTML = credenciales.map(c => `
+      <div class="config-item">
+        <div class="config-item-info">
+          <span class="config-item-title">${c.nombre}</span>
+          <span class="config-item-sub">Permisos: ${c.permisos.join(', ')}</span>
+        </div>
+        <button class="btn-sm btn-rojo" onclick="eliminarCredencial(${c.id})">Borrar</button>
       </div>
-      <button class="btn-sm btn-rojo" onclick="eliminarCredencial(${c.id})">Borrar</button>
-    </div>
-  `).join('');
+    `).join('');
+  }
 }
 
+// Lógica Rangos
 function agregarRango() {
   const nombre = document.getElementById('conf-rango-nombre').value.trim();
   if (!nombre) return;
@@ -2479,24 +2677,24 @@ function eliminarRango(id) {
   mostrarToast('✓ Rango borrado', 'success');
 }
 
+// Lógica Personal
 function agregarPersonal() {
   const nombre = document.getElementById('conf-per-nombre').value.trim();
   const rangoId = parseInt(document.getElementById('conf-per-rango').value);
   const dni = document.getElementById('conf-per-dni').value.trim().replace(/\./g, '');
-  const colorCasco = document.getElementById('conf-per-color').value;
+  const colorMonitor = document.getElementById('conf-per-color').value;
   const esChofer = document.getElementById('conf-per-chofer').checked;
-  
+
   if (!nombre || isNaN(rangoId)) return mostrarToast('⚠ Ingresá el nombre', 'warning');
   const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
   const nuevoOrden = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
-  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [], colorCasco, esChofer });
+  personal.push({ id: nuevoId, nombre, rangoId, dni, ordenManual: nuevoOrden, activo: true, presente: false, asistencia: [], credencialesIds: [], vestuario: [], colorMonitor, esChofer });
   guardarDatos();
   document.getElementById('conf-per-nombre').value = '';
   document.getElementById('conf-per-dni').value = '';
-  document.getElementById('conf-per-color').value = 'blanco';
-  document.getElementById('conf-per-chofer').checked = false;
   mostrarToast('✓ Personal agregado', 'success');
 }
+
 function moverPersonal(id, direccion) {
   const index = personal.findIndex(p => p.id === id);
   if (index < 0) return;
@@ -2508,6 +2706,7 @@ function moverPersonal(id, direccion) {
   personal.sort((a, b) => a.ordenManual - b.ordenManual);
   guardarDatos(); 
 }
+
 function editarDniPersonal(id) {
   const p = personal.find(x => x.id === id);
   if(!p) return;
@@ -2518,8 +2717,10 @@ function editarDniPersonal(id) {
     mostrarToast('✓ DNI actualizado', 'success');
   }
 }
+
 function eliminarPersonalDefinitivo(id) {
   if(!confirm('⚠️ ATENCIÓN: Borrar a un bombero definitivamente hará que desaparezca de los historiales y planillas viejas donde haya participado.\n\nSi solo querés que no salga más para despachar, andá a la pestaña "Personal" y marcalo como "BAJA".\n\n¿Estás completamente seguro de querer ELIMINARLO PARA SIEMPRE?')) return;
+  
   const password = prompt('Ingresá la palabra BORRAR en mayúsculas para confirmar la eliminación definitiva:');
   if (password === 'BORRAR') {
     personal = personal.filter(p => p.id !== id);
@@ -2530,6 +2731,7 @@ function eliminarPersonalDefinitivo(id) {
   }
 }
 
+// Lógica Tipos Emergencia
 function agregarTipoEmergencia() {
   const nombre = document.getElementById('conf-tipo-nombre').value.trim();
   if (!nombre) return mostrarToast('⚠ Completá el tipo', 'warning');
@@ -2545,6 +2747,7 @@ function eliminarTipoEmergencia(index) {
   mostrarToast('✓ Tipo eliminado', 'success');
 }
 
+// Lógica Motivos No Emergencia
 function agregarMotivo() {
   const nombre = document.getElementById('conf-motivo-nombre').value.trim();
   if (!nombre) return mostrarToast('⚠ Completá el motivo', 'warning');
@@ -2561,8 +2764,22 @@ function eliminarMotivo(index) {
   mostrarToast('✓ Motivo eliminado', 'success');
 }
 
+// =====================
+// BACKUP IMPORT / EXPORT (Ahora usando los datos en memoria en lugar de localStorage)
+// =====================
 function exportarBackup() {
-  const backup = { credenciales, mensajes, rangos, personal, moviles, tiposEmergencia, motivosNoEmerg, intervenciones, idCounter };
+  const backup = {
+    credenciales: credenciales,
+    mensajes: mensajes,
+    rangos: rangos,
+    personal: personal,
+    moviles: moviles,
+    tiposEmergencia: tiposEmergencia,
+    motivosNoEmerg: motivosNoEmerg,
+    intervenciones: intervenciones,
+    idCounter: idCounter
+  };
+  
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
   const downloadNode = document.createElement('a');
   downloadNode.setAttribute("href", dataStr);
@@ -2576,20 +2793,30 @@ function exportarBackup() {
 function importarBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
+  
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
       if (confirm('⚠️ ATENCIÓN: Esto subirá los datos del archivo a Firebase y reemplazará la base de datos para todos los usuarios conectados. ¿Desea continuar?')) {
-        dbRef.set(data).then(() => { alert('✓ Datos importados a la nube correctamente.'); })
-        .catch((error) => { alert('❌ Error al subir a Firebase: ' + error.message); });
+        dbRef.set(data).then(() => {
+            alert('✓ Datos importados a la nube correctamente.');
+        }).catch((error) => {
+            alert('❌ Error al subir a Firebase: ' + error.message);
+        });
       }
-    } catch(err) { alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.'); }
+    } catch(err) {
+      alert('❌ Error al leer el archivo. Asegúrese de que sea un respaldo válido del sistema.');
+    }
     event.target.value = ''; 
   };
   reader.readAsText(file);
 }
 
+
+// =====================
+// IDENTIFICACIÓN DNI Y MODAL DESPACHOS
+// =====================
 function identificarDNI() {
   const dniInput = document.getElementById('f-dni-confeccionador').value.trim().replace(/\./g, '');
   const div = document.getElementById('dni-identidad');
@@ -2651,8 +2878,12 @@ function rellenarSelectores() {
 function actualizarVistaTipos() {
   const dl = document.getElementById('dl-tipos');
   if (dl) {
-    dl.innerHTML = tiposEmergencia.filter(t => !tiposSeleccionadosTemp.includes(t)).map(t => `<option value="${t}">`).join('');
+    dl.innerHTML = tiposEmergencia
+      .filter(t => !tiposSeleccionadosTemp.includes(t))
+      .map(t => `<option value="${t}">`)
+      .join('');
   }
+  
   const tagsContainer = document.getElementById('f-tipo-tags');
   if (tagsContainer) {
     tagsContainer.innerHTML = tiposSeleccionadosTemp.map(t => `
@@ -2667,6 +2898,7 @@ function agregarTipoIntervencion() {
   const input = document.getElementById('f-tipo-busqueda');
   const val = input.value.trim();
   if(!val) return;
+  
   const tipoEncontrado = tiposEmergencia.find(t => t.toLowerCase() === val.toLowerCase());
   if(!tipoEncontrado) return mostrarToast('⚠ Elegí un tipo válido de la lista (podés crear nuevos en Configuración).', 'warning');
   if(tiposSeleccionadosTemp.includes(tipoEncontrado)) return mostrarToast('⚠ Ese tipo ya está agregado.', 'warning');
@@ -2687,7 +2919,8 @@ function actualizarVistaPersonal() {
   
   const sel = document.getElementById('f-personal-select');
   if (sel) {
-    sel.innerHTML = '<option value="">Elegí un bombero...</option>' + disponibles.map(p => `<option value="${p.id}">${p.nombre} (${getNombreRango(p.rangoId)})</option>`).join('');
+    sel.innerHTML = '<option value="">Elegí un bombero...</option>' + 
+                    disponibles.map(p => `<option value="${p.id}">${p.nombre} (${getNombreRango(p.rangoId)})</option>`).join('');
   }
 
   const lista = document.getElementById('personal-seleccionado-lista');
@@ -2716,7 +2949,9 @@ function agregarPersonalDotacion() {
   const select = document.getElementById('f-personal-select');
   const id = parseInt(select.value);
   const rol = document.getElementById('f-personal-rol').value;
+  
   if (isNaN(id)) return mostrarToast('⚠ Primero elegí a un bombero de la lista.', 'warning');
+  
   personalSeleccionadoTemp.push({ id: id, rol: rol });
   actualizarVistaPersonal();
 }
@@ -2729,6 +2964,7 @@ function quitarPersonalDotacion(index) {
 function configurarModalBase() {
   tiposSeleccionadosTemp = [];
   personalSeleccionadoTemp = [];
+  
   rellenarSelectores();
   actualizarVistaTipos();
   actualizarVistaPersonal();
@@ -2738,12 +2974,6 @@ function configurarModalBase() {
   document.getElementById('btn-guardar-movil').disabled = true; 
   if(document.getElementById('f-tipo-busqueda')) document.getElementById('f-tipo-busqueda').value = '';
   
-  const selMovil = document.getElementById('f-movil');
-  if(selMovil) {
-      selMovil.style.pointerEvents = 'auto';
-      selMovil.style.opacity = '1';
-  }
-
   if(document.getElementById('f-autoriza')) {
     const personalPresente = personal.filter(p => p.activo !== false && p.presente === true);
     if (personalPresente.length > 0) {
@@ -2755,6 +2985,7 @@ function configurarModalBase() {
   }
   
   document.getElementById('f-jurisdiccion').value = 'Local'; 
+
   const now = new Date();
   const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   document.getElementById('f-hora-alarma').value = localISOTime;
@@ -2817,60 +3048,13 @@ function abrirModalApoyo(idIntervencion) {
   document.getElementById('modal-movil').classList.add('visible');
 }
 
-function iniciarRedespacho(idInter, idMovilInstancia) {
-  const interVieja = intervenciones.find(x => x.id === idInter);
-  if (!interVieja) return;
-  const movilViejo = interVieja.moviles.find(m => m.idMovil === idMovilInstancia);
-  if (!movilViejo) return;
-
-  const movilGlobal = moviles.find(m => m.nombre === movilViejo.nombre);
-  let kmSugerido = movilGlobal ? movilGlobal.km : 0;
-
-  const inputKm = prompt(`Estás por desviar el móvil ${movilViejo.nombre} a un NUEVO siniestro.\nIngresá el kilometraje con el que cierra su primera salida para arrancar la nueva:`, kmSugerido);
-  if (inputKm === null) return;
-  
-  const nuevoKm = parseInt(inputKm);
-  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) {
-      alert('Ingresá un kilometraje válido (mayor o igual al de salida).');
-      return;
-  }
-
-  if (movilGlobal) movilGlobal.km = nuevoKm;
-  const ahora = new Date();
-  const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
-  movilViejo.horaRegreso = horaStr;
-  
-  guardarDatos(); 
-
-  document.getElementById('f-modo').value = 'redespacho';
-  document.querySelector('.modal').classList.remove('modo-ne');
-  document.getElementById('modal-movil-titulo').innerText = '🔄 Nuevo Siniestro (Desvío de Unidad)';
-
-  document.getElementById('campo-dni').style.display = 'block';
-  document.getElementById('campos-emergencia').style.display = 'grid';
-  document.getElementById('campos-no-emergencia').style.display = 'none';
-  document.getElementById('campo-autoriza').style.display = 'block';
-  document.getElementById('campo-observaciones').style.display = 'block';
-  document.getElementById('separador-modal').style.display = 'block';
-
-  configurarModalBase();
-
-  const selMovil = document.getElementById('f-movil');
-  selMovil.value = movilViejo.nombre;
-  selMovil.style.pointerEvents = 'none';
-  selMovil.style.opacity = '0.7';
-
-  personalSeleccionadoTemp = JSON.parse(JSON.stringify(movilViejo.personal));
-  actualizarVistaPersonal();
-
-  document.getElementById('modal-movil').classList.add('visible');
+function cerrarModalMovil() {
+  document.getElementById('modal-movil').classList.remove('visible');
 }
-
-function cerrarModalMovil() { document.getElementById('modal-movil').classList.remove('visible'); }
 
 function guardarUnidad() {
   const modo = document.getElementById('f-modo').value;
-  const esEmergencia = (modo === 'nueva' || modo === 'redespacho');
+  const esEmergencia = (modo === 'nueva');
   const esRutina = (modo === 'no-emergencia');
   
   let confeccionadorNombre = '';
@@ -2882,10 +3066,12 @@ function guardarUnidad() {
     if (!dniIngresado) return mostrarToast('⚠ Ingresá tu DNI para firmar la planilla', 'warning');
     
     const bomberoEncontrado = personal.find(p => p.dni && p.dni.replace(/\./g, '') === dniIngresado && p.activo !== false);
-    if (!bomberoEncontrado) return mostrarToast('❌ DNI no registrado o inactivo. Acceso denegado.', 'warning');
-    
+    if (!bomberoEncontrado) {
+      return mostrarToast('❌ DNI no registrado o inactivo. Acceso denegado.', 'warning');
+    }
     confeccionadorNombre = bomberoEncontrado.nombre;
     confeccionadorDni = bomberoEncontrado.dni;
+    
     autorizador = document.getElementById('f-autoriza').value;
     if(!autorizador) return mostrarToast('⚠ Seleccioná quién autoriza la salida', 'warning');
   } else {
@@ -2895,9 +3081,11 @@ function guardarUnidad() {
 
   const movilName = document.getElementById('f-movil').value; 
   const horaSalida = document.getElementById('f-hora-salida').value;
+  
   if (!movilName) return mostrarToast('⚠ Seleccioná un móvil', 'warning');
 
   const personalSel = [...personalSeleccionadoTemp];
+
   const unidadObj = {
     idMovil: Date.now() + Math.random(),
     nombre: movilName.split(' (KM')[0], 
@@ -2919,6 +3107,7 @@ function guardarUnidad() {
     if (esEmergencia) {
       if(tiposSeleccionadosTemp.length === 0) return mostrarToast('⚠ Elegí al menos un tipo de intervención', 'warning');
       tipo = tiposSeleccionadosTemp.join(' + ');
+
       jurisdiccion = document.getElementById('f-jurisdiccion').value;
       horaAlarma = document.getElementById('f-hora-alarma').value;
       receptor = document.getElementById('f-receptor').value.trim();
@@ -2931,15 +3120,25 @@ function guardarUnidad() {
     }
 
     const snapshotPresentes = personal.filter(p => p.activo !== false && p.presente === true).map(p => p.id);
+
     const intervencion = {
       id: idCounter++,
-      estado: 'activa', esEmergencia: esEmergencia, jurisdiccion: jurisdiccion, tipo: tipo, 
+      estado: 'activa',
+      esEmergencia: esEmergencia,
+      jurisdiccion: jurisdiccion,
+      tipo: tipo, 
       domicilio: esEmergencia ? document.getElementById('f-domicilio').value.trim() : 'No aplica',
       horaAlarma: horaAlarma.replace('T', ' '),
       llamante: esEmergencia ? document.getElementById('f-llamante').value.trim() : '',
       telefono: esEmergencia ? document.getElementById('f-telefono').value.trim() : '',
-      receptor: receptor, confeccionador: confeccionadorNombre, confeccionadorDni: confeccionadorDni,
-      obs: obs, moviles: [unidadObj], clave11: [], personalPresenteSnapshot: snapshotPresentes, informe: '',
+      receptor: receptor,
+      confeccionador: confeccionadorNombre,
+      confeccionadorDni: confeccionadorDni,
+      obs: obs,
+      moviles: [unidadObj],
+      clave11: [],
+      personalPresenteSnapshot: snapshotPresentes,
+      informe: '',
       fecha: new Date().toLocaleDateString('es-AR')
     };
     intervenciones.push(intervencion);
@@ -2956,13 +3155,109 @@ function guardarUnidad() {
   cerrarModalMovil();
 }
 
+// =====================
+// REDIRECCIÓN DE MÓVIL EN LA CALLE
+// =====================
+function abrirModalRedirigir(idInter, idMovInst) {
+  document.getElementById('red-id-inter').value = idInter;
+  document.getElementById('red-id-movil').value = idMovInst;
+
+  const dl = document.getElementById('dl-tipos-red');
+  if (dl) dl.innerHTML = tiposEmergencia.map(t => `<option value="${t}">`).join('');
+
+  const inter = intervenciones.find(i => i.id === idInter);
+  const mov = inter.moviles.find(m => m.idMovil === idMovInst);
+  const movilGlobal = moviles.find(m => m.nombre === mov.nombre);
+  
+  document.getElementById('red-km').value = movilGlobal ? movilGlobal.km : 0;
+  document.getElementById('red-tipo').value = '';
+  document.getElementById('red-domicilio').value = '';
+  document.getElementById('red-dni').value = '';
+
+  document.getElementById('modal-redirigir').classList.add('visible');
+}
+
+function cerrarModalRedirigir() { 
+  document.getElementById('modal-redirigir').classList.remove('visible'); 
+}
+
+function guardarRedireccion() {
+  const idInter = parseInt(document.getElementById('red-id-inter').value);
+  const idMovInst = parseFloat(document.getElementById('red-id-movil').value);
+  const km = parseInt(document.getElementById('red-km').value);
+  const tipo = document.getElementById('red-tipo').value.trim();
+  const domicilio = document.getElementById('red-domicilio').value.trim();
+  const dni = document.getElementById('red-dni').value.trim().replace(/\./g, '');
+
+  if(isNaN(km)) return mostrarToast('⚠ Ingresá el kilometraje', 'warning');
+  if(!tipo || !domicilio) return mostrarToast('⚠ Completá tipo y domicilio de la nueva intervención', 'warning');
+  if(!dni) return mostrarToast('⚠ Ingresá tu DNI', 'warning');
+
+  const bombero = personal.find(p => p.dni && p.dni === dni && p.activo !== false);
+  if(!bombero) return mostrarToast('❌ DNI no válido', 'warning');
+
+  const interOld = intervenciones.find(i => i.id === idInter);
+  const movOld = interOld.moviles.find(m => m.idMovil === idMovInst);
+  const movGlobal = moviles.find(m => m.nombre === movOld.nombre);
+
+  if(movGlobal) movGlobal.km = km;
+  
+  const ahora = new Date();
+  const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  movOld.horaRegreso = horaStr; 
+
+  const nuevoMovil = {
+      idMovil: Date.now() + Math.random(),
+      nombre: movOld.nombre,
+      horaSalida: horaStr,
+      horaLlegada: null,
+      horaRegreso: null,
+      autorizador: bombero.nombre,
+      personal: [...movOld.personal]
+  };
+
+  const localISOTime = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+  const nuevaInter = {
+      id: idCounter++,
+      estado: 'activa',
+      esEmergencia: true,
+      jurisdiccion: interOld.jurisdiccion,
+      tipo: tipo,
+      domicilio: domicilio,
+      horaAlarma: localISOTime.replace('T', ' '),
+      llamante: 'REDIRECCIÓN',
+      telefono: '',
+      receptor: bombero.nombre,
+      confeccionador: bombero.nombre,
+      confeccionadorDni: bombero.dni,
+      obs: `Redirigido desde siniestro N° ${interOld.id}`,
+      moviles: [nuevoMovil],
+      clave11: [],
+      personalPresenteSnapshot: interOld.personalPresenteSnapshot,
+      informe: '',
+      fecha: new Date().toLocaleDateString('es-AR')
+  };
+
+  intervenciones.push(nuevaInter);
+  guardarDatos();
+  cerrarModalRedirigir();
+  mostrarToast('✓ Móvil redirigido a nueva intervención', 'success');
+}
+
+
+// =====================
+// TIEMPOS DE LOS MÓVILES
+// =====================
 function registrarLlegadaMovil(idInter, idMovilInstancia) {
   const inter = intervenciones.find(x => x.id === idInter);
   if(!inter) return;
   const mov = inter.moviles.find(m => m.idMovil === idMovilInstancia);
   if(!mov) return;
+
   const ahora = new Date();
   mov.horaLlegada = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  
   guardarDatos();
   mostrarToast('✓ Llegada al lugar registrada', 'success');
 }
@@ -2975,19 +3270,28 @@ function registrarRegresoMovil(idInter, idMovilInstancia) {
 
   const movilGlobal = moviles.find(m => m.nombre === mov.nombre);
   let kmSugerido = movilGlobal ? movilGlobal.km : 0;
+
   const inputKm = prompt(`Ingresá el kilometraje de llegada para el móvil ${mov.nombre}:`, kmSugerido);
   if (inputKm === null) return; 
 
   const nuevoKm = parseInt(inputKm);
-  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) { alert('Por favor ingresá un kilometraje válido (mayor o igual al de salida).'); return; }
+  if (isNaN(nuevoKm) || nuevoKm < kmSugerido) {
+    alert('Por favor ingresá un kilometraje válido (mayor o igual al de salida).');
+    return;
+  }
+
   if (movilGlobal) movilGlobal.km = nuevoKm;
 
   const ahora = new Date();
   mov.horaRegreso = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
+  
   guardarDatos();
   mostrarToast('✓ Regreso y KM registrados', 'success');
 }
 
+// =====================
+// MODAL CLAVE 11
+// =====================
 function abrirModalClave11(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
@@ -2998,6 +3302,7 @@ function abrirModalClave11(idInter) {
   
   const seleccionadosPrevios = new Set(inter.clave11 || []);
   const container = document.getElementById('personal-selector-c11');
+  
   const personalActivoYPresente = personal.filter(p => p.activo !== false && p.presente === true);
 
   if (personalActivoYPresente.length === 0 && seleccionadosPrevios.size === 0) {
@@ -3008,8 +3313,10 @@ function abrirModalClave11(idInter) {
 
   container.innerHTML = personalActivoYPresente.map(p => {
     if (personalEnMoviles.has(p.id)) return ''; 
+    
     const isChecked = seleccionadosPrevios.has(p.id) ? 'checked' : '';
     const isSelectedClass = seleccionadosPrevios.has(p.id) ? 'seleccionado-clave11' : '';
+
     return `
       <div class="personal-item ${isSelectedClass}" onclick="this.classList.toggle('seleccionado-clave11'); this.querySelector('input').checked = this.classList.contains('seleccionado-clave11');">
         <input type="checkbox" value="${p.id}" ${isChecked} tabindex="-1">
@@ -3020,6 +3327,7 @@ function abrirModalClave11(idInter) {
       </div>
     `;
   }).join('');
+
   document.getElementById('modal-clave11').classList.add('visible');
 }
 
@@ -3029,16 +3337,31 @@ function guardarClave11() {
   const id = parseInt(document.getElementById('c11-id-inter').value);
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
+
   const checkboxes = document.querySelectorAll('#personal-selector-c11 input[type=checkbox]:checked');
   inter.clave11 = Array.from(checkboxes).map(c => parseInt(c.value));
+  
   guardarDatos();
   cerrarModalClave11();
   mostrarToast('✓ Clave 11 actualizada', 'success');
 }
 
+// =====================
+// FINALIZAR E INFORME (DASHBOARD)
+// =====================
 function abrirModalFinalizar(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
+
+  if (usuarioActual && !usuarioActual.isMaster) {
+    const soyEncargado = inter.moviles.some(m =>
+      m.personal.some(p => p.id === usuarioActual.personalId && (p.rol.toLowerCase() === 'encargado' || p.rol.toLowerCase() === 'chofer y encargado'))
+    );
+    if (!soyEncargado) {
+      mostrarToast('⚠ Solo el Encargado o Chofer y Encargado de esta intervención pueden redactar su informe.', 'warning');
+      return;
+    }
+  }
   
   const faltanVolver = inter.moviles.some(m => !m.horaRegreso);
   if(faltanVolver) {
@@ -3046,22 +3369,7 @@ function abrirModalFinalizar(idInter) {
   }
 
   document.getElementById('fin-id-inter').value = idInter;
-  
-  const txtInforme = document.getElementById('fin-informe');
-  const btnGuardarFinalizar = document.getElementById('btn-guardar-finalizar');
-  
-  if (!puedeEditarInforme(inter)) {
-      txtInforme.disabled = true;
-      txtInforme.value = '';
-      txtInforme.placeholder = "Solo el Encargado de dotación o Chofer y encargado pueden redactar el informe.\nPodés 'Solo Finalizar' la salida para cerrarla administrativamente y que la completen luego desde el Historial.";
-      btnGuardarFinalizar.style.display = 'none'; 
-  } else {
-      txtInforme.disabled = false;
-      txtInforme.value = inter.informe || '';
-      txtInforme.placeholder = "Detalles de las tareas realizadas...";
-      btnGuardarFinalizar.style.display = 'inline-block';
-  }
-
+  document.getElementById('fin-informe').value = inter.informe || '';
   document.getElementById('modal-finalizar').classList.add('visible');
 }
 
@@ -3072,11 +3380,9 @@ function guardarFinalizacion(descargarPdf = true) {
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
 
-  if (puedeEditarInforme(inter)) {
-      inter.informe = document.getElementById('fin-informe').value.trim();
-  }
-  
+  inter.informe = document.getElementById('fin-informe').value.trim();
   inter.estado = 'finalizada';
+  
   const ahora = new Date();
   const horaStr = String(ahora.getHours()).padStart(2,'0')+':'+String(ahora.getMinutes()).padStart(2,'0');
   inter.moviles.forEach(m => {
@@ -3086,34 +3392,54 @@ function guardarFinalizacion(descargarPdf = true) {
 
   guardarDatos();
   cerrarModalFinalizar();
-  if (descargarPdf) generarPDF(id, true);
+  
+  if (descargarPdf) {
+    generarPDF(id, true);
+  }
+  
   mostrarToast('✓ Salida Finalizada', 'success');
 }
 
+// =====================
+// EDITAR INFORME EN HISTORIAL
+// =====================
 function abrirModalEditarInforme(idInter) {
   const inter = intervenciones.find(x => x.id === idInter);
   if (!inter) return;
-  if (!puedeEditarInforme(inter)) {
-      mostrarToast('⚠ Solo el Encargado o Chofer y encargado pueden editar este informe.', 'warning');
+
+  if (usuarioActual && !usuarioActual.isMaster) {
+    const soyEncargado = inter.moviles.some(m =>
+      m.personal.some(p => p.id === usuarioActual.personalId && (p.rol.toLowerCase() === 'encargado' || p.rol.toLowerCase() === 'chofer y encargado'))
+    );
+    if (!soyEncargado) {
+      mostrarToast('⚠ Solo el Encargado o Chofer y Encargado de esta intervención pueden editar su informe.', 'warning');
       return;
+    }
   }
+
   document.getElementById('edit-id-inter').value = idInter;
   document.getElementById('edit-informe').value = inter.informe || '';
   document.getElementById('modal-editar-informe').classList.add('visible');
 }
 
-function cerrarModalEditarInforme() { document.getElementById('modal-editar-informe').classList.remove('visible'); }
+function cerrarModalEditarInforme() {
+  document.getElementById('modal-editar-informe').classList.remove('visible');
+}
 
 function guardarEdicionInforme() {
   const id = parseInt(document.getElementById('edit-id-inter').value);
   const inter = intervenciones.find(x => x.id === id);
   if (!inter) return;
+
   inter.informe = document.getElementById('edit-informe').value.trim();
   guardarDatos();
   cerrarModalEditarInforme();
   mostrarToast('✓ Informe actualizado', 'success');
 }
 
+// =====================
+// GENERADOR PDF INDIVIDUAL (AJUSTADO PARA A4)
+// =====================
 function generarPDF(id, descargarAutomatico = false) {
   const i = intervenciones.find(x => x.id === id); 
   if (!i) return; 
@@ -3256,8 +3582,12 @@ function generarPDF(id, descargarAutomatico = false) {
   });
 }
 
+// =====================
+// GENERAR BACKUP GENERAL PDF
+// =====================
 function generarBackupPDF() {
   if(intervenciones.length === 0) return mostrarToast('⚠ No hay intervenciones para respaldar', 'warning');
+  
   mostrarToast('⌛ Generando PDF, por favor aguardá...', 'warning');
 
   let filas = intervenciones.map(i => {
@@ -3275,12 +3605,15 @@ function generarBackupPDF() {
 
   let htmlContent = `
     <div id="backup-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 800px; box-sizing: border-box;">
+      
       <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 20px;">
         <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 28px; color: #CC2200; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Bomberos Voluntarios Río Cuarto</h1>
         <div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px;">📍 Lamadrid 945, Río Cuarto, Córdoba</div>
         <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 10px; letter-spacing: 0.5px;">REGISTRO GENERAL DE SALIDAS E INTERVENCIONES</div>
       </div>
+      
       <p style="text-align: right; font-size: 12px; color: #666; margin-bottom: 15px;">Fecha y hora de respaldo: ${new Date().toLocaleString('es-AR')}</p>
+      
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #CBD5E1;">
         <thead>
           <tr style="background: #E2E8F0; color: #1E293B;">
@@ -3291,7 +3624,9 @@ function generarBackupPDF() {
             <th style="padding: 10px 8px; text-align: left; border: 1px solid #CBD5E1; font-weight: 700; text-transform: uppercase; font-size: 12px;">Estado</th>
           </tr>
         </thead>
-        <tbody>${filas}</tbody>
+        <tbody>
+          ${filas}
+        </tbody>
       </table>
     </div>
   `;
@@ -3300,8 +3635,10 @@ function generarBackupPDF() {
   const element = document.getElementById('backup-content');
 
   const opt = {
-    margin: [10, 10, 10, 10], filename: `Backup_Bomberos_${new Date().toISOString().slice(0,10)}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true },
+    margin: [10, 10, 10, 10],
+    filename: `Backup_Bomberos_${new Date().toISOString().slice(0,10)}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -3311,8 +3648,12 @@ function generarBackupPDF() {
   });
 }
 
+// =====================
+// EXCEL (SHEETJS)
+// =====================
 function aplanarIntervencionParaExcel(i) {
   const uniStrs = i.moviles.map(m => `${m.nombre} (Salió: ${m.horaSalida} | Llegó: ${m.horaLlegada || '-'} | Volvió: ${m.horaRegreso || '-'} | Autorizó: ${m.autorizador || i.autorizador || '-'})`).join(' /// ');
+  
   const perNombres = [];
   i.moviles.forEach(m => m.personal.forEach(pObj => {
     const p = personal.find(x=>x.id===pObj.id); 
@@ -3321,31 +3662,45 @@ function aplanarIntervencionParaExcel(i) {
   
   let clave11Nombres = '';
   if (i.clave11) {
-    clave11Nombres = i.clave11.map(pid => { const p = personal.find(x=>x.id===pid); return p ? p.nombre : ''; }).filter(Boolean).join(', ');
+    clave11Nombres = i.clave11.map(pid => {
+      const p = personal.find(x=>x.id===pid); return p ? p.nombre : '';
+    }).filter(Boolean).join(', ');
   }
 
   const esEmergencia = i.esEmergencia !== false;
+
   return {
-    "Nro Salida": i.id, "Clasificación": esEmergencia ? "EMERGENCIA" : "RUTINA / NO EMERGENCIA",
-    "Jurisdicción": esEmergencia ? (i.jurisdiccion || 'Local') : 'N/A', "Estado": i.estado.toUpperCase(),
-    "Tipo/Motivo": i.tipo, "Domicilio": esEmergencia ? i.domicilio : 'N/A', "Alarma/Registro": i.horaAlarma,
-    "Llamante": esEmergencia ? i.llamante : 'N/A', "Teléfono": esEmergencia ? i.telefono : 'N/A',
-    "Recibió Llamada": esEmergencia ? i.receptor : 'N/A', "Confeccionó": i.confeccionador,
-    "DNI Confeccionador": i.confeccionadorDni, "Unidades Despachadas": uniStrs,
-    "Dotación Móviles": perNombres.join(', '), "Personal Clave 11": clave11Nombres,
-    "Observaciones Iniciales": i.obs, "Informe Final": i.informe || ''
+    "Nro Salida": i.id,
+    "Clasificación": esEmergencia ? "EMERGENCIA" : "RUTINA / NO EMERGENCIA",
+    "Jurisdicción": esEmergencia ? (i.jurisdiccion || 'Local') : 'N/A',
+    "Estado": i.estado.toUpperCase(),
+    "Tipo/Motivo": i.tipo,
+    "Domicilio": esEmergencia ? i.domicilio : 'N/A',
+    "Alarma/Registro": i.horaAlarma,
+    "Llamante": esEmergencia ? i.llamante : 'N/A',
+    "Teléfono": esEmergencia ? i.telefono : 'N/A',
+    "Recibió Llamada": esEmergencia ? i.receptor : 'N/A',
+    "Confeccionó": i.confeccionador,
+    "DNI Confeccionador": i.confeccionadorDni,
+    "Unidades Despachadas": uniStrs,
+    "Dotación Móviles": perNombres.join(', '),
+    "Personal Clave 11": clave11Nombres,
+    "Observaciones Iniciales": i.obs,
+    "Informe Final": i.informe || ''
   };
 }
 
 function exportarExcelUna(id) {
   const i = intervenciones.find(x => x.id === id);
   if(!i) return;
-  descargarExcel([ aplanarIntervencionParaExcel(i) ], `Salida_${i.id}`);
+  const data = [ aplanarIntervencionParaExcel(i) ];
+  descargarExcel(data, `Salida_${i.id}`);
 }
 
 function exportarExcelGeneral() {
   if(intervenciones.length === 0) return mostrarToast('⚠ No hay datos para exportar', 'warning');
-  descargarExcel(intervenciones.map(aplanarIntervencionParaExcel), `Historial_Bomberos`);
+  const data = intervenciones.map(aplanarIntervencionParaExcel);
+  descargarExcel(data, `Historial_Bomberos`);
 }
 
 function descargarExcel(jsonArray, filename) {
@@ -3362,7 +3717,9 @@ function mostrarToast(msg, tipo = '') {
   setTimeout(() => t.classList.remove('visible'), 3000);
 }
 
+// Manejo de Auto Cierre
 let autoLogoutTimer = null;
+
 function programarCierreSesion() {
   const mins = prompt("¿En cuántos minutos querés que se cierre la sesión automáticamente?");
   if (mins !== null && !isNaN(mins) && mins > 0) {
@@ -3381,9 +3738,13 @@ function cerrarSesion() {
   mostrarToast('Sesión cerrada correctamente', 'success');
 }
 
+// =====================
+// INFORME DETALLADO DE VEHÍCULOS
+// =====================
 function descargarInformeVehiculo(id) {
   const m = moviles.find(x => x.id === id);
   if (!m) return;
+
   mostrarToast('⌛ Generando informe del móvil...', 'warning');
 
   const alarmasKmHtml = (m.alarmasKm || []).length > 0 
@@ -3404,6 +3765,7 @@ function descargarInformeVehiculo(id) {
 
   const htmlContent = `
     <div id="pdf-vehiculo-content" style="padding: 40px; font-family: 'Barlow', sans-serif; color: #000; background: #fff; width: 700px; box-sizing: border-box; margin: 0 auto;">
+      
       <div style="border-bottom: 3px solid #CC2200; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
         <div>
           <h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; color: #CC2200; text-transform: uppercase; font-weight: 800; line-height: 1;">Bomberos Voluntarios Río Cuarto</h1>
@@ -3414,16 +3776,71 @@ function descargarInformeVehiculo(id) {
           <div style="font-size: 11px; color: #64748B; font-weight: 600; margin-top: 6px;">Fecha: ${new Date().toLocaleDateString('es-AR')}</div>
         </div>
       </div>
+
       <div style="margin-bottom: 25px;">
         <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Datos Generales de la Unidad</div>
         <table style="width:100%; border-collapse:collapse; font-size:13px; border:1px solid #CBD5E1;">
-          <tr><td style="padding:8px; background:#F8FAFC; font-weight:700; width:30%; border:1px solid #CBD5E1;">IDENTIFICACIÓN:</td><td style="padding:8px; border:1px solid #CBD5E1; font-weight: 700; color: #1E293B;">${m.nombre}</td></tr>
-          <tr><td style="padding:8px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">KILOMETRAJE ACTUAL:</td><td style="padding:8px; border:1px solid #CBD5E1;">${m.km} km</td></tr>
+          <tr>
+            <td style="padding:8px; background:#F8FAFC; font-weight:700; width:30%; border:1px solid #CBD5E1;">IDENTIFICACIÓN:</td>
+            <td style="padding:8px; border:1px solid #CBD5E1; font-weight: 700; color: #1E293B;">${m.nombre}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; background:#F8FAFC; font-weight:700; border:1px solid #CBD5E1;">KILOMETRAJE ACTUAL:</td>
+            <td style="padding:8px; border:1px solid #CBD5E1;">${m.km} km</td>
+          </tr>
         </table>
       </div>
+
       <div style="margin-bottom: 25px;">
         <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Características Técnicas / Equipamiento</div>
         <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; line-height:1.6; background:#FAFAFA; white-space:pre-wrap;">${m.caracteristicas || 'Sin características técnicas cargadas en el sistema.'}</div>
       </div>
+
       <div style="margin-bottom: 25px;">
-        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Bar
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Ficha Diaria de Novedades (Firmadas)</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${fichasPdfHtml}</ul>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Alertas de Mantenimiento / Vencimientos</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Mecánica (Por Kilometraje)</h4>
+          <ul style="margin-top:0; margin-bottom:20px; padding-left:25px;">${alarmasKmHtml}</ul>
+          
+          <h4 style="margin-top:0; margin-bottom:10px; color:#1E293B; border-bottom: 1px dashed #CBD5E1; padding-bottom: 4px;">Documentación y Seguros (Por Fecha)</h4>
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${alarmasFechaHtml}</ul>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <div style="background:#F1F5F9; border-left:4px solid #CC2200; padding:6px 10px; font-family:'Barlow Condensed', sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:10px;">Historial de Mantenimiento / Arreglos</div>
+        <div style="border:1px solid #CBD5E1; padding:15px; font-size:13px; background:#FAFAFA;">
+          <ul style="margin-top:0; margin-bottom:0; padding-left:25px;">${historialHtml}</ul>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pdf-container').innerHTML = htmlContent;
+  const element = document.getElementById('pdf-vehiculo-content');
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `Informe_Movil_${m.nombre.split('—')[0].trim().replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.getElementById('pdf-container').innerHTML = '';
+    mostrarToast('✓ Informe descargado exitosamente', 'success');
+  });
+}
+
+// Iniciar con la pantalla oculta esperando Login
+</script>
+</body>
+</html>
