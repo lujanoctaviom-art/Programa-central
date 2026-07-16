@@ -489,8 +489,15 @@
 
 
     <div class="titulo-seccion">Administrar Personal</div>
-    <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Ordená a los bomberos usando las flechas o asignales el DNI correspondiente. También podés borrarlos definitivamente si fueron cargados por error.</p>
-    <div class="config-form" style="align-items: flex-end;">
+   <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:12px;">Ordená a los bomberos usando las flechas o asignales el DNI correspondiente. También podés borrarlos definitivamente si fueron cargados por error.</p>
+
+   <div style="margin-bottom: 20px;">
+     <button class="btn-sm btn-azul" style="padding: 10px 16px;" onclick="document.getElementById('file-import-personal').click()">
+       📥 Importar Personal desde Excel
+     </button>
+     <input type="file" id="file-import-personal" style="display:none" accept=".xlsx, .xls" onchange="importarPersonalExcel(event)">
+   </div>
+   <div class="config-form" style="align-items: flex-end;">
       <div class="form-grupo" style="flex:1; margin-bottom:0">
         <label>Apellido y Nombre</label>
         <input type="text" id="conf-per-nombre" placeholder="Ej: Pérez, Juan">
@@ -3841,6 +3848,107 @@ function descargarInformeVehiculo(id) {
 }
 
 // Iniciar con la pantalla oculta esperando Login
+
+// =====================
+// IMPORTAR PERSONAL DESDE EXCEL
+// =====================
+function importarPersonalExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  mostrarToast('⌛ Leyendo Excel...', 'warning');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+
+      if(json.length === 0) {
+        mostrarToast('⚠ El archivo Excel está vacío', 'warning');
+        event.target.value = '';
+        return;
+      }
+
+      let agregados = 0;
+      let duplicados = 0;
+
+      json.forEach(row => {
+        // Extraer y limpiar datos de las columnas del Excel
+        const nombre = (row['Nombre'] || '').toString().trim();
+        if (!nombre) return; 
+
+        const dni = (row['DNI'] || '').toString().trim().replace(/\./g, '');
+        const nombreRango = (row['Rango'] || '').toString().trim();
+        const esChoferStr = (row['Es Chofer'] || '').toString().toUpperCase().trim();
+        const colorExcel = (row['Color Monitor'] || '').toString().toUpperCase().trim();
+        const ordenFila = parseInt(row['Orden']);
+
+        // Filtro para evitar duplicar DNI existentes
+        if (dni && personal.some(p => p.dni === dni)) {
+           duplicados++;
+           return;
+        }
+
+        // Mapear el Rango
+        let rangoObj = rangos.find(r => r.nombre.toLowerCase() === nombreRango.toLowerCase());
+        let rangoId = rangoObj ? rangoObj.id : (rangos.length > 0 ? rangos[0].id : 1);
+
+        // Mapear el Color para la pantalla de guardia (TV)
+        let colorMonitor = '#f8fafc'; 
+        if (colorExcel === 'AMARILLO') colorMonitor = '#fbbf24';
+        else if (colorExcel === 'ROJO') colorMonitor = '#ef4444';
+        else if (colorExcel.startsWith('#')) colorMonitor = colorExcel.toLowerCase(); 
+
+        // Validar si es chofer
+        const esChofer = (esChoferStr === 'SI' || esChoferStr === 'TRUE' || esChoferStr === '1');
+
+        // Calcular ID único y el orden manual
+        const nuevoId = personal.length > 0 ? Math.max(...personal.map(p => p.id)) + 1 : 1;
+        const nuevoOrdenManual = personal.length > 0 ? Math.max(...personal.map(p => p.ordenManual)) + 1 : 1;
+
+        // Estructura idéntica a la que ya maneja tu sistema
+        personal.push({
+          id: nuevoId,
+          nombre: nombre,
+          rangoId: rangoId,
+          dni: dni,
+          ordenManual: !isNaN(ordenFila) ? ordenFila : nuevoOrdenManual,
+          activo: true,
+          presente: false,
+          asistencia: [],
+          credencialesIds: [],
+          vestuario: [],
+          colorMonitor: colorMonitor,
+          esChofer: esChofer
+        });
+        
+        agregados++;
+      });
+
+      if (agregados > 0) {
+        guardarDatos(); // Envía los datos actualizados a Firebase en tiempo real
+        renderConfiguracion(); // Actualiza la lista visible de configuración
+        let msj = `✓ Se importaron ${agregados} bomberos.`;
+        if (duplicados > 0) msj += ` (Se omitieron ${duplicados} por DNI duplicado).`;
+        mostrarToast(msj, 'success');
+      } else {
+        mostrarToast('⚠ No se agregó ningún bombero. Revisá el formato o si ya están cargados.', 'warning');
+      }
+
+    } catch(err) {
+      console.error(err);
+      mostrarToast('❌ Error al procesar el Excel. Asegurate de que tenga el formato correcto.', 'warning');
+    }
+    
+    event.target.value = ''; 
+  };
+  
+  reader.readAsArrayBuffer(file);
+}
 </script>
 </body>
 </html>
